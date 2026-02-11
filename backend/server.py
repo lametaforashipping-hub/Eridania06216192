@@ -31,7 +31,7 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
 
 # Create the main app
-app = FastAPI(title="Sistema de Lotería RD/USA - Banca Completa")
+app = FastAPI(title="Sistema de Lotería RD/USA - Banca Completa v3")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
@@ -53,11 +53,18 @@ class LotteryType(str, Enum):
     QUINIELA = "quiniela"
     PALE = "pale"
     TRIPLETA = "tripleta"
+    SUPER_PALE = "super_pale"
     LOTO = "loto"
     SUPER_KINO = "super_kino"
     PEGA3 = "pega3"
+    PEGA4 = "pega4"
     POWERBALL = "powerball"
     MEGA_MILLIONS = "mega_millions"
+    PICK3 = "pick3"
+    PICK4 = "pick4"
+    CASH4LIFE = "cash4life"
+    MEGACHANCE = "megachance"
+    QUINIELOTO = "quinieloto"
 
 class TicketStatus(str, Enum):
     PENDING = "pending"
@@ -75,6 +82,11 @@ class TransactionType(str, Enum):
     PAYMENT = "payment"
     CANCELLATION = "cancellation"
 
+class DrawPosition(str, Enum):
+    PRIMERA = "primera"
+    SEGUNDA = "segunda"
+    TERCERA = "tercera"
+
 # ==================== MODELS ====================
 class UserCreate(BaseModel):
     email: EmailStr
@@ -82,7 +94,7 @@ class UserCreate(BaseModel):
     name: str
     role: UserRole = UserRole.VENDEDOR
     credit_limit: float = 10000.0
-    commission_rate: float = 10.0  # Percentage of sales
+    commission_rate: float = 10.0
     currency: Currency = Currency.RD
 
 class UserLogin(BaseModel):
@@ -110,6 +122,11 @@ class UserUpdate(BaseModel):
     commission_rate: Optional[float] = None
     active: Optional[bool] = None
 
+class PrizeRule(BaseModel):
+    position: str  # primera, segunda, tercera, or "any"
+    matches: int
+    multiplier: float
+
 class LotteryCreate(BaseModel):
     name: str
     country: str
@@ -121,26 +138,10 @@ class LotteryCreate(BaseModel):
     currency: Currency = Currency.RD
     prize_multiplier: float = 70.0
     schedule: List[str] = ["12:00", "15:00", "21:00"]
-    closing_minutes_before: int = 15  # Minutes before draw to close betting
+    closing_minutes_before: int = 15
     active: bool = True
-
-class LotteryResponse(BaseModel):
-    id: str
-    name: str
-    country: str
-    lottery_type: LotteryType
-    min_number: int
-    max_number: int
-    numbers_to_pick: int
-    price: float
-    currency: Currency
-    prize_multiplier: float
-    schedule: List[str]
-    closing_minutes_before: int
-    active: bool
-    is_open: bool = True
-    next_draw_time: Optional[str] = None
-    created_at: datetime
+    prize_rules: Optional[List[Dict]] = None  # Position-based prizes
+    allows_combined: bool = False  # For combined pale/tripleta
 
 class LotteryUpdate(BaseModel):
     name: Optional[str] = None
@@ -149,6 +150,7 @@ class LotteryUpdate(BaseModel):
     schedule: Optional[List[str]] = None
     closing_minutes_before: Optional[int] = None
     active: Optional[bool] = None
+    prize_rules: Optional[List[Dict]] = None
 
 class TicketCreate(BaseModel):
     lottery_id: str
@@ -156,6 +158,8 @@ class TicketCreate(BaseModel):
     amount: float
     currency: Currency = Currency.RD
     customer_name: Optional[str] = None
+    position: Optional[str] = None  # For position-based bets: primera, segunda, tercera
+    is_combined: bool = False  # For combined pale across draws
 
 class TicketResponse(BaseModel):
     id: str
@@ -170,67 +174,30 @@ class TicketResponse(BaseModel):
     potential_win: float
     status: TicketStatus
     customer_name: Optional[str] = None
+    position: Optional[str] = None
+    is_combined: bool = False
     created_at: datetime
     draw_id: Optional[str] = None
     paid_at: Optional[datetime] = None
     cancelled_at: Optional[datetime] = None
 
+class FavoriteNumbers(BaseModel):
+    name: str
+    lottery_id: str
+    numbers: List[int]
+
 class DrawCreate(BaseModel):
     lottery_id: str
+    position: Optional[str] = None  # For position-based draws
 
-class DrawResponse(BaseModel):
-    id: str
-    lottery_id: str
-    lottery_name: str
-    winning_numbers: List[int]
-    draw_time: datetime
-    total_tickets: int
-    total_winners: int
-    total_paid: float
-    currency: Currency
-
-class TransactionResponse(BaseModel):
-    id: str
+class NotificationCreate(BaseModel):
     user_id: str
-    user_name: str
-    transaction_type: TransactionType
-    amount: float
-    currency: Currency
-    description: str
-    reference_id: Optional[str] = None
-    created_at: datetime
-
-class SellerReport(BaseModel):
-    seller_id: str
-    seller_name: str
-    total_sales: float
-    total_wins: float
-    total_commission: float
-    net_profit: float
-    tickets_sold: int
-    tickets_won: int
-    currency: str
-
-class MonitoringData(BaseModel):
-    user_id: str
-    user_name: str
-    role: str
-    today_sales: float
-    today_wins: float
-    today_profit: float
-    pending_tickets: int
-    active: bool
-    last_activity: Optional[datetime] = None
-
-class SystemSettings(BaseModel):
-    default_commission_rate: float = 10.0
-    default_closing_minutes: int = 15
-    allow_ticket_cancellation: bool = True
-    cancellation_time_limit_minutes: int = 5
+    title: str
+    message: str
+    type: str  # "draw_result", "winner", "system"
 
 # ==================== HELPERS ====================
 def serialize_doc(doc):
-    """Convert MongoDB document to JSON-serializable dict"""
     if doc is None:
         return None
     if isinstance(doc, list):
@@ -252,7 +219,6 @@ def serialize_doc(doc):
     return doc
 
 def generate_ticket_number():
-    """Generate unique ticket number"""
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     random_part = str(random.randint(1000, 9999))
     return f"TKT-{timestamp}-{random_part}"
@@ -292,21 +258,15 @@ def require_role(allowed_roles: List[UserRole]):
     return role_checker
 
 def check_lottery_open(lottery: dict) -> tuple:
-    """Check if lottery is open for betting"""
     now = datetime.utcnow()
-    current_time = now.strftime("%H:%M")
     closing_minutes = lottery.get("closing_minutes_before", 15)
-    
     schedule = lottery.get("schedule", [])
     is_open = True
     next_draw = None
     
     for draw_time in sorted(schedule):
-        # Parse draw time
         draw_hour, draw_minute = map(int, draw_time.split(":"))
         draw_datetime = now.replace(hour=draw_hour, minute=draw_minute, second=0, microsecond=0)
-        
-        # Calculate closing time
         closing_datetime = draw_datetime - timedelta(minutes=closing_minutes)
         
         if now < draw_datetime:
@@ -317,10 +277,39 @@ def check_lottery_open(lottery: dict) -> tuple:
     
     return is_open, next_draw
 
+def calculate_prize(ticket: dict, lottery: dict, winning_numbers: List[int], position: str = None) -> float:
+    """Calculate prize based on lottery rules and position"""
+    prize_rules = lottery.get("prize_rules", [])
+    ticket_numbers = ticket["numbers"]
+    ticket_position = ticket.get("position")
+    
+    # If lottery has position-based prizes
+    if prize_rules and position:
+        for rule in prize_rules:
+            if rule.get("position") == position or rule.get("position") == "any":
+                if ticket_numbers == winning_numbers:
+                    return ticket["amount"] * rule.get("multiplier", lottery["prize_multiplier"])
+    
+    # Standard prize calculation
+    if lottery["lottery_type"] in [LotteryType.QUINIELA.value, LotteryType.PEGA3.value, LotteryType.PEGA4.value]:
+        if ticket_numbers == winning_numbers:
+            # Check if ticket bet on specific position
+            if ticket_position and position:
+                if ticket_position == position:
+                    return ticket["amount"] * lottery["prize_multiplier"]
+            else:
+                return ticket["amount"] * lottery["prize_multiplier"]
+    else:
+        # For loto-style games
+        matches = len(set(ticket_numbers).intersection(set(winning_numbers)))
+        if matches == lottery["numbers_to_pick"]:
+            return ticket["amount"] * lottery["prize_multiplier"]
+    
+    return 0
+
 # ==================== AUTH ROUTES ====================
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate, current_user: dict = Depends(get_current_user)):
-    # Check permissions
     if current_user["role"] == UserRole.SUPER_ADMIN.value:
         if user_data.role not in [UserRole.ADMIN, UserRole.VENDEDOR]:
             raise HTTPException(status_code=400, detail="Super Admin solo puede crear Admin o Vendedor")
@@ -330,7 +319,6 @@ async def register(user_data: UserCreate, current_user: dict = Depends(get_curre
     else:
         raise HTTPException(status_code=403, detail="No tienes permisos para crear usuarios")
     
-    # Check if email exists
     existing = await db.users.find_one({"email": user_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email ya registrado")
@@ -350,7 +338,8 @@ async def register(user_data: UserCreate, current_user: dict = Depends(get_curre
         "active": True,
         "total_sales": 0.0,
         "total_commission": 0.0,
-        "last_activity": datetime.utcnow()
+        "last_activity": datetime.utcnow(),
+        "notification_token": None
     }
     await db.users.insert_one(user)
     return {"message": "Usuario creado exitosamente", "user_id": user["id"]}
@@ -363,7 +352,6 @@ async def login(credentials: UserLogin):
     if not user.get("active", True):
         raise HTTPException(status_code=401, detail="Usuario desactivado")
     
-    # Update last activity
     await db.users.update_one({"id": user["id"]}, {"$set": {"last_activity": datetime.utcnow()}})
     
     token = create_token(user["id"], user["role"])
@@ -397,54 +385,21 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     }
 
 # ==================== USER MANAGEMENT ====================
-@api_router.get("/users", response_model=List[UserResponse])
+@api_router.get("/users")
 async def get_users(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
     query = {}
     if current_user["role"] == UserRole.ADMIN.value:
         query["created_by"] = current_user["id"]
     
     users = await db.users.find(query).to_list(1000)
-    return [UserResponse(
-        id=u["id"],
-        email=u["email"],
-        name=u["name"],
-        role=u["role"],
-        credit_limit=u["credit_limit"],
-        balance=u["balance"],
-        commission_rate=u.get("commission_rate", 10.0),
-        currency=u["currency"],
-        created_by=u.get("created_by"),
-        created_at=u["created_at"],
-        active=u.get("active", True),
-        total_sales=u.get("total_sales", 0.0),
-        total_commission=u.get("total_commission", 0.0)
-    ) for u in users]
+    return serialize_doc(users)
 
 @api_router.get("/users/{user_id}")
 async def get_user(user_id: str, current_user: dict = Depends(get_current_user)):
     user = await db.users.find_one({"id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    # Check permissions
-    if current_user["role"] == UserRole.VENDEDOR.value and current_user["id"] != user_id:
-        raise HTTPException(status_code=403, detail="No tienes permisos")
-    
-    return UserResponse(
-        id=user["id"],
-        email=user["email"],
-        name=user["name"],
-        role=user["role"],
-        credit_limit=user["credit_limit"],
-        balance=user["balance"],
-        commission_rate=user.get("commission_rate", 10.0),
-        currency=user["currency"],
-        created_by=user.get("created_by"),
-        created_at=user["created_at"],
-        active=user.get("active", True),
-        total_sales=user.get("total_sales", 0.0),
-        total_commission=user.get("total_commission", 0.0)
-    )
+    return serialize_doc(user)
 
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, update: UserUpdate, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
@@ -470,7 +425,6 @@ async def deposit_balance(user_id: str, amount: float = Query(...), current_user
     new_balance = user["balance"] + amount
     await db.users.update_one({"id": user_id}, {"$set": {"balance": new_balance}})
     
-    # Record transaction
     transaction = {
         "id": str(uuid.uuid4()),
         "user_id": user_id,
@@ -484,6 +438,55 @@ async def deposit_balance(user_id: str, amount: float = Query(...), current_user
     await db.transactions.insert_one(transaction)
     
     return {"message": "Depósito realizado", "new_balance": new_balance}
+
+@api_router.post("/users/{user_id}/notification-token")
+async def update_notification_token(user_id: str, token: str, current_user: dict = Depends(get_current_user)):
+    """Update user's push notification token"""
+    await db.users.update_one({"id": user_id}, {"$set": {"notification_token": token}})
+    return {"message": "Token actualizado"}
+
+# ==================== FAVORITE NUMBERS ====================
+@api_router.post("/favorites")
+async def add_favorite(favorite: FavoriteNumbers, current_user: dict = Depends(get_current_user)):
+    """Add favorite numbers combination"""
+    fav_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user["id"],
+        "name": favorite.name,
+        "lottery_id": favorite.lottery_id,
+        "numbers": favorite.numbers,
+        "created_at": datetime.utcnow(),
+        "use_count": 0
+    }
+    await db.favorites.insert_one(fav_doc)
+    return {"message": "Favorito guardado", "id": fav_doc["id"]}
+
+@api_router.get("/favorites")
+async def get_favorites(lottery_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Get user's favorite numbers"""
+    query = {"user_id": current_user["id"]}
+    if lottery_id:
+        query["lottery_id"] = lottery_id
+    
+    favorites = await db.favorites.find(query).sort("use_count", -1).to_list(100)
+    return serialize_doc(favorites)
+
+@api_router.delete("/favorites/{favorite_id}")
+async def delete_favorite(favorite_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a favorite"""
+    result = await db.favorites.delete_one({"id": favorite_id, "user_id": current_user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Favorito no encontrado")
+    return {"message": "Favorito eliminado"}
+
+@api_router.post("/favorites/{favorite_id}/use")
+async def use_favorite(favorite_id: str, current_user: dict = Depends(get_current_user)):
+    """Increment use count for a favorite"""
+    await db.favorites.update_one(
+        {"id": favorite_id, "user_id": current_user["id"]},
+        {"$inc": {"use_count": 1}}
+    )
+    return {"message": "Uso registrado"}
 
 # ==================== LOTTERY MANAGEMENT ====================
 @api_router.post("/lotteries")
@@ -502,36 +505,30 @@ async def create_lottery(lottery: LotteryCreate, current_user: dict = Depends(re
         "schedule": lottery.schedule,
         "closing_minutes_before": lottery.closing_minutes_before,
         "active": lottery.active,
+        "prize_rules": lottery.prize_rules or [],
+        "allows_combined": lottery.allows_combined,
         "created_at": datetime.utcnow()
     }
     await db.lotteries.insert_one(lottery_doc)
     return {"message": "Lotería creada", "lottery_id": lottery_doc["id"]}
 
 @api_router.get("/lotteries")
-async def get_lotteries(active_only: bool = True):
-    query = {"active": True} if active_only else {}
+async def get_lotteries(active_only: bool = True, country: Optional[str] = None):
+    query = {}
+    if active_only:
+        query["active"] = True
+    if country:
+        query["country"] = country
+    
     lotteries = await db.lotteries.find(query).to_list(100)
     
     result = []
     for l in lotteries:
         is_open, next_draw = check_lottery_open(l)
         result.append({
-            "id": l["id"],
-            "name": l["name"],
-            "country": l["country"],
-            "lottery_type": l["lottery_type"],
-            "min_number": l["min_number"],
-            "max_number": l["max_number"],
-            "numbers_to_pick": l["numbers_to_pick"],
-            "price": l["price"],
-            "currency": l["currency"],
-            "prize_multiplier": l["prize_multiplier"],
-            "schedule": l["schedule"],
-            "closing_minutes_before": l.get("closing_minutes_before", 15),
-            "active": l["active"],
+            **serialize_doc(l),
             "is_open": is_open,
-            "next_draw_time": next_draw,
-            "created_at": l["created_at"]
+            "next_draw_time": next_draw
         })
     
     return result
@@ -543,9 +540,7 @@ async def get_lottery(lottery_id: str):
         raise HTTPException(status_code=404, detail="Lotería no encontrada")
     
     is_open, next_draw = check_lottery_open(lottery)
-    lottery["is_open"] = is_open
-    lottery["next_draw_time"] = next_draw
-    return serialize_doc(lottery)
+    return {**serialize_doc(lottery), "is_open": is_open, "next_draw_time": next_draw}
 
 @api_router.put("/lotteries/{lottery_id}")
 async def update_lottery(lottery_id: str, update: LotteryUpdate, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
@@ -557,19 +552,16 @@ async def update_lottery(lottery_id: str, update: LotteryUpdate, current_user: d
 # ==================== TICKET SALES ====================
 @api_router.post("/tickets")
 async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_current_user)):
-    # Get lottery
     lottery = await db.lotteries.find_one({"id": ticket.lottery_id})
     if not lottery:
         raise HTTPException(status_code=404, detail="Lotería no encontrada")
     if not lottery.get("active", True):
         raise HTTPException(status_code=400, detail="Lotería no activa")
     
-    # Check if lottery is open
     is_open, next_draw = check_lottery_open(lottery)
     if not is_open:
         raise HTTPException(status_code=400, detail=f"La lotería está cerrada. Próximo sorteo: {next_draw}")
     
-    # Validate numbers
     for num in ticket.numbers:
         if num < lottery["min_number"] or num > lottery["max_number"]:
             raise HTTPException(status_code=400, detail=f"Número {num} fuera de rango")
@@ -577,7 +569,7 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     if len(ticket.numbers) != lottery["numbers_to_pick"]:
         raise HTTPException(status_code=400, detail=f"Debe seleccionar {lottery['numbers_to_pick']} números")
     
-    # Check credit limit for vendedores
+    # Check credit limit
     if current_user["role"] == UserRole.VENDEDOR.value:
         today_sales = await db.tickets.aggregate([
             {"$match": {
@@ -592,7 +584,13 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
         if current_sales + ticket.amount > current_user["credit_limit"]:
             raise HTTPException(status_code=400, detail="Límite de crédito excedido")
     
+    # Calculate potential win based on position if applicable
     potential_win = ticket.amount * lottery["prize_multiplier"]
+    if ticket.position and lottery.get("prize_rules"):
+        for rule in lottery["prize_rules"]:
+            if rule.get("position") == ticket.position:
+                potential_win = ticket.amount * rule.get("multiplier", lottery["prize_multiplier"])
+                break
     
     ticket_doc = {
         "id": str(uuid.uuid4()),
@@ -607,6 +605,8 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
         "potential_win": potential_win,
         "status": TicketStatus.PENDING.value,
         "customer_name": ticket.customer_name,
+        "position": ticket.position,
+        "is_combined": ticket.is_combined,
         "created_at": datetime.utcnow(),
         "draw_id": None,
         "paid_at": None,
@@ -614,26 +614,20 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     }
     await db.tickets.insert_one(ticket_doc)
     
-    # Update seller stats
-    await db.users.update_one(
-        {"id": current_user["id"]},
-        {
-            "$inc": {"total_sales": ticket.amount},
-            "$set": {"last_activity": datetime.utcnow()}
-        }
-    )
-    
-    # Calculate and record commission
+    # Update seller stats and commission
     commission_rate = current_user.get("commission_rate", 10.0)
     commission = ticket.amount * (commission_rate / 100)
     
     await db.users.update_one(
         {"id": current_user["id"]},
-        {"$inc": {"total_commission": commission, "balance": commission}}
+        {
+            "$inc": {"total_sales": ticket.amount, "total_commission": commission, "balance": commission},
+            "$set": {"last_activity": datetime.utcnow()}
+        }
     )
     
-    # Record sale transaction
-    sale_transaction = {
+    # Record transactions
+    await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
         "user_id": current_user["id"],
         "user_name": current_user["name"],
@@ -643,11 +637,9 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
         "description": f"Venta de boleto {lottery['name']} - {ticket.numbers}",
         "reference_id": ticket_doc["id"],
         "created_at": datetime.utcnow()
-    }
-    await db.transactions.insert_one(sale_transaction)
+    })
     
-    # Record commission transaction
-    commission_transaction = {
+    await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
         "user_id": current_user["id"],
         "user_name": current_user["name"],
@@ -657,13 +649,9 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
         "description": f"Comisión {commission_rate}% de venta {ticket_doc['ticket_number']}",
         "reference_id": ticket_doc["id"],
         "created_at": datetime.utcnow()
-    }
-    await db.transactions.insert_one(commission_transaction)
+    })
     
-    return {
-        **ticket_doc,
-        "commission_earned": commission
-    }
+    return {**serialize_doc(ticket_doc), "commission_earned": commission}
 
 @api_router.get("/tickets")
 async def get_tickets(
@@ -674,7 +662,6 @@ async def get_tickets(
 ):
     query = {}
     
-    # Filter by role
     if current_user["role"] == UserRole.VENDEDOR.value:
         query["seller_id"] = current_user["id"]
     elif current_user["role"] == UserRole.ADMIN.value:
@@ -682,7 +669,6 @@ async def get_tickets(
         vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
         query["seller_id"] = {"$in": vendor_ids}
     
-    # Additional filters
     if seller_id and current_user["role"] in [UserRole.SUPER_ADMIN.value, UserRole.ADMIN.value]:
         query["seller_id"] = seller_id
     if status:
@@ -725,39 +711,28 @@ async def cancel_ticket(ticket_id: str, current_user: dict = Depends(get_current
     if ticket["status"] != TicketStatus.PENDING.value:
         raise HTTPException(status_code=400, detail="Solo se pueden cancelar boletos pendientes")
     
-    # Check cancellation time limit (5 minutes)
     time_diff = datetime.utcnow() - ticket["created_at"]
-    if time_diff.total_seconds() > 300:  # 5 minutes
+    if time_diff.total_seconds() > 300:
         raise HTTPException(status_code=400, detail="Tiempo de cancelación expirado (máximo 5 minutos)")
     
-    # Check permissions
     if current_user["role"] == UserRole.VENDEDOR.value and ticket["seller_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="No puedes cancelar este boleto")
     
-    # Update ticket status
     await db.tickets.update_one(
         {"id": ticket_id},
         {"$set": {"status": TicketStatus.CANCELLED.value, "cancelled_at": datetime.utcnow()}}
     )
     
-    # Reverse commission
     seller = await db.users.find_one({"id": ticket["seller_id"]})
     commission_rate = seller.get("commission_rate", 10.0)
     commission = ticket["amount"] * (commission_rate / 100)
     
     await db.users.update_one(
         {"id": ticket["seller_id"]},
-        {
-            "$inc": {
-                "total_sales": -ticket["amount"],
-                "total_commission": -commission,
-                "balance": -commission
-            }
-        }
+        {"$inc": {"total_sales": -ticket["amount"], "total_commission": -commission, "balance": -commission}}
     )
     
-    # Record cancellation transaction
-    cancellation_transaction = {
+    await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
         "user_id": ticket["seller_id"],
         "user_name": ticket["seller_name"],
@@ -767,8 +742,7 @@ async def cancel_ticket(ticket_id: str, current_user: dict = Depends(get_current
         "description": f"Cancelación de boleto {ticket['ticket_number']}",
         "reference_id": ticket_id,
         "created_at": datetime.utcnow()
-    }
-    await db.transactions.insert_one(cancellation_transaction)
+    })
     
     return {"message": "Boleto cancelado", "ticket_number": ticket["ticket_number"]}
 
@@ -781,14 +755,12 @@ async def pay_winning_ticket(ticket_id: str, current_user: dict = Depends(requir
     if ticket["status"] != TicketStatus.WON.value:
         raise HTTPException(status_code=400, detail="Este boleto no es ganador o ya fue pagado")
     
-    # Update ticket status
     await db.tickets.update_one(
         {"id": ticket_id},
         {"$set": {"status": TicketStatus.PAID.value, "paid_at": datetime.utcnow()}}
     )
     
-    # Record payment transaction
-    payment_transaction = {
+    await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
         "user_id": current_user["id"],
         "user_name": current_user["name"],
@@ -798,8 +770,7 @@ async def pay_winning_ticket(ticket_id: str, current_user: dict = Depends(requir
         "description": f"Pago de premio {ticket['ticket_number']} - {ticket['lottery_name']}",
         "reference_id": ticket_id,
         "created_at": datetime.utcnow()
-    }
-    await db.transactions.insert_one(payment_transaction)
+    })
     
     return {
         "message": "Premio pagado",
@@ -815,7 +786,6 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
     if not lottery:
         raise HTTPException(status_code=404, detail="Lotería no encontrada")
     
-    # Generate winning numbers
     winning_numbers = random.sample(
         range(lottery["min_number"], lottery["max_number"] + 1),
         lottery["numbers_to_pick"]
@@ -827,6 +797,7 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
         "lottery_id": lottery["id"],
         "lottery_name": lottery["name"],
         "winning_numbers": winning_numbers,
+        "position": draw_data.position,
         "draw_time": datetime.utcnow(),
         "total_tickets": 0,
         "total_winners": 0,
@@ -834,47 +805,55 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
         "currency": lottery["currency"]
     }
     
-    # Find pending tickets for this lottery
-    pending_tickets = await db.tickets.find({
+    # Find pending tickets
+    ticket_query = {
         "lottery_id": lottery["id"],
         "status": TicketStatus.PENDING.value
-    }).to_list(10000)
+    }
+    
+    # If position-based draw, only check tickets for that position or no position
+    if draw_data.position:
+        ticket_query["$or"] = [
+            {"position": draw_data.position},
+            {"position": None},
+            {"position": {"$exists": False}}
+        ]
+    
+    pending_tickets = await db.tickets.find(ticket_query).to_list(10000)
     
     total_winners = 0
     total_paid = 0.0
+    winner_notifications = []
     
     for ticket in pending_tickets:
-        ticket_numbers = set(ticket["numbers"])
-        winning_set = set(winning_numbers)
+        prize = calculate_prize(ticket, lottery, winning_numbers, draw_data.position)
         
-        # Check if ticket wins
-        if lottery["lottery_type"] in [LotteryType.QUINIELA.value, LotteryType.PEGA3.value]:
-            is_winner = ticket["numbers"] == winning_numbers
-        else:
-            matches = len(ticket_numbers.intersection(winning_set))
-            is_winner = matches == lottery["numbers_to_pick"]
-        
-        if is_winner:
+        if prize > 0:
             await db.tickets.update_one(
                 {"id": ticket["id"]},
-                {"$set": {"status": TicketStatus.WON.value, "draw_id": draw["id"]}}
+                {"$set": {"status": TicketStatus.WON.value, "draw_id": draw["id"], "potential_win": prize}}
             )
             total_winners += 1
-            total_paid += ticket["potential_win"]
+            total_paid += prize
             
-            # Record win transaction
-            win_transaction = {
+            await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
                 "user_id": ticket["seller_id"],
                 "user_name": ticket["seller_name"],
                 "transaction_type": TransactionType.WIN.value,
-                "amount": ticket["potential_win"],
+                "amount": prize,
                 "currency": ticket["currency"],
                 "description": f"Premio ganado - {lottery['name']} - {ticket['numbers']}",
                 "reference_id": ticket["id"],
                 "created_at": datetime.utcnow()
-            }
-            await db.transactions.insert_one(win_transaction)
+            })
+            
+            # Add to notification list
+            winner_notifications.append({
+                "user_id": ticket["seller_id"],
+                "ticket_number": ticket["ticket_number"],
+                "prize": prize
+            })
         else:
             await db.tickets.update_one(
                 {"id": ticket["id"]},
@@ -891,12 +870,23 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
     for num in winning_numbers:
         await db.number_stats.update_one(
             {"lottery_id": lottery["id"], "number": num},
-            {
-                "$inc": {"frequency": 1},
-                "$set": {"last_drawn": datetime.utcnow()}
-            },
+            {"$inc": {"frequency": 1}, "$set": {"last_drawn": datetime.utcnow()}},
             upsert=True
         )
+    
+    # Create notifications for draw result
+    notification = {
+        "id": str(uuid.uuid4()),
+        "type": "draw_result",
+        "lottery_id": lottery["id"],
+        "lottery_name": lottery["name"],
+        "winning_numbers": winning_numbers,
+        "position": draw_data.position,
+        "total_winners": total_winners,
+        "created_at": datetime.utcnow(),
+        "read_by": []
+    }
+    await db.notifications.insert_one(notification)
     
     return serialize_doc(draw)
 
@@ -915,6 +905,35 @@ async def get_draw(draw_id: str):
     if not draw:
         raise HTTPException(status_code=404, detail="Sorteo no encontrado")
     return serialize_doc(draw)
+
+# ==================== NOTIFICATIONS ====================
+@api_router.get("/notifications")
+async def get_notifications(limit: int = 50, current_user: dict = Depends(get_current_user)):
+    """Get recent notifications"""
+    notifications = await db.notifications.find({}).sort("created_at", -1).to_list(limit)
+    
+    # Mark which ones user has read
+    for n in notifications:
+        n["is_read"] = current_user["id"] in n.get("read_by", [])
+    
+    return serialize_doc(notifications)
+
+@api_router.post("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark notification as read"""
+    await db.notifications.update_one(
+        {"id": notification_id},
+        {"$addToSet": {"read_by": current_user["id"]}}
+    )
+    return {"message": "Notificación marcada como leída"}
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_count(current_user: dict = Depends(get_current_user)):
+    """Get count of unread notifications"""
+    count = await db.notifications.count_documents({
+        "read_by": {"$ne": current_user["id"]}
+    })
+    return {"unread_count": count}
 
 # ==================== STATISTICS ====================
 @api_router.get("/stats/numbers/{lottery_id}")
@@ -950,10 +969,8 @@ async def get_number_stats(lottery_id: str):
 # ==================== MONITORING ====================
 @api_router.get("/monitoring/live")
 async def get_live_monitoring(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
-    """Get real-time monitoring data for all sellers"""
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Get users based on role
     if current_user["role"] == UserRole.SUPER_ADMIN.value:
         users = await db.users.find({"role": {"$in": [UserRole.ADMIN.value, UserRole.VENDEDOR.value]}}).to_list(1000)
     else:
@@ -962,7 +979,6 @@ async def get_live_monitoring(current_user: dict = Depends(require_role([UserRol
     monitoring_data = []
     
     for user in users:
-        # Get today's tickets
         tickets = await db.tickets.find({
             "seller_id": user["id"],
             "created_at": {"$gte": today_start}
@@ -987,10 +1003,8 @@ async def get_live_monitoring(current_user: dict = Depends(require_role([UserRol
             "balance": user.get("balance", 0)
         })
     
-    # Sort by sales descending
     monitoring_data.sort(key=lambda x: x["today_sales"], reverse=True)
     
-    # Get totals
     total_sales = sum(m["today_sales"] for m in monitoring_data)
     total_wins = sum(m["today_wins"] for m in monitoring_data)
     total_pending = sum(m["pending_tickets"] for m in monitoring_data)
@@ -1012,7 +1026,6 @@ async def get_tickets_monitoring(
     lottery_id: Optional[str] = None,
     current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
 ):
-    """Get real-time ticket monitoring"""
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
     query = {"created_at": {"$gte": today_start}}
@@ -1028,7 +1041,6 @@ async def get_tickets_monitoring(
         query["lottery_id"] = lottery_id
     
     tickets = await db.tickets.find(query).sort("created_at", -1).to_list(500)
-    
     return serialize_doc(tickets)
 
 # ==================== ACCOUNTING ====================
@@ -1049,7 +1061,6 @@ async def get_accounting_report(
     else:
         end = datetime.fromisoformat(end_date)
     
-    # Build query based on role
     user_filter = {}
     if current_user["role"] == UserRole.VENDEDOR.value:
         user_filter["user_id"] = current_user["id"]
@@ -1061,11 +1072,7 @@ async def get_accounting_report(
     if user_id and current_user["role"] in [UserRole.SUPER_ADMIN.value, UserRole.ADMIN.value]:
         user_filter["user_id"] = user_id
     
-    # Get transactions
-    query = {
-        **user_filter,
-        "created_at": {"$gte": start, "$lte": end}
-    }
+    query = {**user_filter, "created_at": {"$gte": start, "$lte": end}}
     
     transactions = await db.transactions.find(query).sort("created_at", -1).to_list(10000)
     
@@ -1074,10 +1081,7 @@ async def get_accounting_report(
     total_commission = sum(t["amount"] for t in transactions if t["transaction_type"] == TransactionType.COMMISSION.value)
     total_payments = sum(t["amount"] for t in transactions if t["transaction_type"] == TransactionType.PAYMENT.value)
     
-    # Count tickets
-    ticket_query = {
-        "created_at": {"$gte": start, "$lte": end}
-    }
+    ticket_query = {"created_at": {"$gte": start, "$lte": end}}
     if current_user["role"] == UserRole.VENDEDOR.value:
         ticket_query["seller_id"] = current_user["id"]
     elif current_user["role"] == UserRole.ADMIN.value:
@@ -1090,15 +1094,13 @@ async def get_accounting_report(
     tickets_won = len([t for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value]])
     tickets_cancelled = len([t for t in tickets if t["status"] == TicketStatus.CANCELLED.value])
     
-    net_profit = total_sales - total_wins
-    
     return {
         "period": f"{start.date()} - {end.date()}",
         "total_sales": total_sales,
         "total_wins": total_wins,
         "total_commission": total_commission,
         "total_payments": total_payments,
-        "net_profit": net_profit,
+        "net_profit": total_sales - total_wins,
         "currency": current_user["currency"],
         "tickets_sold": tickets_sold,
         "tickets_won": tickets_won,
@@ -1120,40 +1122,22 @@ async def get_accounting_summary(current_user: dict = Depends(get_current_user))
         vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
         user_filter["seller_id"] = {"$in": vendor_ids}
     
-    # Today stats
     today_tickets = await db.tickets.find({**user_filter, "created_at": {"$gte": today}}).to_list(10000)
     today_sales = sum(t["amount"] for t in today_tickets if t["status"] != TicketStatus.CANCELLED.value)
     today_wins = sum(t["potential_win"] for t in today_tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
-    # Week stats
     week_tickets = await db.tickets.find({**user_filter, "created_at": {"$gte": week_ago}}).to_list(10000)
     week_sales = sum(t["amount"] for t in week_tickets if t["status"] != TicketStatus.CANCELLED.value)
     week_wins = sum(t["potential_win"] for t in week_tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
-    # Month stats
     month_tickets = await db.tickets.find({**user_filter, "created_at": {"$gte": month_ago}}).to_list(10000)
     month_sales = sum(t["amount"] for t in month_tickets if t["status"] != TicketStatus.CANCELLED.value)
     month_wins = sum(t["potential_win"] for t in month_tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
     return {
-        "today": {
-            "sales": today_sales,
-            "wins": today_wins,
-            "profit": today_sales - today_wins,
-            "tickets": len([t for t in today_tickets if t["status"] != TicketStatus.CANCELLED.value])
-        },
-        "week": {
-            "sales": week_sales,
-            "wins": week_wins,
-            "profit": week_sales - week_wins,
-            "tickets": len([t for t in week_tickets if t["status"] != TicketStatus.CANCELLED.value])
-        },
-        "month": {
-            "sales": month_sales,
-            "wins": month_wins,
-            "profit": month_sales - month_wins,
-            "tickets": len([t for t in month_tickets if t["status"] != TicketStatus.CANCELLED.value])
-        },
+        "today": {"sales": today_sales, "wins": today_wins, "profit": today_sales - today_wins, "tickets": len([t for t in today_tickets if t["status"] != TicketStatus.CANCELLED.value])},
+        "week": {"sales": week_sales, "wins": week_wins, "profit": week_sales - week_wins, "tickets": len([t for t in week_tickets if t["status"] != TicketStatus.CANCELLED.value])},
+        "month": {"sales": month_sales, "wins": month_wins, "profit": month_sales - month_wins, "tickets": len([t for t in month_tickets if t["status"] != TicketStatus.CANCELLED.value])},
         "currency": current_user["currency"]
     }
 
@@ -1163,7 +1147,6 @@ async def get_sellers_report(
     end_date: Optional[str] = None,
     current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
 ):
-    """Get detailed report by seller"""
     if not start_date:
         start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     else:
@@ -1174,7 +1157,6 @@ async def get_sellers_report(
     else:
         end = datetime.fromisoformat(end_date)
     
-    # Get sellers
     if current_user["role"] == UserRole.SUPER_ADMIN.value:
         sellers = await db.users.find({"role": UserRole.VENDEDOR.value}).to_list(1000)
     else:
@@ -1209,31 +1191,21 @@ async def get_sellers_report(
             "currency": seller["currency"]
         })
     
-    # Sort by sales
     reports.sort(key=lambda x: x["total_sales"], reverse=True)
-    
-    # Totals
-    total_all_sales = sum(r["total_sales"] for r in reports)
-    total_all_wins = sum(r["total_wins"] for r in reports)
-    total_all_commission = sum(r["total_commission"] for r in reports)
     
     return {
         "period": f"{start.date()} - {end.date()}",
         "sellers": reports,
         "totals": {
-            "total_sales": total_all_sales,
-            "total_wins": total_all_wins,
-            "total_commission": total_all_commission,
-            "net_profit": total_all_sales - total_all_wins
+            "total_sales": sum(r["total_sales"] for r in reports),
+            "total_wins": sum(r["total_wins"] for r in reports),
+            "total_commission": sum(r["total_commission"] for r in reports),
+            "net_profit": sum(r["net_profit"] for r in reports)
         }
     }
 
 @api_router.get("/accounting/daily-chart")
-async def get_daily_chart_data(
-    days: int = 7,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get daily sales/wins data for charts"""
+async def get_daily_chart_data(days: int = 7, current_user: dict = Depends(get_current_user)):
     data = []
     
     user_filter = {}
@@ -1269,7 +1241,6 @@ async def get_daily_chart_data(
 # ==================== INITIALIZATION ====================
 @api_router.post("/init/super-admin")
 async def init_super_admin():
-    """Create initial super admin if none exists"""
     existing = await db.users.find_one({"role": UserRole.SUPER_ADMIN.value})
     if existing:
         return {"message": "Super Admin ya existe", "email": existing["email"]}
@@ -1292,120 +1263,110 @@ async def init_super_admin():
     }
     await db.users.insert_one(super_admin)
     
-    # Create default lotteries
+    # Create ALL lotteries - RD and USA
     default_lotteries = [
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Quiniela Nacional",
-            "country": "RD",
-            "lottery_type": LotteryType.QUINIELA.value,
-            "min_number": 0,
-            "max_number": 99,
-            "numbers_to_pick": 1,
-            "price": 20.0,
-            "currency": Currency.RD.value,
-            "prize_multiplier": 70.0,
-            "schedule": ["12:30", "14:30", "18:00", "21:00"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Pale Nacional",
-            "country": "RD",
-            "lottery_type": LotteryType.PALE.value,
-            "min_number": 0,
-            "max_number": 99,
-            "numbers_to_pick": 2,
-            "price": 20.0,
-            "currency": Currency.RD.value,
-            "prize_multiplier": 1000.0,
-            "schedule": ["12:30", "14:30", "18:00", "21:00"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Tripleta Nacional",
-            "country": "RD",
-            "lottery_type": LotteryType.TRIPLETA.value,
-            "min_number": 0,
-            "max_number": 99,
-            "numbers_to_pick": 3,
-            "price": 20.0,
-            "currency": Currency.RD.value,
-            "prize_multiplier": 50000.0,
-            "schedule": ["12:30", "14:30", "18:00", "21:00"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Loto Leidsa",
-            "country": "RD",
-            "lottery_type": LotteryType.LOTO.value,
-            "min_number": 1,
-            "max_number": 38,
-            "numbers_to_pick": 6,
-            "price": 50.0,
-            "currency": Currency.RD.value,
-            "prize_multiplier": 100000.0,
-            "schedule": ["20:55"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Pega 3",
-            "country": "RD",
-            "lottery_type": LotteryType.PEGA3.value,
-            "min_number": 0,
-            "max_number": 9,
-            "numbers_to_pick": 3,
-            "price": 25.0,
-            "currency": Currency.RD.value,
-            "prize_multiplier": 500.0,
-            "schedule": ["12:55", "15:00", "21:00"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Powerball USA",
-            "country": "USA",
-            "lottery_type": LotteryType.POWERBALL.value,
-            "min_number": 1,
-            "max_number": 69,
-            "numbers_to_pick": 5,
-            "price": 2.0,
-            "currency": Currency.USD.value,
-            "prize_multiplier": 1000000.0,
-            "schedule": ["22:59"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "name": "Mega Millions USA",
-            "country": "USA",
-            "lottery_type": LotteryType.MEGA_MILLIONS.value,
-            "min_number": 1,
-            "max_number": 70,
-            "numbers_to_pick": 5,
-            "price": 2.0,
-            "currency": Currency.USD.value,
-            "prize_multiplier": 1000000.0,
-            "schedule": ["23:00"],
-            "closing_minutes_before": 15,
-            "active": True,
-            "created_at": datetime.utcnow()
-        }
+        # República Dominicana - Lotería Nacional
+        {"id": str(uuid.uuid4()), "name": "Quiniela Nacional", "country": "RD", "lottery_type": LotteryType.QUINIELA.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 70.0, "schedule": ["12:30", "14:30", "18:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "allows_combined": False,
+         "prize_rules": [
+             {"position": "primera", "matches": 1, "multiplier": 70},
+             {"position": "segunda", "matches": 1, "multiplier": 20},
+             {"position": "tercera", "matches": 1, "multiplier": 10}
+         ],
+         "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Pale Nacional", "country": "RD", "lottery_type": LotteryType.PALE.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 2, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 1000.0, "schedule": ["12:30", "14:30", "18:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "allows_combined": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Tripleta Nacional", "country": "RD", "lottery_type": LotteryType.TRIPLETA.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 3, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 50000.0, "schedule": ["12:30", "14:30", "18:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "allows_combined": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Super Pale", "country": "RD", "lottery_type": LotteryType.SUPER_PALE.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 2, "price": 25.0, "currency": Currency.RD.value,
+         "prize_multiplier": 2500.0, "schedule": ["12:30", "14:30", "18:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "allows_combined": True, "created_at": datetime.utcnow()},
+        
+        # Leidsa
+        {"id": str(uuid.uuid4()), "name": "Loto Leidsa", "country": "RD", "lottery_type": LotteryType.LOTO.value,
+         "min_number": 1, "max_number": 38, "numbers_to_pick": 6, "price": 50.0, "currency": Currency.RD.value,
+         "prize_multiplier": 100000.0, "schedule": ["20:55"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Pega 3 Más", "country": "RD", "lottery_type": LotteryType.PEGA3.value,
+         "min_number": 0, "max_number": 9, "numbers_to_pick": 3, "price": 25.0, "currency": Currency.RD.value,
+         "prize_multiplier": 500.0, "schedule": ["12:55", "15:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Pega 4 Más", "country": "RD", "lottery_type": LotteryType.PEGA4.value,
+         "min_number": 0, "max_number": 9, "numbers_to_pick": 4, "price": 25.0, "currency": Currency.RD.value,
+         "prize_multiplier": 5000.0, "schedule": ["12:55", "15:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Super Kino TV", "country": "RD", "lottery_type": LotteryType.SUPER_KINO.value,
+         "min_number": 1, "max_number": 80, "numbers_to_pick": 10, "price": 30.0, "currency": Currency.RD.value,
+         "prize_multiplier": 10000.0, "schedule": ["12:00", "15:00", "18:00", "21:00"], "closing_minutes_before": 10,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        # Loteka
+        {"id": str(uuid.uuid4()), "name": "MegaChance Loteka", "country": "RD", "lottery_type": LotteryType.MEGACHANCE.value,
+         "min_number": 1, "max_number": 36, "numbers_to_pick": 6, "price": 50.0, "currency": Currency.RD.value,
+         "prize_multiplier": 50000.0, "schedule": ["19:55"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "QuinieLoto", "country": "RD", "lottery_type": LotteryType.QUINIELOTO.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 70.0, "schedule": ["12:00", "15:00", "19:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        # La Primera
+        {"id": str(uuid.uuid4()), "name": "La Primera", "country": "RD", "lottery_type": LotteryType.QUINIELA.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 70.0, "schedule": ["11:00", "13:00", "17:00", "20:00"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        # Real
+        {"id": str(uuid.uuid4()), "name": "Real", "country": "RD", "lottery_type": LotteryType.QUINIELA.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 70.0, "schedule": ["12:30", "14:30", "18:00", "21:00"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        # New York (RD style)
+        {"id": str(uuid.uuid4()), "name": "New York", "country": "RD", "lottery_type": LotteryType.QUINIELA.value,
+         "min_number": 0, "max_number": 99, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 70.0, "schedule": ["14:30", "22:30"], "closing_minutes_before": 15,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        # USA Lotteries
+        {"id": str(uuid.uuid4()), "name": "Powerball USA", "country": "USA", "lottery_type": LotteryType.POWERBALL.value,
+         "min_number": 1, "max_number": 69, "numbers_to_pick": 5, "price": 2.0, "currency": Currency.USD.value,
+         "prize_multiplier": 1000000.0, "schedule": ["22:59"], "closing_minutes_before": 60,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Mega Millions USA", "country": "USA", "lottery_type": LotteryType.MEGA_MILLIONS.value,
+         "min_number": 1, "max_number": 70, "numbers_to_pick": 5, "price": 2.0, "currency": Currency.USD.value,
+         "prize_multiplier": 1000000.0, "schedule": ["23:00"], "closing_minutes_before": 60,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "New York Lottery", "country": "USA", "lottery_type": LotteryType.PICK3.value,
+         "min_number": 0, "max_number": 9, "numbers_to_pick": 3, "price": 1.0, "currency": Currency.USD.value,
+         "prize_multiplier": 500.0, "schedule": ["14:30", "22:30"], "closing_minutes_before": 30,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Florida Lottery", "country": "USA", "lottery_type": LotteryType.PICK4.value,
+         "min_number": 0, "max_number": 9, "numbers_to_pick": 4, "price": 1.0, "currency": Currency.USD.value,
+         "prize_multiplier": 5000.0, "schedule": ["13:30", "21:45"], "closing_minutes_before": 30,
+         "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Cash4Life", "country": "USA", "lottery_type": LotteryType.CASH4LIFE.value,
+         "min_number": 1, "max_number": 60, "numbers_to_pick": 5, "price": 2.0, "currency": Currency.USD.value,
+         "prize_multiplier": 1000.0, "schedule": ["21:00"], "closing_minutes_before": 60,
+         "active": True, "created_at": datetime.utcnow()},
     ]
     
     for lottery in default_lotteries:
@@ -1420,13 +1381,12 @@ async def init_super_admin():
 
 @api_router.get("/")
 async def root():
-    return {"message": "Sistema de Lotería RD/USA API - Banca Completa", "version": "2.0"}
+    return {"message": "Sistema de Lotería RD/USA API - Banca Completa v3", "version": "3.0"}
 
 @api_router.get("/health")
 async def health():
     return {"status": "healthy"}
 
-# Include router
 app.include_router(api_router)
 
 app.add_middleware(
