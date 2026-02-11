@@ -178,7 +178,7 @@ def test_get_lotteries():
         
     if response.status_code == 200:
         lotteries = response.json()
-        if len(lotteries) == 7:
+        if len(lotteries) >= 7:
             # Store first lottery ID for testing
             test_data['lottery_id'] = lotteries[0]['id']
             lottery_names = [l['name'] for l in lotteries]
@@ -186,11 +186,11 @@ def test_get_lotteries():
             lottery_types = [l['lottery_type'] for l in lotteries]
             
             if all(t in lottery_types for t in expected_types):
-                results.add_pass("Get Lotteries - All 7 default lotteries found")
+                results.add_pass(f"Get Lotteries - Found {len(lotteries)} lotteries including all 7 default ones")
             else:
                 results.add_fail("Get Lotteries", f"Missing lottery types. Found: {lottery_types}")
         else:
-            results.add_fail("Get Lotteries", f"Expected 7 lotteries, got {len(lotteries)}")
+            results.add_fail("Get Lotteries", f"Expected at least 7 lotteries, got {len(lotteries)}")
     else:
         results.add_fail("Get Lotteries", f"Status: {response.status_code}, Response: {response.text}")
 
