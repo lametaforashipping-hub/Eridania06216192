@@ -352,8 +352,11 @@ def test_create_user():
     print("\n👥 TESTING USER MANAGEMENT SYSTEM")
     
     headers = get_auth_headers()
+    # Use timestamp to make email unique
+    import time
+    timestamp = int(time.time())
     user_data = {
-        "email": "vendedor@test.com",
+        "email": f"vendedor{timestamp}@test.com",
         "password": "vendedor123",
         "name": "Carlos Vendedor",
         "role": "vendedor",
