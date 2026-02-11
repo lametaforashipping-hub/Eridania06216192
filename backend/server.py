@@ -605,6 +605,36 @@ async def get_animalito(number: int):
         raise HTTPException(status_code=404, detail="Número de animalito no válido")
     return ANIMALITOS_LIST[number]
 
+@api_router.post("/animalitos/init-lotteries")
+async def init_animalitos_lotteries(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
+    """Initialize animalitos lotteries if they don't exist"""
+    existing = await db.lotteries.find({"lottery_type": {"$in": [LotteryType.ANIMALITOS.value, LotteryType.ANIMALITOS_TRIPLE.value]}}).to_list(10)
+    
+    if len(existing) > 0:
+        return {"message": "Las loterías de animalitos ya existen", "count": len(existing)}
+    
+    animalitos_lotteries = [
+        {"id": str(uuid.uuid4()), "name": "Animalitos La Granjita", "country": "RD", "lottery_type": LotteryType.ANIMALITOS.value,
+         "min_number": 0, "max_number": 36, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 30.0, "schedule": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"], 
+         "closing_minutes_before": 5, "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Animalitos Lotto Activo", "country": "RD", "lottery_type": LotteryType.ANIMALITOS.value,
+         "min_number": 0, "max_number": 36, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 30.0, "schedule": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"],
+         "closing_minutes_before": 5, "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Animalitos Triple", "country": "RD", "lottery_type": LotteryType.ANIMALITOS_TRIPLE.value,
+         "min_number": 0, "max_number": 36, "numbers_to_pick": 3, "price": 25.0, "currency": Currency.RD.value,
+         "prize_multiplier": 5000.0, "schedule": ["12:00", "19:00"],
+         "closing_minutes_before": 10, "active": True, "created_at": datetime.utcnow()},
+    ]
+    
+    for lottery in animalitos_lotteries:
+        await db.lotteries.insert_one(lottery)
+    
+    return {"message": "Loterías de animalitos creadas", "count": len(animalitos_lotteries)}
+
 # ==================== TICKET SALES ====================
 @api_router.post("/tickets")
 async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_current_user)):
