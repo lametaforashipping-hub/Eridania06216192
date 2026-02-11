@@ -1423,6 +1423,22 @@ async def init_super_admin():
          "min_number": 1, "max_number": 60, "numbers_to_pick": 5, "price": 2.0, "currency": Currency.USD.value,
          "prize_multiplier": 1000.0, "schedule": ["21:00"], "closing_minutes_before": 60,
          "active": True, "created_at": datetime.utcnow()},
+        
+        # Animalitos Venezuela/RD Style
+        {"id": str(uuid.uuid4()), "name": "Animalitos La Granjita", "country": "RD", "lottery_type": LotteryType.ANIMALITOS.value,
+         "min_number": 0, "max_number": 36, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 30.0, "schedule": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"], 
+         "closing_minutes_before": 5, "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Animalitos Lotto Activo", "country": "RD", "lottery_type": LotteryType.ANIMALITOS.value,
+         "min_number": 0, "max_number": 36, "numbers_to_pick": 1, "price": 20.0, "currency": Currency.RD.value,
+         "prize_multiplier": 30.0, "schedule": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"],
+         "closing_minutes_before": 5, "active": True, "created_at": datetime.utcnow()},
+        
+        {"id": str(uuid.uuid4()), "name": "Animalitos Triple", "country": "RD", "lottery_type": LotteryType.ANIMALITOS_TRIPLE.value,
+         "min_number": 0, "max_number": 36, "numbers_to_pick": 3, "price": 25.0, "currency": Currency.RD.value,
+         "prize_multiplier": 5000.0, "schedule": ["12:00", "19:00"],
+         "closing_minutes_before": 10, "active": True, "created_at": datetime.utcnow()},
     ]
     
     for lottery in default_lotteries:
