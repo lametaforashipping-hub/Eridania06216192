@@ -628,10 +628,21 @@ async def get_number_stats(lottery_id: str):
         hot_numbers = []
         cold_numbers = []
     
+    # Clean stats for JSON serialization
+    clean_stats = []
+    for s in stats:
+        clean_stat = {
+            "number": s["number"],
+            "frequency": s.get("frequency", 0),
+            "last_drawn": s.get("last_drawn"),
+            "lottery_id": s["lottery_id"]
+        }
+        clean_stats.append(clean_stat)
+    
     return {
         "hot_numbers": hot_numbers[:10],
         "cold_numbers": cold_numbers[:10],
-        "all_stats": stats
+        "all_stats": clean_stats
     }
 
 # ==================== ACCOUNTING ====================
