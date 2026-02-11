@@ -65,6 +65,49 @@ class LotteryType(str, Enum):
     CASH4LIFE = "cash4life"
     MEGACHANCE = "megachance"
     QUINIELOTO = "quinieloto"
+    ANIMALITOS = "animalitos"
+    ANIMALITOS_TRIPLE = "animalitos_triple"
+
+# Lista de Animalitos con sus números (0-36)
+ANIMALITOS_LIST = [
+    {"number": 0, "name": "Delfín", "emoji": "🐬"},
+    {"number": 1, "name": "Carnero", "emoji": "🐏"},
+    {"number": 2, "name": "Toro", "emoji": "🐂"},
+    {"number": 3, "name": "Ciempiés", "emoji": "🐛"},
+    {"number": 4, "name": "Alacrán", "emoji": "🦂"},
+    {"number": 5, "name": "León", "emoji": "🦁"},
+    {"number": 6, "name": "Rana", "emoji": "🐸"},
+    {"number": 7, "name": "Perico", "emoji": "🦜"},
+    {"number": 8, "name": "Ratón", "emoji": "🐭"},
+    {"number": 9, "name": "Águila", "emoji": "🦅"},
+    {"number": 10, "name": "Tigre", "emoji": "🐯"},
+    {"number": 11, "name": "Gato", "emoji": "🐱"},
+    {"number": 12, "name": "Caballo", "emoji": "🐴"},
+    {"number": 13, "name": "Mono", "emoji": "🐵"},
+    {"number": 14, "name": "Paloma", "emoji": "🕊️"},
+    {"number": 15, "name": "Zorro", "emoji": "🦊"},
+    {"number": 16, "name": "Oso", "emoji": "🐻"},
+    {"number": 17, "name": "Pavo", "emoji": "🦃"},
+    {"number": 18, "name": "Burro", "emoji": "🫏"},
+    {"number": 19, "name": "Chivo", "emoji": "🐐"},
+    {"number": 20, "name": "Cochino", "emoji": "🐷"},
+    {"number": 21, "name": "Gallo", "emoji": "🐓"},
+    {"number": 22, "name": "Camello", "emoji": "🐪"},
+    {"number": 23, "name": "Cebra", "emoji": "🦓"},
+    {"number": 24, "name": "Iguana", "emoji": "🦎"},
+    {"number": 25, "name": "Gallina", "emoji": "🐔"},
+    {"number": 26, "name": "Vaca", "emoji": "🐄"},
+    {"number": 27, "name": "Perro", "emoji": "🐕"},
+    {"number": 28, "name": "Zamuro", "emoji": "🦅"},
+    {"number": 29, "name": "Elefante", "emoji": "🐘"},
+    {"number": 30, "name": "Caimán", "emoji": "🐊"},
+    {"number": 31, "name": "Lapa", "emoji": "🦜"},
+    {"number": 32, "name": "Cabra", "emoji": "🐐"},
+    {"number": 33, "name": "Pescado", "emoji": "🐟"},
+    {"number": 34, "name": "Venado", "emoji": "🦌"},
+    {"number": 35, "name": "Jirafa", "emoji": "🦒"},
+    {"number": 36, "name": "Culebra", "emoji": "🐍"},
+]
 
 class TicketStatus(str, Enum):
     PENDING = "pending"
