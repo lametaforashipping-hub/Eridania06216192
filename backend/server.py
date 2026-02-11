@@ -592,6 +592,19 @@ async def update_lottery(lottery_id: str, update: LotteryUpdate, current_user: d
         await db.lotteries.update_one({"id": lottery_id}, {"$set": update_data})
     return {"message": "Lotería actualizada"}
 
+# ==================== ANIMALITOS ====================
+@api_router.get("/animalitos")
+async def get_animalitos():
+    """Get list of all animalitos with their numbers and emojis"""
+    return ANIMALITOS_LIST
+
+@api_router.get("/animalitos/{number}")
+async def get_animalito(number: int):
+    """Get a specific animalito by number"""
+    if number < 0 or number > 36:
+        raise HTTPException(status_code=404, detail="Número de animalito no válido")
+    return ANIMALITOS_LIST[number]
+
 # ==================== TICKET SALES ====================
 @api_router.post("/tickets")
 async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_current_user)):
