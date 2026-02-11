@@ -379,7 +379,7 @@ frontend:
         agent: "main"
         comment: "Create users, deposit balance, toggle status"
 
-  - task: "Lotteries management screen"
+  - task: "Lotteries management screen (ENHANCED - 24+ lotteries)"
     implemented: true
     working: true
     file: "app/lotteries.tsx"
@@ -390,6 +390,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "View/create lotteries, toggle active status"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED - ENHANCED FEATURE confirmed. Lotteries page displays multiple RD 🇩🇴 and USA 🇺🇸 lotteries. Found 5 RD + 2 USA visible lotteries (7 total shown) with complete details: names, types, price, multipliers, schedules. Backend contains 24 total lotteries. Scrolling and country filtering working properly. Exceeds original requirement significantly"
 
 metadata:
   created_by: "main_agent"
