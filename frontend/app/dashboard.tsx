@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -14,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const { width } = Dimensions.get('window');
+const isDesktop = width > 768;
 
 interface AccountingSummary {
   today: { sales: number; wins: number; profit: number; tickets: number };
@@ -23,7 +26,7 @@ interface AccountingSummary {
 }
 
 export default function Dashboard() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, refreshUser } = useAuth();
   const router = useRouter();
   const [summary, setSummary] = useState<AccountingSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,11 +51,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchSummary();
+    refreshUser();
   }, [fetchSummary]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchSummary();
+    await refreshUser();
     setRefreshing(false);
   };
 
@@ -75,13 +80,16 @@ export default function Dashboard() {
   };
 
   const menuItems = [
-    { icon: 'cart-outline', label: 'Vender Números', route: '/sales', roles: ['super_admin', 'admin', 'vendedor'] },
-    { icon: 'list-outline', label: 'Mis Ventas', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'] },
-    { icon: 'trophy-outline', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'] },
-    { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'] },
-    { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'] },
-    { icon: 'people-outline', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'] },
-    { icon: 'grid-outline', label: 'Loterías', route: '/lotteries', roles: ['super_admin'] },
+    { icon: 'cart-outline', label: 'Vender', route: '/sales', roles: ['super_admin', 'admin', 'vendedor'], color: '#22c55e' },
+    { icon: 'list-outline', label: 'Boletos', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'], color: '#3b82f6' },
+    { icon: 'trophy-outline', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'], color: '#f59e0b' },
+    { icon: 'eye-outline', label: 'Monitoreo', route: '/monitoring', roles: ['super_admin', 'admin'], color: '#ef4444' },
+    { icon: 'bar-chart-outline', label: 'Mi Reporte', route: '/user-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
+    { icon: 'people-outline', label: 'Vendedores', route: '/sellers-report', roles: ['super_admin', 'admin'], color: '#06b6d4' },
+    { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#ec4899' },
+    { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
+    { icon: 'person-add-outline', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
+    { icon: 'grid-outline', label: 'Loterías', route: '/lotteries', roles: ['super_admin'], color: '#a855f7' },
   ];
 
   const visibleMenuItems = menuItems.filter(item => 
@@ -103,6 +111,7 @@ export default function Dashboard() {
 
       <ScrollView
         style={styles.content}
+        contentContainerStyle={isDesktop && styles.contentDesktop}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
         }
@@ -111,8 +120,9 @@ export default function Dashboard() {
         {loading ? (
           <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
         ) : summary && (
-          <View style={styles.statsContainer}>
+          <View style={[styles.statsContainer, isDesktop && styles.statsContainerDesktop]}>
             <View style={styles.statCard}>
+              <Ionicons name="cash-outline" size={24} color="#22c55e" />
               <Text style={styles.statLabel}>Ventas Hoy</Text>
               <Text style={styles.statValue}>
                 {formatCurrency(summary.today.sales, summary.currency)}
@@ -121,6 +131,11 @@ export default function Dashboard() {
             </View>
 
             <View style={[styles.statCard, styles.statCardProfit]}>
+              <Ionicons 
+                name={summary.today.profit >= 0 ? 'trending-up' : 'trending-down'} 
+                size={24} 
+                color={summary.today.profit >= 0 ? '#22c55e' : '#ef4444'} 
+              />
               <Text style={styles.statLabel}>Ganancia Hoy</Text>
               <Text style={[styles.statValue, summary.today.profit >= 0 ? styles.positive : styles.negative]}>
                 {formatCurrency(summary.today.profit, summary.currency)}
@@ -129,6 +144,7 @@ export default function Dashboard() {
             </View>
 
             <View style={styles.statCard}>
+              <Ionicons name="calendar-outline" size={24} color="#3b82f6" />
               <Text style={styles.statLabel}>Esta Semana</Text>
               <Text style={styles.statValue}>
                 {formatCurrency(summary.week.sales, summary.currency)}
@@ -137,6 +153,7 @@ export default function Dashboard() {
             </View>
 
             <View style={styles.statCard}>
+              <Ionicons name="calendar" size={24} color="#8b5cf6" />
               <Text style={styles.statLabel}>Este Mes</Text>
               <Text style={styles.statValue}>
                 {formatCurrency(summary.month.sales, summary.currency)}
@@ -148,31 +165,43 @@ export default function Dashboard() {
 
         {/* Menu Grid */}
         <Text style={styles.sectionTitle}>Menú Principal</Text>
-        <View style={styles.menuGrid}>
+        <View style={[styles.menuGrid, isDesktop && styles.menuGridDesktop]}>
           {visibleMenuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.menuItem}
+              style={[styles.menuItem, isDesktop && styles.menuItemDesktop]}
               onPress={() => router.push(item.route as any)}
             >
-              <View style={styles.menuIconContainer}>
-                <Ionicons name={item.icon as any} size={28} color="#22c55e" />
+              <View style={[styles.menuIconContainer, { backgroundColor: item.color + '20' }]}>
+                <Ionicons name={item.icon as any} size={28} color={item.color} />
               </View>
               <Text style={styles.menuLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Credit Info for Vendedor */}
-        {user?.role === 'vendedor' && (
-          <View style={styles.creditCard}>
-            <Text style={styles.creditTitle}>Límite de Crédito</Text>
-            <Text style={styles.creditValue}>
-              {formatCurrency(user.credit_limit, user.currency)}
-            </Text>
-            <View style={styles.creditBar}>
-              <View style={[styles.creditProgress, { width: '30%' }]} />
+        {/* User Info Card */}
+        {user && (
+          <View style={styles.userInfoCard}>
+            <Text style={styles.userInfoTitle}>Información de Cuenta</Text>
+            <View style={styles.userInfoRow}>
+              <Text style={styles.userInfoLabel}>Límite de Crédito:</Text>
+              <Text style={styles.userInfoValue}>
+                {formatCurrency(user.credit_limit, user.currency)}
+              </Text>
             </View>
+            <View style={styles.userInfoRow}>
+              <Text style={styles.userInfoLabel}>Balance:</Text>
+              <Text style={[styles.userInfoValue, styles.balanceValue]}>
+                {formatCurrency(user.balance, user.currency)}
+              </Text>
+            </View>
+            {user.role === 'vendedor' && (
+              <View style={styles.userInfoRow}>
+                <Text style={styles.userInfoLabel}>Comisión:</Text>
+                <Text style={styles.userInfoValue}>{user.commission_rate || 10}%</Text>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -213,6 +242,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  contentDesktop: {
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+  },
   loader: {
     marginVertical: 40,
   },
@@ -222,12 +256,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 24,
   },
+  statsContainerDesktop: {
+    flexWrap: 'nowrap',
+    gap: 16,
+  },
   statCard: {
     width: '48%',
     backgroundColor: '#1e293b',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    alignItems: 'center',
   },
   statCardProfit: {
     borderWidth: 1,
@@ -236,12 +275,13 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#94a3b8',
-    marginBottom: 4,
+    marginTop: 8,
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
+    marginTop: 4,
   },
   statSubtext: {
     fontSize: 11,
@@ -265,6 +305,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
+  menuGridDesktop: {
+    justifyContent: 'flex-start',
+    gap: 16,
+  },
   menuItem: {
     width: '31%',
     backgroundColor: '#1e293b',
@@ -273,11 +317,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  menuItemDesktop: {
+    width: 140,
+  },
   menuIconContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#0f172a',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -287,33 +333,36 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
   },
-  creditCard: {
+  userInfoCard: {
     backgroundColor: '#1e293b',
     borderRadius: 12,
     padding: 20,
     marginTop: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
+    marginBottom: 32,
   },
-  creditTitle: {
+  userInfoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 16,
+  },
+  userInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  userInfoLabel: {
     fontSize: 14,
     color: '#94a3b8',
-    marginBottom: 8,
   },
-  creditValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  userInfoValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  balanceValue: {
     color: '#22c55e',
-    marginBottom: 12,
-  },
-  creditBar: {
-    height: 6,
-    backgroundColor: '#334155',
-    borderRadius: 3,
-  },
-  creditProgress: {
-    height: '100%',
-    backgroundColor: '#22c55e',
-    borderRadius: 3,
   },
 });

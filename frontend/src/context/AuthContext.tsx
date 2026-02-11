@@ -10,6 +10,7 @@ interface User {
   role: 'super_admin' | 'admin' | 'vendedor';
   credit_limit: number;
   balance: number;
+  commission_rate: number;
   currency: string;
 }
 
