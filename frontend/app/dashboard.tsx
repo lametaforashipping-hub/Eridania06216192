@@ -82,12 +82,14 @@ export default function Dashboard() {
   const menuItems = [
     { icon: 'cart-outline', label: 'Vender', route: '/sales', roles: ['super_admin', 'admin', 'vendedor'], color: '#22c55e' },
     { icon: 'list-outline', label: 'Boletos', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'], color: '#3b82f6' },
-    { icon: 'trophy-outline', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'], color: '#f59e0b' },
+    { icon: 'heart-outline', label: 'Favoritos', route: '/favorites', roles: ['super_admin', 'admin', 'vendedor'], color: '#ec4899' },
+    { icon: 'notifications-outline', label: 'Resultados', route: '/notifications', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
+    { icon: 'trophy-outline', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'], color: '#eab308' },
     { icon: 'eye-outline', label: 'Monitoreo', route: '/monitoring', roles: ['super_admin', 'admin'], color: '#ef4444' },
     { icon: 'bar-chart-outline', label: 'Mi Reporte', route: '/user-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
     { icon: 'people-outline', label: 'Vendedores', route: '/sellers-report', roles: ['super_admin', 'admin'], color: '#06b6d4' },
-    { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#ec4899' },
-    { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
+    { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
+    { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: 'person-add-outline', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
     { icon: 'grid-outline', label: 'Loterías', route: '/lotteries', roles: ['super_admin'], color: '#a855f7' },
   ];
