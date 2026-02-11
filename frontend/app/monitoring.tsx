@@ -311,108 +311,109 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94a3b8',
   },
-  tableContainer: {
+  usersContainer: {
+    gap: 12,
+  },
+  userCard: {
     backgroundColor: '#1e293b',
     borderRadius: 12,
-    overflow: 'hidden',
+    padding: 16,
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#0f172a',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  tableHeaderDesktop: {
-    paddingVertical: 16,
-  },
-  tableHeaderText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-    alignItems: 'center',
-  },
-  tableRowInactive: {
+  userCardInactive: {
     opacity: 0.5,
   },
-  tableCell: {
-    justifyContent: 'center',
-  },
-  colName: {
-    flex: 2,
-  },
-  colSales: {
-    flex: 1.5,
-  },
-  colProfit: {
-    flex: 1,
-  },
-  colTickets: {
-    flex: 1,
-  },
-  colStatus: {
-    flex: 1,
+  userCardHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   userAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   userAvatarText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#ffffff',
   },
+  userNameContainer: {
+    flex: 1,
+  },
   userName: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: '#ffffff',
   },
   userRole: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#94a3b8',
+    marginTop: 2,
   },
-  salesValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#22c55e',
-  },
-  winsValue: {
-    fontSize: 11,
-    color: '#ef4444',
-  },
-  profitValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  ticketsValue: {
-    fontSize: 13,
-    color: '#f59e0b',
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     marginRight: 6,
   },
   statusText: {
     fontSize: 11,
+    fontWeight: '500',
+  },
+  userCardStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  statValueGreen: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#22c55e',
+  },
+  statValueRed: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ef4444',
+  },
+  statValueBold: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  userCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pendingTickets: {
+    fontSize: 12,
+    color: '#f59e0b',
   },
   emptyContainer: {
     alignItems: 'center',
