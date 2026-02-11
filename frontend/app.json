@@ -1,13 +1,18 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
-    "version": "1.0.0",
+    "name": "Sistema de Lotería",
+    "slug": "loteria-rd-usa",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "loteria",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "extra": {
+      "router": {
+        "origin": "https://app.emergent.sh"
+      }
+    },
     "ios": {
       "supportsTablet": true
     },
