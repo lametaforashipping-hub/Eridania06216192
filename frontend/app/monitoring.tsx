@@ -156,54 +156,55 @@ export default function Monitoring() {
           <Text style={styles.liveText}>EN VIVO - Actualización cada 30 segundos</Text>
         </View>
 
-        {/* Users Table */}
-        <View style={styles.tableContainer}>
-          <View style={[styles.tableHeader, isDesktop && styles.tableHeaderDesktop]}>
-            <Text style={[styles.tableHeaderText, styles.colName]}>Vendedor</Text>
-            <Text style={[styles.tableHeaderText, styles.colSales]}>Ventas</Text>
-            <Text style={[styles.tableHeaderText, styles.colProfit]}>Ganancia</Text>
-            {isDesktop && <Text style={[styles.tableHeaderText, styles.colTickets]}>Boletos</Text>}
-            <Text style={[styles.tableHeaderText, styles.colStatus]}>Estado</Text>
-          </View>
-
+        {/* Users List - Mobile Cards Layout */}
+        <View style={styles.usersContainer}>
           {users.map((u) => {
             const activity = getActivityStatus(u.last_activity);
             return (
               <TouchableOpacity
                 key={u.user_id}
-                style={[styles.tableRow, !u.active && styles.tableRowInactive]}
+                style={[styles.userCard, !u.active && styles.userCardInactive]}
                 onPress={() => router.push(`/user-report?userId=${u.user_id}&userName=${u.user_name}`)}
               >
-                <View style={[styles.tableCell, styles.colName]}>
+                <View style={styles.userCardHeader}>
                   <View style={styles.userInfo}>
                     <View style={[styles.userAvatar, { backgroundColor: u.active ? '#22c55e' : '#64748b' }]}>
-                      <Text style={styles.userAvatarText}>{u.user_name.charAt(0)}</Text>
+                      <Text style={styles.userAvatarText}>{u.user_name.charAt(0).toUpperCase()}</Text>
                     </View>
-                    <View>
-                      <Text style={styles.userName}>{u.user_name}</Text>
+                    <View style={styles.userNameContainer}>
+                      <Text style={styles.userName} numberOfLines={1}>{u.user_name}</Text>
                       <Text style={styles.userRole}>
                         {u.role === 'admin' ? 'Admin' : 'Vendedor'} • {u.commission_rate}%
                       </Text>
                     </View>
                   </View>
-                </View>
-                <View style={[styles.tableCell, styles.colSales]}>
-                  <Text style={styles.salesValue}>{formatCurrency(u.today_sales)}</Text>
-                  <Text style={styles.winsValue}>-{formatCurrency(u.today_wins)}</Text>
-                </View>
-                <View style={[styles.tableCell, styles.colProfit]}>
-                  <Text style={[styles.profitValue, u.today_profit >= 0 ? styles.greenText : styles.redText]}>
-                    {formatCurrency(u.today_profit)}
-                  </Text>
-                </View>
-                {isDesktop && (
-                  <View style={[styles.tableCell, styles.colTickets]}>
-                    <Text style={styles.ticketsValue}>{u.pending_tickets} pendientes</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: activity.color + '20' }]}>
+                    <View style={[styles.statusDot, { backgroundColor: activity.color }]} />
+                    <Text style={[styles.statusText, { color: activity.color }]}>{activity.text}</Text>
                   </View>
-                )}
-                <View style={[styles.tableCell, styles.colStatus]}>
-                  <View style={[styles.statusDot, { backgroundColor: activity.color }]} />
-                  <Text style={[styles.statusText, { color: activity.color }]}>{activity.text}</Text>
+                </View>
+                
+                <View style={styles.userCardStats}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>Ventas</Text>
+                    <Text style={styles.statValueGreen}>{formatCurrency(u.today_sales)}</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>Premios</Text>
+                    <Text style={styles.statValueRed}>{formatCurrency(u.today_wins)}</Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>Ganancia</Text>
+                    <Text style={[styles.statValueBold, u.today_profit >= 0 ? styles.greenText : styles.redText]}>
+                      {formatCurrency(u.today_profit)}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.userCardFooter}>
+                  <Text style={styles.pendingTickets}>
+                    <Ionicons name="ticket-outline" size={12} color="#f59e0b" /> {u.pending_tickets} boletos pendientes
+                  </Text>
                 </View>
               </TouchableOpacity>
             );
