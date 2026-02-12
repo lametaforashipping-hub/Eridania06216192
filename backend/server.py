@@ -725,6 +725,7 @@ async def create_lottery(lottery: LotteryCreate, current_user: dict = Depends(re
         "closing_time": lottery.closing_time,
         "weekly_hours": lottery.weekly_hours or DEFAULT_WEEKLY_SCHEDULE,
         "holidays": lottery.holidays or [],
+        "ticket_limit_per_number": lottery.ticket_limit_per_number,
         "created_at": datetime.utcnow()
     }
     await db.lotteries.insert_one(lottery_doc)
