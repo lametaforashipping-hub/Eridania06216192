@@ -222,11 +222,17 @@ export default function LiveTickets() {
   const renderTicket = ({ item, index }: { item: Ticket; index: number }) => {
     const isNew = index < 3; // Mark first 3 as "new"
     const amount = item.amount || item.total_amount || 0;
+    const potentialWin = item.potential_win || item.total_potential_win || 0;
     const isMultiPlay = item.ticket_type === 'multi_play';
+    const ticketIsHighRisk = isHighRisk(item);
     
     return (
       <TouchableOpacity
-        style={[styles.ticketCard, isNew && styles.ticketCardNew]}
+        style={[
+          styles.ticketCard, 
+          isNew && styles.ticketCardNew,
+          ticketIsHighRisk && styles.ticketCardHighRisk
+        ]}
         onPress={() => {
           setSelectedTicket(item);
           setShowTicketModal(true);
@@ -235,7 +241,13 @@ export default function LiveTickets() {
       >
         <View style={styles.ticketHeader}>
           <View style={styles.ticketLeft}>
-            {isNew && (
+            {ticketIsHighRisk && (
+              <Animated.View style={[styles.highRiskBadge, { transform: [{ scale: alertAnim }] }]}>
+                <Ionicons name="warning" size={12} color="#ffffff" />
+                <Text style={styles.highRiskBadgeText}>ALTO RIESGO</Text>
+              </Animated.View>
+            )}
+            {isNew && !ticketIsHighRisk && (
               <Animated.View style={[styles.newBadge, { transform: [{ scale: pulseAnim }] }]}>
                 <Text style={styles.newBadgeText}>NUEVO</Text>
               </Animated.View>
@@ -263,6 +275,12 @@ export default function LiveTickets() {
             <Text style={styles.amountLabel}>Monto</Text>
             <Text style={styles.amountValue}>{item.currency} {amount.toLocaleString()}</Text>
           </View>
+          {ticketIsHighRisk && (
+            <View style={styles.potentialWinContainer}>
+              <Text style={styles.potentialWinLabel}>Premio Pot.</Text>
+              <Text style={styles.potentialWinValue}>{item.currency} {potentialWin.toLocaleString()}</Text>
+            </View>
+          )}
           {item.status === 'pending' && user?.role === 'super_admin' && (
             <TouchableOpacity
               style={styles.cancelButton}
