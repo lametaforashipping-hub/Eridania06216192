@@ -1,0 +1,84 @@
+{
+  "summary": "Completed backend testing of holiday feature for lottery system. All 17 tests passed. Verified: POST /api/lotteries/{id}/holidays for closed and special hours holidays, GET /api/lotteries/{id}/holidays, DELETE /api/lotteries/{id}/holidays/{date}, GET /api/lotteries returns is_holiday and holiday_name fields, check_lottery_open returns correct closed_message on holidays.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/lotteries (check_lottery_open logic)",
+        "issue": "When today is a holiday with special hours (e.g., open: 10:00, close: 18:00), and current time is after closing, the 'tomorrow' message incorrectly uses the holiday's opening time (10:00) instead of normal hours (08:00). Affects closed_message when today is special-hours holiday and tomorrow is NOT a holiday.",
+        "priority": "LOW",
+        "line": "server.py:464 - opening_time variable is set from holiday's special hours instead of lottery's normal opening_time"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_holiday_feature.py",
+    "/app/test_reports/pytest/holiday_results.xml"
+  ],
+  "action_items": [
+    "Fix check_lottery_open() to save original opening_time before checking holidays, and use that for tomorrow's message when tomorrow is not a holiday"
+  ],
+  "critical_code_review_comments": [
+    "check_lottery_open() correctly handles closed holidays (closed: true) with message '🎉 Cerrada por {holiday_name}'",
+    "check_lottery_open() correctly handles special hours holidays and shows holiday name in today_hours",
+    "GET /api/lotteries correctly returns is_holiday and holiday_name fields computed from check_lottery_open",
+    "Minor bug: When today is special-hours holiday, tomorrow's message uses holiday's hours instead of normal hours (line 464)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_holiday_feature.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A (not tested per request)"
+  },
+  "test_credentials": {
+    "email": "admin@loteria.com",
+    "password": "admin123"
+  },
+  "seed_data_creation": "Created TEST_ prefixed lotteries with holidays for testing. Known lottery 31fe9898-c280-4eb3-82be-9a2b6adb9a62 has Navidad 2026-12-25 configured.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests for holiday feature at /app/backend/tests/test_holiday_feature.py. All 17 tests passing. Holiday feature working correctly: POST/GET/DELETE for holidays, is_holiday/holiday_name fields in GET /api/lotteries, closed_message shows holiday name. One minor bug found: when today is a special-hours holiday and it's past closing time, tomorrow's message incorrectly uses holiday's hours instead of normal hours.",
+  "features_tested": {
+    "POST /api/lotteries/{id}/holidays (closed)": {
+      "status": "PASS",
+      "notes": "Adds holiday with closed: true, returns updated holidays array"
+    },
+    "POST /api/lotteries/{id}/holidays (special hours)": {
+      "status": "PASS",
+      "notes": "Adds holiday with open/close times, validation for missing date/name works"
+    },
+    "GET /api/lotteries/{id}/holidays": {
+      "status": "PASS",
+      "notes": "Returns array of holidays, public endpoint (no auth required)"
+    },
+    "DELETE /api/lotteries/{id}/holidays/{date}": {
+      "status": "PASS",
+      "notes": "Removes holiday by date, returns 404 for non-existent date"
+    },
+    "GET /api/lotteries is_holiday/holiday_name": {
+      "status": "PASS",
+      "notes": "Both fields present in response, correctly computed from check_lottery_open"
+    },
+    "check_lottery_open closed holiday message": {
+      "status": "PASS",
+      "notes": "Returns '🎉 Cerrada por {holiday_name}' and today_hours.closed=true"
+    },
+    "check_lottery_open special hours holiday": {
+      "status": "PASS",
+      "notes": "Returns today_hours with special open/close times and holiday name"
+    }
+  },
+  "pytest_results": {
+    "passed": 17,
+    "failed": 0,
+    "total": 17,
+    "failed_tests": []
+  },
+  "rca_of_issue": "Minor bug in check_lottery_open (server.py line 464): When today is a holiday with special hours, the variable 'opening_time' gets set to holiday's open time at line 407. Later when generating tomorrow's message (line 464), this modified 'opening_time' is used instead of the lottery's original opening_time. Fix: Save lottery's original opening_time before holiday checking and use that for non-holiday tomorrow messages."
+}
