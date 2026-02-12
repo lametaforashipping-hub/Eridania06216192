@@ -1344,25 +1344,44 @@ async def cancel_ticket(ticket_id: str, current_user: dict = Depends(get_current
     if ticket["status"] != TicketStatus.PENDING.value:
         raise HTTPException(status_code=400, detail="Solo se pueden cancelar boletos pendientes")
     
-    time_diff = datetime.utcnow() - ticket["created_at"]
-    if time_diff.total_seconds() > 300:
-        raise HTTPException(status_code=400, detail="Tiempo de cancelación expirado (máximo 5 minutos)")
+    # Super Admin can cancel ANY ticket at ANY time
+    is_super_admin = current_user["role"] == UserRole.SUPER_ADMIN.value
     
-    if current_user["role"] == UserRole.VENDEDOR.value and ticket["seller_id"] != current_user["id"]:
-        raise HTTPException(status_code=403, detail="No puedes cancelar este boleto")
+    # For non-super-admin users, check time limit and ownership
+    if not is_super_admin:
+        time_diff = datetime.utcnow() - ticket["created_at"]
+        if time_diff.total_seconds() > 300:
+            raise HTTPException(status_code=400, detail="Tiempo de cancelación expirado (máximo 5 minutos)")
+        
+        if current_user["role"] == UserRole.VENDEDOR.value and ticket["seller_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="No puedes cancelar este boleto")
+        
+        # Admin can only cancel tickets from their created sellers
+        if current_user["role"] == UserRole.ADMIN.value:
+            seller = await db.users.find_one({"id": ticket["seller_id"]})
+            if seller and seller.get("created_by") != current_user["id"] and ticket["seller_id"] != current_user["id"]:
+                raise HTTPException(status_code=403, detail="No puedes cancelar boletos de vendedores que no creaste")
     
+    # Cancel the ticket
+    cancelled_by = current_user["id"] if is_super_admin else None
     await db.tickets.update_one(
         {"id": ticket_id},
-        {"$set": {"status": TicketStatus.CANCELLED.value, "cancelled_at": datetime.utcnow()}}
+        {"$set": {
+            "status": TicketStatus.CANCELLED.value, 
+            "cancelled_at": datetime.utcnow(),
+            "cancelled_by": cancelled_by,
+            "cancelled_by_name": current_user["name"] if is_super_admin else None
+        }}
     )
     
     seller = await db.users.find_one({"id": ticket["seller_id"]})
     commission_rate = seller.get("commission_rate", 10.0)
-    commission = ticket["amount"] * (commission_rate / 100)
+    ticket_amount = ticket.get("amount") or ticket.get("total_amount", 0)
+    commission = ticket_amount * (commission_rate / 100)
     
     await db.users.update_one(
         {"id": ticket["seller_id"]},
-        {"$inc": {"total_sales": -ticket["amount"], "total_commission": -commission, "balance": -commission}}
+        {"$inc": {"total_sales": -ticket_amount, "total_commission": -commission, "balance": -commission}}
     )
     
     await db.transactions.insert_one({
@@ -1370,14 +1389,14 @@ async def cancel_ticket(ticket_id: str, current_user: dict = Depends(get_current
         "user_id": ticket["seller_id"],
         "user_name": ticket["seller_name"],
         "transaction_type": TransactionType.CANCELLATION.value,
-        "amount": -ticket["amount"],
+        "amount": -ticket_amount,
         "currency": ticket["currency"],
-        "description": f"Cancelación de boleto {ticket['ticket_number']}",
+        "description": f"Cancelación de boleto {ticket['ticket_number']}" + (f" por {current_user['name']}" if is_super_admin else ""),
         "reference_id": ticket_id,
         "created_at": datetime.utcnow()
     })
     
-    return {"message": "Boleto cancelado", "ticket_number": ticket["ticket_number"]}
+    return {"message": "Boleto cancelado", "ticket_number": ticket["ticket_number"], "cancelled_by": current_user["name"] if is_super_admin else None}
 
 @api_router.post("/tickets/{ticket_id}/pay")
 async def pay_winning_ticket(ticket_id: str, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VENDEDOR]))):
