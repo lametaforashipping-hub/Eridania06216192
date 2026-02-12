@@ -1118,6 +1118,20 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
                         status_code=400, 
                         detail=f"Límite alcanzado: El número {num} ya tiene {sold_count} boletos vendidos (máximo: {ticket_limit})"
                     )
+                # Check if number is near limit (80% or more) after this sale
+                new_count = sold_count + 1
+                if new_count >= ticket_limit * 0.8:
+                    remaining = ticket_limit - new_count
+                    # Avoid duplicates in warnings
+                    if not any(w["number"] == num and w["lottery_id"] == lottery["id"] for w in multi_play_limit_warnings):
+                        multi_play_limit_warnings.append({
+                            "number": num,
+                            "lottery_id": lottery["id"],
+                            "lottery_name": lottery["name"],
+                            "sold": new_count,
+                            "limit": ticket_limit,
+                            "remaining": remaining
+                        })
         
         # Calculate potential win for this play
         multiplier = lottery.get("prize_multiplier", 70)
