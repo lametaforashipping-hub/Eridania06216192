@@ -153,11 +153,15 @@ class TestImpersonation:
         commission_rate = before_data.get("commission_rate", 10.0)
         expected_commission = ticket_amount * (commission_rate / 100)
         
+        # Use random number to avoid ticket limits
+        import random
+        test_number = random.randint(0, 99)
+        
         response = super_admin_client.post(f"{BASE_URL}/api/tickets/multi", json={
             "plays": [
                 {
                     "lottery_type": "quiniela",
-                    "numbers": [77],
+                    "numbers": [test_number],
                     "amount": ticket_amount
                 }
             ],
