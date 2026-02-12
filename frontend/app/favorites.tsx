@@ -222,31 +222,42 @@ export default function Favorites() {
   };
 
   const renderFavorite = ({ item }: { item: Favorite }) => {
+    // Safety check for item
+    if (!item) {
+      return null;
+    }
+    
     const numbers = getAllNumbers(item);
     
     return (
       <View style={styles.favoriteCard}>
         <View style={styles.favoriteHeader}>
           <View>
-            <Text style={styles.favoriteName}>{item.name}</Text>
+            <Text style={styles.favoriteName}>{item.name || 'Sin nombre'}</Text>
             <Text style={styles.favoriteLottery}>{getPlaysSummary(item)}</Text>
           </View>
           <View style={styles.useCountBadge}>
             <Ionicons name="repeat" size={14} color="#94a3b8" />
-            <Text style={styles.useCountText}>{item.use_count}</Text>
+            <Text style={styles.useCountText}>{item.use_count || 0}</Text>
           </View>
         </View>
 
         <View style={styles.numbersContainer}>
-          {numbers.slice(0, 10).map((num, index) => (
-            <View key={index} style={styles.numberBall}>
-              <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
-            </View>
-          ))}
-          {numbers.length > 10 && (
-            <View style={[styles.numberBall, { backgroundColor: '#475569' }]}>
-              <Text style={styles.numberBallText}>+{numbers.length - 10}</Text>
-            </View>
+          {numbers && numbers.length > 0 ? (
+            <>
+              {numbers.slice(0, 10).map((num, index) => (
+                <View key={index} style={styles.numberBall}>
+                  <Text style={styles.numberBallText}>{num?.toString().padStart(2, '0') || '00'}</Text>
+                </View>
+              ))}
+              {numbers.length > 10 && (
+                <View style={[styles.numberBall, { backgroundColor: '#475569' }]}>
+                  <Text style={styles.numberBallText}>+{numbers.length - 10}</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <Text style={{ color: '#94a3b8' }}>Sin números</Text>
           )}
         </View>
 
