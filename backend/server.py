@@ -643,11 +643,12 @@ async def get_lotteries(active_only: bool = True, country: Optional[str] = None)
     
     result = []
     for l in lotteries:
-        is_open, next_draw = check_lottery_open(l)
+        is_open, next_draw, closed_message = check_lottery_open(l)
         result.append({
             **serialize_doc(l),
             "is_open": is_open,
-            "next_draw_time": next_draw
+            "next_draw_time": next_draw,
+            "closed_message": closed_message
         })
     
     return result
