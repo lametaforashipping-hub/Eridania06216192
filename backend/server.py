@@ -678,6 +678,47 @@ async def update_notification_token(user_id: str, token: str, current_user: dict
     await db.users.update_one({"id": user_id}, {"$set": {"notification_token": token}})
     return {"message": "Token actualizado"}
 
+# ==================== TERMINALS ====================
+@api_router.get("/terminals")
+async def get_terminals(
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
+):
+    """Get all terminals (users with terminal_id) with optional search"""
+    query = {"terminal_id": {"$ne": None, "$exists": True}}
+    
+    # Admin can only see their own created users
+    if current_user["role"] == UserRole.ADMIN.value:
+        query["created_by"] = current_user["id"]
+    
+    # Search by terminal_id or name
+    if search:
+        query["$or"] = [
+            {"terminal_id": {"$regex": search, "$options": "i"}},
+            {"name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}}
+        ]
+    
+    terminals = await db.users.find(query).sort("terminal_id", 1).to_list(1000)
+    return serialize_doc(terminals)
+
+@api_router.get("/terminals/next-id")
+async def get_next_terminal_id(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
+    """Generate the next available terminal ID"""
+    # Find the highest terminal ID
+    last_terminal = await db.users.find(
+        {"terminal_id": {"$regex": "^T\\d+$"}}
+    ).sort("terminal_id", -1).limit(1).to_list(1)
+    
+    if last_terminal:
+        # Extract number from T001, T002, etc.
+        last_id = last_terminal[0].get("terminal_id", "T000")
+        num = int(last_id[1:]) + 1
+    else:
+        num = 1
+    
+    return {"next_terminal_id": f"T{num:03d}"}
+
 # ==================== FAVORITE NUMBERS ====================
 @api_router.post("/favorites")
 async def add_favorite(data: CreateFavoriteWithPlays, current_user: dict = Depends(get_current_user)):
