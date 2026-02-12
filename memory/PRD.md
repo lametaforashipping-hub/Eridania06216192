@@ -81,6 +81,17 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (12 Feb 2026)
 
+### Implementado Sesión 5 - Ver Recibo y Validación Loterías
+- ✅ **Ver Recibo sin Imprimir**
+  - Botón "Ver" en modal de acciones del boleto
+  - Modal con vista previa del recibo completo
+  - Muestra: Número ticket, lotería, jugadas, estado, montos
+  - Acciones: Imprimir, Compartir desde la vista previa
+- ✅ **Validación de Horario en Multi-Play**
+  - Backend valida si hay loterías abiertas antes de crear multi-play
+  - Muestra error si todas las loterías están cerradas
+  - Protege contra jugadas fuera de horario
+
 ### Implementado Sesión 4 - Alertas y Configuración de Premios
 - ✅ **Alertas de Tickets de Alto Riesgo**
   - Endpoint `GET /api/admin/high-risk-tickets` identifica tickets con premio potencial alto
