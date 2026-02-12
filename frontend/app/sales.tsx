@@ -70,6 +70,23 @@ interface MultiPlayTicketResponse {
   commission_earned?: number;
 }
 
+interface FavoritePlay {
+  lottery_type: string;
+  lottery_id?: string;
+  numbers: number[];
+  amount: number;
+}
+
+interface Favorite {
+  id: string;
+  name: string;
+  plays: FavoritePlay[];
+  currency: string;
+  use_count: number;
+  created_at: string;
+  last_used?: string;
+}
+
 export default function Sales() {
   const { token, user } = useAuth();
   const router = useRouter();
