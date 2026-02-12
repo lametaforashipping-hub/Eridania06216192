@@ -250,8 +250,10 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - `/app/frontend/app/detailed-seller-report.tsx` - Reporte detallado por vendedor
 
 ## Test Reports
-- `/app/test_reports/iteration_14.json` - Multi-Lotto feature verificado (100% passed) - **NUEVO**
+- `/app/test_reports/iteration_15.json` - Suplantación de Super Admin verificado (100% frontend, 87.5% backend) - **NUEVO**
+- `/app/test_reports/iteration_14.json` - Multi-Lotto feature verificado (100% passed)
 - `/app/test_reports/iteration_13.json` - En Vivo, Super Admin, Perfil Vendedor (100% passed)
 - `/app/test_reports/iteration_12.json` - Gestión de terminales verificada (100% passed)
 - `/app/test_reports/iteration_11.json` - Bug fix modal de boletos verificado (100% passed)
-- `/app/backend/tests/test_multi_lotto.py` - Tests de Multi-Lotto endpoint - **NUEVO**
+- `/app/backend/tests/test_impersonate.py` - Tests de suplantación - **NUEVO**
+- `/app/backend/tests/test_multi_lotto.py` - Tests de Multi-Lotto endpoint
