@@ -387,6 +387,35 @@ export default function Lotteries() {
                 placeholderTextColor="#64748b"
               />
 
+              <Text style={styles.sectionHeader}>⏰ Horario de Operación</Text>
+              
+              <View style={styles.rowInputs}>
+                <View style={styles.halfInput}>
+                  <Text style={styles.inputLabel}>Hora de Apertura</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formOpeningTime}
+                    onChangeText={setFormOpeningTime}
+                    placeholder="08:00"
+                    placeholderTextColor="#64748b"
+                  />
+                </View>
+                <View style={styles.halfInput}>
+                  <Text style={styles.inputLabel}>Hora de Cierre</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formClosingTime}
+                    onChangeText={setFormClosingTime}
+                    placeholder="21:00"
+                    placeholderTextColor="#64748b"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.infoText}>
+                💡 Los vendedores no podrán vender antes de la hora de apertura ni después de la hora de cierre
+              </Text>
+
               <TouchableOpacity
                 style={[styles.submitButton, creating && styles.submitButtonDisabled]}
                 onPress={handleCreateLottery}
