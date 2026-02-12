@@ -180,6 +180,7 @@ export default function Lotteries() {
           opening_time: formOpeningTime,
           closing_time: formClosingTime,
           weekly_hours: useWeeklySchedule ? formWeeklyHours : null,
+          ticket_limit_per_number: formTicketLimit ? parseInt(formTicketLimit) : null,
         }),
       });
 
