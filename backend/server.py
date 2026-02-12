@@ -283,6 +283,7 @@ class FavoriteNumbers(BaseModel):
 class DrawCreate(BaseModel):
     lottery_id: str
     position: Optional[str] = None  # For position-based draws
+    winning_numbers: Optional[List[int]] = None  # Manual winning numbers input
 
 class NotificationCreate(BaseModel):
     user_id: str
