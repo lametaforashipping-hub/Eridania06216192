@@ -139,6 +139,236 @@ export default function DetailedSellerReport() {
     setRefreshing(false);
   };
 
+  const generatePDF = async () => {
+    if (!report) return;
+    
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case 'won': return 'GANADOR';
+        case 'paid': return 'PAGADO';
+        case 'lost': return 'PERDIDO';
+        case 'cancelled': return 'CANCELADO';
+        default: return 'PENDIENTE';
+      }
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'won': return '#22c55e';
+        case 'paid': return '#3b82f6';
+        case 'lost': return '#ef4444';
+        case 'cancelled': return '#64748b';
+        default: return '#f59e0b';
+      }
+    };
+
+    const formatAmount = (amount: number) => {
+      return amount.toLocaleString('es-DO', { minimumFractionDigits: 2 });
+    };
+
+    const currency = report.summary.currency;
+    const reportTitle = sellerName || report.seller?.name || 'Reporte General';
+    
+    // Generate daily breakdown rows
+    let dailyRows = '';
+    if (report.daily_breakdown && report.daily_breakdown.length > 0) {
+      dailyRows = report.daily_breakdown.map(day => `
+        <tr>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155;">${day.day_name} ${day.label}</td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155; text-align: right;">${currency} ${formatAmount(day.sales)}</td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155; text-align: right; color: ${day.profit >= 0 ? '#22c55e' : '#ef4444'};">
+            ${day.profit >= 0 ? '+' : ''}${currency} ${formatAmount(day.profit)}
+          </td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155; text-align: center;">${day.tickets}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Generate ticket rows (limit to 50 for PDF size)
+    let ticketRows = '';
+    if (report.tickets && report.tickets.length > 0) {
+      ticketRows = report.tickets.slice(0, 50).map(t => {
+        const amount = t.amount || t.total_amount || 0;
+        const displayInfo = t.is_multi_play 
+          ? `Multi-jugada (${t.plays?.length || 0})` 
+          : `${t.lottery_name || ''} - ${(t.numbers || []).map(n => n.toString().padStart(2, '0')).join('-')}`;
+        return `
+          <tr>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; font-size: 10px;">${t.ticket_number}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; font-size: 10px;">${displayInfo}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; text-align: right; font-size: 10px;">${currency} ${formatAmount(amount)}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; text-align: center;">
+              <span style="background: ${getStatusColor(t.status)}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 8px; font-weight: bold;">
+                ${getStatusText(t.status)}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      if (report.tickets.length > 50) {
+        ticketRows += `<tr><td colspan="4" style="padding: 8px; text-align: center; color: #94a3b8; font-size: 10px;">... y ${report.tickets.length - 50} boletos más</td></tr>`;
+      }
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Helvetica', 'Arial', sans-serif; background: #0f172a; color: #ffffff; padding: 20px; }
+          .header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #22c55e; margin-bottom: 20px; }
+          .title { font-size: 20px; font-weight: bold; color: #22c55e; }
+          .subtitle { font-size: 12px; color: #94a3b8; margin-top: 5px; }
+          .period { font-size: 14px; color: #ffffff; margin-top: 8px; }
+          .summary-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+          .summary-card { flex: 1; min-width: 120px; background: #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
+          .summary-card.profit { border: 1px solid #22c55e; }
+          .summary-label { font-size: 10px; color: #94a3b8; }
+          .summary-value { font-size: 14px; font-weight: bold; margin-top: 4px; }
+          .green { color: #22c55e; }
+          .red { color: #ef4444; }
+          .yellow { color: #f59e0b; }
+          .section { background: #1e293b; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+          .section-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #ffffff; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background: #334155; padding: 8px; text-align: left; font-size: 11px; color: #94a3b8; }
+          .counts-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+          .count-item { text-align: center; min-width: 60px; }
+          .count-number { font-size: 20px; font-weight: bold; }
+          .count-label { font-size: 9px; color: #94a3b8; }
+          .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #334155; font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">REPORTE DETALLADO</div>
+          <div class="subtitle">${reportTitle}</div>
+          <div class="period">${report.period_label}</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Ventas Totales</div>
+            <div class="summary-value">${currency} ${formatAmount(report.summary.total_sales)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Premios</div>
+            <div class="summary-value red">${currency} ${formatAmount(report.summary.total_wins)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Comisión (${report.summary.commission_rate}%)</div>
+            <div class="summary-value yellow">${currency} ${formatAmount(report.summary.total_commission)}</div>
+          </div>
+          <div class="summary-card profit">
+            <div class="summary-label">Ganancia Neta</div>
+            <div class="summary-value ${report.summary.net_profit >= 0 ? 'green' : 'red'}">
+              ${currency} ${formatAmount(report.summary.net_profit)}
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Resumen de Boletos</div>
+          <div class="counts-grid">
+            <div class="count-item">
+              <div class="count-number">${report.ticket_counts.total}</div>
+              <div class="count-label">Total</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #f59e0b;">${report.ticket_counts.pending}</div>
+              <div class="count-label">Pendientes</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #22c55e;">${report.ticket_counts.won}</div>
+              <div class="count-label">Ganadores</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #3b82f6;">${report.ticket_counts.paid}</div>
+              <div class="count-label">Pagados</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #ef4444;">${report.ticket_counts.lost}</div>
+              <div class="count-label">Perdidos</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #64748b;">${report.ticket_counts.cancelled}</div>
+              <div class="count-label">Cancelados</div>
+            </div>
+          </div>
+        </div>
+
+        ${dailyRows ? `
+        <div class="section">
+          <div class="section-title">Desglose Diario</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Día</th>
+                <th style="text-align: right;">Ventas</th>
+                <th style="text-align: right;">Ganancia</th>
+                <th style="text-align: center;">Boletos</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dailyRows}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${ticketRows ? `
+        <div class="section">
+          <div class="section-title">Detalle de Boletos (${report.tickets.length})</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Jugada</th>
+                <th style="text-align: right;">Monto</th>
+                <th style="text-align: center;">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ticketRows}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <div class="footer">
+          Generado el ${new Date().toLocaleString('es-DO')} | Sistema de Lotería
+        </div>
+      </body>
+      </html>
+    `;
+
+    try {
+      if (Platform.OS === 'web') {
+        // For web, open print dialog
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          printWindow.print();
+        }
+      } else {
+        // For mobile, use expo-print
+        const { uri } = await Print.printToFileAsync({ html });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri);
+        } else {
+          await Print.printAsync({ uri });
+        }
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Alert.alert('Error', 'No se pudo generar el PDF');
+    }
+  };
+
   const formatCurrency = (amount: number, currency: string = 'RD$') => {
     const flag = currency === 'USD' || currency === '$' ? '🇺🇸' : '🇩🇴';
     const symbol = currency === 'USD' || currency === '$' ? '$' : 'RD$';
