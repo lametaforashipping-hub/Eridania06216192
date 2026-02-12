@@ -1840,10 +1840,28 @@ async def get_accounting_report(
     }
 
 @api_router.get("/accounting/summary")
-async def get_accounting_summary(current_user: dict = Depends(get_current_user)):
+async def get_accounting_summary(
+    country: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
+    
+    # Determine country filter based on user role
+    user_country = current_user.get("country", "RD")
+    filter_country = None
+    
+    if current_user["role"] == UserRole.SUPER_ADMIN.value:
+        filter_country = country  # Can be None to see all
+    else:
+        filter_country = user_country
+    
+    # Get lottery IDs for the country filter if applicable
+    country_lottery_ids = None
+    if filter_country:
+        country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
+        country_lottery_ids = [l["id"] for l in country_lotteries]
     
     user_filter = {}
     if current_user["role"] == UserRole.VENDEDOR.value:
@@ -1852,6 +1870,10 @@ async def get_accounting_summary(current_user: dict = Depends(get_current_user))
         vendedores = await db.users.find({"created_by": current_user["id"]}).to_list(1000)
         vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
         user_filter["seller_id"] = {"$in": vendor_ids}
+    
+    # Add country lottery filter
+    if country_lottery_ids is not None:
+        user_filter["lottery_id"] = {"$in": country_lottery_ids}
     
     def get_amount(ticket):
         """Get amount from ticket, handling both regular and multi-play tickets"""
@@ -1877,7 +1899,8 @@ async def get_accounting_summary(current_user: dict = Depends(get_current_user))
         "today": {"sales": today_sales, "wins": today_wins, "profit": today_sales - today_wins, "tickets": len([t for t in today_tickets if t.get("status") != TicketStatus.CANCELLED.value])},
         "week": {"sales": week_sales, "wins": week_wins, "profit": week_sales - week_wins, "tickets": len([t for t in week_tickets if t.get("status") != TicketStatus.CANCELLED.value])},
         "month": {"sales": month_sales, "wins": month_wins, "profit": month_sales - month_wins, "tickets": len([t for t in month_tickets if t.get("status") != TicketStatus.CANCELLED.value])},
-        "currency": current_user.get("currency", "RD$")
+        "currency": current_user.get("currency", "RD$"),
+        "country_filter": filter_country
     }
 
 @api_router.get("/accounting/sellers-report")
