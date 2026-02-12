@@ -1073,6 +1073,7 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     plays_data = []
     total_amount = 0
     total_potential_win = 0
+    multi_play_limit_warnings = []  # Track numbers near limit across all plays
     
     for play in ticket_data.plays:
         # Find matching lottery for this play type
