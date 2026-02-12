@@ -101,6 +101,7 @@ export default function DetailedSellerReport() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<PeriodType>('daily');
   const [showTickets, setShowTickets] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const periods: { key: PeriodType; label: string; short: string }[] = [
     { key: 'daily', label: 'Diario', short: 'Hoy' },
