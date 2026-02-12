@@ -364,7 +364,7 @@ export default function SellerProfile() {
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Comisión</Text>
-              <Text style={[styles.detailValue, styles.yellowText]}>{seller.commission_rate}%</Text>
+              <Text style={[styles.detailValue, styles.yellowText]}>{seller.commission_rate || 10}%</Text>
             </View>
           </View>
 
