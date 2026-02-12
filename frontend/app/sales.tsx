@@ -492,7 +492,7 @@ export default function Sales() {
                   {selectedLottery?.name} ({selectedLottery?.country})
                 </Text>
                 {!selectedLottery?.is_open && (
-                  <Text style={styles.closedText}>⚠️ CERRADA - Próximo: {selectedLottery?.next_draw_time}</Text>
+                  <Text style={styles.closedText}>⚠️ {selectedLottery?.closed_message || `CERRADA - Próximo: ${selectedLottery?.next_draw_time}`}</Text>
                 )}
               </View>
               <Ionicons name="chevron-down" size={24} color="#94a3b8" />
