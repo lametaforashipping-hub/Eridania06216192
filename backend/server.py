@@ -1231,7 +1231,20 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         "created_at": datetime.utcnow()
     })
     
-    return {**serialize_doc(ticket_doc), "commission_earned": commission}
+    # Build response with limit warnings if any
+    response = {**serialize_doc(ticket_doc), "commission_earned": commission}
+    if multi_play_limit_warnings:
+        response["limit_warnings"] = multi_play_limit_warnings
+        # Generate warning message
+        warnings_msg = []
+        for w in multi_play_limit_warnings:
+            if w["remaining"] == 0:
+                warnings_msg.append(f"Número {w['number']}: LÍMITE ALCANZADO ({w['sold']}/{w['limit']})")
+            else:
+                warnings_msg.append(f"Número {w['number']}: quedan {w['remaining']} de {w['limit']}")
+        response["limit_warning_message"] = " | ".join(warnings_msg)
+    
+    return response
 
 @api_router.get("/tickets")
 async def get_tickets(
