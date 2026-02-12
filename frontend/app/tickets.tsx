@@ -998,6 +998,30 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
+    flexWrap: 'wrap',
+  },
+  actionButtonSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3b82f6',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  actionButtonSmallText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  whatsappButtonSmall: {
+    backgroundColor: '#22c55e',
+  },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
