@@ -814,6 +814,37 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ffffff',
   },
+  searchContainer: {
+    backgroundColor: '#1e293b',
+    padding: 12,
+    paddingTop: 0,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 14,
+    height: '100%',
+  },
+  clearButton: {
+    padding: 4,
+  },
+  searchResultsText: {
+    fontSize: 12,
+    color: '#22c55e',
+    marginTop: 8,
+    marginLeft: 4,
+  },
   filtersContainer: {
     backgroundColor: '#1e293b',
     borderBottomWidth: 1,
