@@ -233,6 +233,7 @@ export default function Lotteries() {
     setFormClosingTime('21:00');
     setFormWeeklyHours(DEFAULT_WEEKLY_HOURS);
     setUseWeeklySchedule(false);
+    setFormTicketLimit('');
   };
 
   const getTypeLabel = (type: string) => {
