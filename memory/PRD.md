@@ -171,8 +171,9 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - `/app/frontend/app/detailed-seller-report.tsx` - Nuevo reporte detallado por vendedor (NUEVO)
 
 ## Test Reports
+- `/app/test_reports/iteration_11.json` - Bug fix modal de boletos verificado (100% passed) - **NUEVO**
 - `/app/test_reports/iteration_10.json` - Pruebas de reporte detallado y tickets (100% passed)
 - `/app/test_reports/iteration_9.json` - Pruebas de favoritos y pagos (100% passed)
 - `/app/test_reports/iteration_8.json` - Pruebas de carrito y banderas (100% passed)
 - `/app/test_reports/iteration_7.json` - Pruebas de filtrado por país (100% passed)
-- `/app/backend/tests/test_detailed_seller_report.py` - Tests del nuevo reporte (NUEVO)
+- `/app/backend/tests/test_detailed_seller_report.py` - Tests del nuevo reporte
