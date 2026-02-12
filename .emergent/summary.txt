@@ -1,175 +1,173 @@
 <analysis>**original_problem_statement:**
-- Quitar los animalitos.
-- Al registrar un usuario (vendedor o administrador), se debe poder elegir el país (República Dominicana o Estados Unidos) y el tipo de moneda asociado (Pesos para RD, Dólares para USA).
-- Todos los reportes deben estar separados por país. El super admin puede ver todo.
-- Arreglar el problema en la multi jugada para teléfonos, donde el teclado tapa la interfaz.
-- Cambiar el formato de venta: quitar la grilla de números y poner una entrada manual.
-- Hacer un chequeo general del sistema móvil y de la página.
-- Arreglar un error en la opción de boleto en el móvil.
-- Agregar la funcionalidad para pagar un ticket ganador, registrarlo como pagado y contabilizarlo.
+The user initially requested the following features:
+1.  A detailed report accessible by administrators and sellers, showing a summary and a ticket-by-ticket breakdown.
+2.  A redesign of the printed ticket to be more compact and readable.
+
+Subsequently, the user added more requirements:
+1.  Export the detailed report to PDF.
+2.  Add options to share the report via WhatsApp and Email.
+3.  Add a unique identifier (e.g., terminal 01) to each user/seller upon creation.
+4.  Create a search feature and a list view for these terminals.
+5.  Develop an interface for paying out winning tickets.
+6.  Allow a Super Admin to edit the winning percentage for each prize tier (1st, 2nd, 3rd).
+7.  Allow the Super Admin to set different prize percentages for different lotteries.
+8.  In the multi-play interface, allow the selection of all available lotteries.
+9.  Make all information on the printed ticket bold for better visibility.
+10. Create a company profile page where the logo can be changed, and have it automatically update on the ticket/receipt.
 
 **User's preferred language**: Spanish. The next agent MUST respond in Spanish.
 
 **what currently exists?**
-The application is a lottery system with a React Native frontend and a Python FastAPI backend. Most of the user's requested features have been implemented and tested by the testing agent.
-- The Animalitos game has been removed from both frontend and backend.
-- The sales screen now uses a manual number input instead of a number grid.
-- The user registration form now includes a country selector (Dominican Republic/USA).
-- The multi-play screen on mobile has been improved to prevent the keyboard from obscuring the input fields.
-- A bug in the database related to incorrect time formats has been fixed.
-- A bug causing a crash on the tickets screen has been resolved.
-- A bug in the  endpoint was found and fixed.
-- The functionality to pay winning tickets was confirmed to exist and works.
+The application is a lottery management system. It has a frontend built with React Native (Expo) and a Node.js (Express) backend with a Prisma ORM connected to an SQLite database. Key features include user management (admins, sellers), ticket creation (simple and multi-play), and basic reporting (e.g., sellers report).
 
 **Last working item**:
--   **Last item agent was working:** The agent had just finished a full test suite using the testing agent, which passed successfully. It then found and fixed a bug in the  backend endpoint that arose during the final wrap-up. The agent was about to present the final summary of completed work to the user.
--   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** Y
--   **Which testing method agent to use?** NA (Testing is complete for the implemented features). The user needs to verify all the changes.
--   **User Testing Done:** N
+*   **Last item agent was working:** The agent was implementing the functionality to share the detailed seller report. This involved adding a Share icon to the report's header, which opens a modal with options to Share via WhatsApp and Share via Email.
+*   **Status:** USER VERIFICATION PENDING
+*   **Agent Testing Done:** N (The agent added the UI elements and logic but noted that testing the modal's appearance via the screenshot tool was difficult. The agent assumed the implementation was complete without full verification of the modal popping up and the share functions being called.)
+*   **Which testing method agent to use?** screenshot tool. The agent needs to take a screenshot after clicking the share button to verify that the modal appears correctly.
+*   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** The user reported la opcion de boleto esta dando error en movil (the ticket option has an error on mobile). This was acknowledged but never investigated or fixed. It's unclear what the specific error is. (Priority: P1)
--   **Issue 2:** The user page () was observed to be loading very slowly during agent testing, although the backing API () was fast. This could indicate a frontend performance issue. (Priority: P2)
+*   **Issue 1:** The  page crashes when viewing ticket details.
+    *   **Priority:** P0 (HIGH) - This is a blocking issue for viewing tickets.
+*   **Issue 2:** The sharing modal on the detailed report page has not been visually verified.
+    *   **Priority:** P1 (MEDIUM)
 
 **Issues Detail:**
--   **Issue 1: Mobile ticket error**
-    -   **Attempted fixes:** None. The agent acknowledged the issue but did not work on it.
-    -   **Next debug checklist:**
-        1. Ask the user for more details about the error: What are the steps to reproduce it? What is the expected behavior vs. the actual behavior?
-        2. Use the screenshot tool on the mobile ticket screen to try and reproduce the error.
-        3. Check frontend logs () for any related errors when interacting with the ticket screen on mobile.
-        4. Inspect the code in .
-    -   **Why fix this issue and what will be achieved with the fix?** To ensure the application is fully functional on mobile devices as requested by the user.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** None
+*   **Issue 1:** Crash on ticket details page.
+    *   **Attempted fixes:** The agent identified the error  related to  in  (line 419). The agent acknowledged the bug but deferred fixing it to focus on the sharing feature. No fix was attempted.
+    *   **Next debug checklist:**
+        1.  Go to the Boletos page.
+        2.  Click on a ticket to view its details.
+        3.  The app crashes. Check the console logs for the exact error.
+        4.  Inspect  around line 419.
+        5.  Add a conditional check to ensure  exists and is an array before calling  on it. It's likely that for some ticket types, this property is missing.
+    *   **Why fix this issue and what will be achieved with the fix?** Fixing this will restore the core functionality of viewing ticket details, which is currently broken.
+    *   **Status:** NOT STARTED
+    *   **Is recurring issue?** N
+    *   **Should Test frontend/backend/both after fix?** Frontend
+    *   **Blocked on other issue:** None
 
--   **Issue 2: Slow loading of the Users page**
-    -   **Attempted fixes:** None. The agent noted the slow load time but confirmed the API was working and moved on.
-    -   **Next debug checklist:**
-        1. Navigate to the  page and analyze the network tab in the browser/app inspector to see what is taking so long.
-        2. Review the code in , especially inside  hooks, to check for inefficient data fetching or processing loops.
-        3. Check if a large amount of data is being rendered at once without pagination or virtualization.
-    -   **Why fix this issue and what will be achieved with the fix?** To improve user experience for administrators managing users.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** None
+*   **Issue 2:** Share modal functionality needs verification.
+    *   **Attempted fixes:** The agent added the share button and the modal component with its corresponding logic in .
+    *   **Next debug checklist:**
+        1.  Navigate to the detailed seller report page.
+        2.  Click the new share icon (📤).
+        3.  Use the screenshot tool to verify that a modal with Compartir por WhatsApp and Compartir por Correo buttons appears.
+    *   **Why fix this issue and what will be achieved with the fix?** This will complete the implementation of the Share Report feature requested by the user.
+    *   **Status:** IN PROGRESS
+    *   **Is recurring issue?** N
+    *   **Should Test frontend/backend/both after fix?** Frontend
+    *   **Blocked on other issue:** None
 
 **In progress Task List**:
--   **Task 1: Implement country-based report filtering**
-    -   **Where to resume:** The agent started investigating this in  (chat messages 163-170). The plan was to modify report endpoints like  and statistics endpoints to filter data based on the logged-in user's country, unless the user is a . This was not completed.
-    -   **What will be achieved with this?** This will fulfill a core user requirement to have all reports separated by country.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on something:** No
+*   **Task 1:** Complete and verify the Share Report feature.
+    *   **Where to resume:** Resume by verifying the modal appears upon clicking the share icon in .
+    *   **What will be achieved with this?** The user will be able to share reports via WhatsApp and email.
+    *   **Status:** IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?** Frontend
+    *   **Blocked on something:** Blocked on completing verification (Issue 2).
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-    - **(P0)** Complete the implementation of country-based report filtering (Task 1 from In progress Task List).
-    - **(P1)** Investigate and fix the mobile ticket error (Issue 1 from All Pending/In progress Issue list).
-- **Future Tasks:**
-    - **(P1)** The user requested that the currency type be chosen based on the selected country (Pesos for DR, Dollars for US). While the country field was added, the logic to associate and use the currency for transactions and reports was not implemented.
-    - **(P2)** Investigate and fix the slow loading of the Users page (Issue 2 from All Pending/In progress Issue list).
-    - **(P2)** The user asked for a chequeo general de el siatemas movil y de la pagina (general check of the mobile and web system). While many fixes were made, a thorough audit is still a good idea.
+*   **Upcoming Tasks:**
+    *   **(P0) Make ticket information bold:** Modify the CSS/styling in  within the  function to make all text bold for better visibility on the printed receipt.
+    *   **(P1) User/Terminal Management:**
+        *   Phase 1: Modify the user creation/editing forms and backend () to include a new field for a unique identifier (terminal).
+        *   Phase 2: Create a new screen to list all users/terminals.
+        *   Phase 3: Add a search bar to the new screen to filter terminals by their identifier.
+    *   **(P1) Payout Interface:** Create a new screen and corresponding backend logic to allow an admin/seller to mark a winning ticket as Paid. This will likely involve updating the ticket status in the database.
+*   **Future Tasks:**
+    *   **(P2) Super Admin Prize Configuration:**
+        *   Create a new settings page accessible only by the Super Admin role.
+        *   On this page, add input fields to set the winning percentages for each prize tier (1st, 2nd, 3rd).
+        *   Implement backend logic to save and retrieve these percentage values.
+        *   The prize calculation logic must be updated to use these configurable percentages.
+    *   **(P2) Lottery-Specific Prize Configuration:** Extend the prize configuration page to allow setting different percentages for different lotteries. This will require associating prize percentages with lottery types in the database.
+    *   **(P2) Multi-Play Lottery Selection:** Enhance the multi-play ticket creation screen to allow selecting multiple lotteries for a single multi-play bet.
+    *   **(P3) Company Profile and Logo:**
+        *   Create a Company Profile page in the admin section.
+        *   Allow uploading a company logo.
+        *   Store the logo URL and update the  function in  to display this logo on the printed receipt.
 
 **Completed work in this session**
-- **Bug Fix:** Corrected a database error caused by invalid time formats () in  within the  function.
-- **Bug Fix:** Patched a potential crash in  by adding a check for  before calling .
-- **Bug Fix:** Resolved an issue where the on-screen keyboard would cover input fields on the Multi-Jugada mobile screen by adding a  in .
-- **Bug Fix:** Fixed a crash in the  endpoint in .
-- **Feature:** Removed the Animalitos game type. This involved deleting routes and logic from  and , and removing the screen and dashboard links from the frontend (, deleted ).
-- **Feature:** Changed the sales screen to use manual number input instead of a number grid in .
-- **Feature:** Added a Country selection field to the user registration form. This involved updating the user model and endpoints in the backend (, ) and updating the user creation modal in the frontend ().
-- **Verification:** Confirmed that the endpoint and frontend logic for paying winning tickets () already existed and was functional.
+*   **Detailed Seller Report:** Created a new backend endpoint () and a corresponding frontend screen () that shows a comprehensive breakdown of a seller's activity with period filters.
+*   **Ticket Redesign:** Modified  to handle multi-play tickets correctly and make the ticket list more compact.
+*   **Multi-Play Bug Fixes:** Resolved backend and frontend errors related to  tickets not having the same data structure as single tickets (e.g., using  vs ).
+*   **PDF Export:** Implemented PDF generation and export functionality for the detailed seller report using  and . A button was added to the report header.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Mobile ticket error.**
-    -   **Debug checklist:** Ask the user for steps to reproduce, then check frontend logs and the code in .
-    -   **Why to solve this issue and what will be achieved with this?** To ensure the app is fully functional and stable on mobile devices.
-    -   **Should Test frontend/backend/both after fix:** Frontend
-    -   **Is recurring issue?** N
+*   **Issue 1:** Crash when viewing ticket details.
+    *   **Debug checklist:** The agent noticed the error  on  in . A conditional check is needed before mapping over .
+    *   **Why to solve this issue and what will be achieved with this?** This is a critical bug that prevents users from viewing ticket details, a core function of the app.
+    *   **Should Test frontend/backend/both after fix:** Frontend
+    *   **Is recurring issue?** N
 
 **Known issue recurrence from previous fork**
--   None.
+*   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React Native, Expo
--   **Backend:** Python, FastAPI
--   **Database:** SQLite
--   **Architecture:** Monorepo with separate frontend and backend directories.
+*   **Frontend:** React Native, Expo
+*   **Backend:** Node.js, Express.js
+*   **Database:** SQLite with Prisma ORM
+*   **API:** RESTful API for communication between frontend and backend.
+*   **PDF Generation:** , 
 
 **key DB schema**
--   **users:** {id, email, hashed_password, role, **country**}
--   **tickets:** {id, user_id, lottery_id, numbers, amount, status, created_at}
--   **lotteries:** {id, name, close_time, open_time, is_active}
+*   **User:** 
+*   **Ticket:** 
+*   **Play:** 
 
 **changes in tech stack**
--   None.
+*   **Added dependencies:**  and  were installed to handle PDF generation and sharing.
 
 **All files of reference**
--   : Modified to fix time format bugs, remove animalitos endpoints, add country filtering logic (incomplete), and fix daily chart report.
--   : Modified to include  when creating a user.
--   : Modified to add  to the User model and remove Animalitos types.
--   : Modified to add  to fix mobile keyboard issue.
--   : Modified to remove the link to the Animalitos screen.
--   : Deleted.
--   : Modified to fix a crash when  is undefined.
--   : Major rewrite to remove the number grid and implement a manual number input form.
--   : Modified to add the country selector to the user creation modal.
--   : Implicitly updated when  was removed.
+*   : Modified to add the new  endpoint.
+*   : Created to display the new report, including logic for data fetching, PDF export, and sharing.
+*   : Modified significantly to fix bugs with multi-play tickets, adjust the UI, and handle ticket detail display. Contains the known bug.
+*   : Modified to add a navigation link to the new detailed report screen.
+*   : Modified to add the new action buttons (PDF, Share, Refresh) to the navigation header.
 
 **Areas that need refactoring**:
--   None identified.
+*   The  file has become complex and was the source of several bugs. It could benefit from being broken down into smaller components, especially the  and ticket detail modal logic.
 
 **key api endpoints**
--   : GET, POST (Updated to handle country)
--   : GET, POST
--   : POST
--   : POST
--   : GET (Planned for country filtering)
--   : GET (Bug fixed)
--    and : (Deleted)
+*   : Fetches data for the detailed seller report. Accepts  and  (daily, weekly, bi-weekly, monthly) as query parameters.
 
 **Critical Info for New Agent**
--   The user wants responses in **Spanish**.
--   A significant number of features were implemented and passed the testing agent's checks. The main remaining task is to implement the country-based filtering for reports, which was started but not finished.
--   There is an uninvestigated bug regarding the ticket option on mobile. You should start by asking the user for more details on this.
--   The testing agent () proved very effective for verifying the implemented changes. Use it after completing the next set of tasks.
+*   The user has provided a large list of new features. It is crucial to confirm the priority of these tasks with the user before starting implementation. The suggested priority is: (1) Fix the  crash, (2) Implement UI changes (bold text on tickets), (3) Implement user/terminal management.
+*   The agent deferred a critical bug fix in . This bug must be addressed with high priority as it breaks core functionality.
 
 **documents and test reports created in this job**
--    (This path is an example, the actual report from chat message 216 exists)
--    (The agent was about to update this file)
+*   : This file was updated multiple times to reflect the completed tasks and new requests.
+*   : A test report generated by the testing agent, which indicated all tests passed at that time (before the share feature was fully added and before the  crash was deferred).
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  ****: User confirmed the agent's final summary presentation.
-2.  ****: User confirmed the plan and added two new requests: fix a mobile ticket error and add the ability to pay winning tickets.
-3.  ****: User clarified that the super admin should see all reports, reported the multi-play keyboard issue, and requested a general system check.
-4.  ****: The initial detailed request from the user.
+1.   (yes): User confirms they want to proceed with adding PDF export. (Completed)
+2.   (yes): User confirms they want to proceed with adding share via WhatsApp/Email. (In Progress)
+3.  : User requests a large set of new features: unique IDs for users (terminals), a search/list for terminals, an interface to pay winning tickets, and super-admin controls for setting prize percentages. (Not Started)
+4.  : User clarifies the prize percentage feature, adding requirements for different percentages per lottery, multi-lottery selection in multi-play, making ticket info bold, and a company profile page to change the logo on receipts. (Not Started)
 
 **Project Health Check:**
--   **Broken:** The  endpoint was briefly broken but was fixed. The mobile ticket functionality is reported as broken by the user.
--   **Mocked:** None.
+*   **Broken:** The ticket detail view in  is broken due to an unhandled  on an  property.
+*   **Mocked:** None.
 
 **3rd Party Integrations**
--   None mentioned.
+*   **expo-print**: Used for generating PDF documents.
+*   **expo-sharing**: Used for sharing generated files (like PDFs).
 
 **Testing status**
--   **Testing agent used after significant changes:** YES
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None mentioned, but the testing agent was executed.
--   **Known regressions:** None identified. The  bug was introduced and fixed in the same session.
+*   **Testing agent used after significant changes:** YES (but before the final share feature was added and the  bug was deferred).
+*   **Troubleshoot agent used after agent stuck in loop:** NO
+*   **Test files created:** None.
+*   **Known regressions:** The ticket detail view, which was likely working before, is now crashing.
 
 **Credentials to test flow:**
--   **Email:** 
--   **Password:** 
+Use the standard Super Admin login credentials to access all features:
+*   **Username:** 
+*   **Password:** 
 
 **What agent forgot to execute**
--   **Implement country-separated reports:** The agent started analyzing the backend code but got sidetracked and never completed the implementation for filtering reports by country. This is a primary user requirement.
--   **Investigate and fix mobile ticket error:** The agent acknowledged the user's report of an error with the boleto option on mobile but never followed up to debug or fix it.
--   **Implement currency logic:** The user registration was updated to include a country, but the associated logic to handle currency (Pesos vs. Dollars) based on that country was not implemented.</analysis>
+*   The agent identified a critical crash in  ( error) but explicitly chose to defer fixing it. This should have been a P0 priority.</analysis>
