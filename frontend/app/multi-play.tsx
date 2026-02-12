@@ -177,10 +177,12 @@ export default function MultiPlay() {
       return;
     }
     
-    // Validate number range (0-99)
+    // Validate number range (use selected lottery's range if available)
+    const minNum = selectedLottery?.min_number ?? 0;
+    const maxNum = selectedLottery?.max_number ?? 99;
     for (const num of numbers) {
-      if (num < 0 || num > 99) {
-        Alert.alert('Error', `Número ${num} fuera de rango (0-99)`);
+      if (num < minNum || num > maxNum) {
+        Alert.alert('Error', `Número ${num} fuera de rango (${minNum}-${maxNum})`);
         return;
       }
     }
@@ -194,6 +196,8 @@ export default function MultiPlay() {
       id: Date.now().toString(),
       lottery_type: selectedType.key,
       lottery_type_label: selectedType.label,
+      lottery_id: selectedLottery?.id,
+      lottery_name: selectedLottery?.name || selectedType.label,
       numbers,
       amount,
     };
