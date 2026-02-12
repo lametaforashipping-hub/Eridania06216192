@@ -214,6 +214,8 @@ export default function Lotteries() {
     setFormMultiplier('70');
     setFormOpeningTime('08:00');
     setFormClosingTime('21:00');
+    setFormWeeklyHours(DEFAULT_WEEKLY_HOURS);
+    setUseWeeklySchedule(false);
   };
 
   const getTypeLabel = (type: string) => {
