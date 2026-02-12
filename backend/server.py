@@ -752,6 +752,150 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     
     return {**serialize_doc(ticket_doc), "commission_earned": commission}
 
+@api_router.post("/tickets/multi")
+async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_user: dict = Depends(get_current_user)):
+    """Create a single ticket with multiple plays (quiniela, pale, tripleta, etc.)"""
+    if not ticket_data.plays or len(ticket_data.plays) == 0:
+        raise HTTPException(status_code=400, detail="Debe incluir al menos una jugada")
+    
+    # Get all active lotteries to match play types
+    all_lotteries = await db.lotteries.find({"active": True}).to_list(100)
+    lottery_map = {l["lottery_type"]: l for l in all_lotteries}
+    
+    # Validate and calculate each play
+    plays_data = []
+    total_amount = 0
+    total_potential_win = 0
+    
+    for play in ticket_data.plays:
+        # Find matching lottery for this play type
+        lottery = lottery_map.get(play.lottery_type)
+        if not lottery:
+            # Try to find any lottery with this type
+            lottery = next((l for l in all_lotteries if l["lottery_type"] == play.lottery_type), None)
+        
+        if not lottery:
+            raise HTTPException(status_code=400, detail=f"Tipo de lotería '{play.lottery_type}' no encontrado")
+        
+        # Validate numbers based on lottery type
+        expected_numbers = lottery.get("numbers_to_pick", 1)
+        if play.lottery_type in ["quiniela", "quinieloto"]:
+            expected_numbers = 1
+        elif play.lottery_type in ["pale", "super_pale"]:
+            expected_numbers = 2
+        elif play.lottery_type == "tripleta":
+            expected_numbers = 3
+        
+        if len(play.numbers) != expected_numbers:
+            raise HTTPException(status_code=400, detail=f"El tipo {play.lottery_type} requiere {expected_numbers} número(s)")
+        
+        # Validate number range
+        min_num = lottery.get("min_number", 0)
+        max_num = lottery.get("max_number", 99)
+        for num in play.numbers:
+            if num < min_num or num > max_num:
+                raise HTTPException(status_code=400, detail=f"Número {num} fuera de rango ({min_num}-{max_num})")
+        
+        # Calculate potential win for this play
+        multiplier = lottery.get("prize_multiplier", 70)
+        if play.position and lottery.get("prize_rules"):
+            for rule in lottery["prize_rules"]:
+                if rule.get("position") == play.position:
+                    multiplier = rule.get("multiplier", multiplier)
+                    break
+        
+        potential_win = play.amount * multiplier
+        
+        plays_data.append({
+            "lottery_type": play.lottery_type,
+            "lottery_name": lottery["name"],
+            "lottery_id": lottery["id"],
+            "numbers": play.numbers,
+            "amount": play.amount,
+            "position": play.position,
+            "potential_win": potential_win,
+            "multiplier": multiplier
+        })
+        
+        total_amount += play.amount
+        total_potential_win += potential_win
+    
+    # Check credit limit for vendors
+    if current_user["role"] == UserRole.VENDEDOR.value:
+        today_sales = await db.tickets.aggregate([
+            {"$match": {
+                "seller_id": current_user["id"],
+                "created_at": {"$gte": datetime.utcnow().replace(hour=0, minute=0, second=0)},
+                "status": {"$ne": TicketStatus.CANCELLED.value}
+            }},
+            {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+        ]).to_list(1)
+        
+        current_sales = today_sales[0]["total"] if today_sales else 0
+        if current_sales + total_amount > current_user["credit_limit"]:
+            raise HTTPException(status_code=400, detail="Límite de crédito excedido")
+    
+    # Create the multi-play ticket
+    ticket_doc = {
+        "id": str(uuid.uuid4()),
+        "ticket_number": generate_ticket_number(),
+        "ticket_type": "multi_play",
+        "seller_id": current_user["id"],
+        "seller_name": current_user["name"],
+        "plays": plays_data,
+        "plays_count": len(plays_data),
+        "total_amount": total_amount,
+        "total_potential_win": total_potential_win,
+        "currency": ticket_data.currency.value,
+        "status": TicketStatus.PENDING.value,
+        "customer_name": ticket_data.customer_name,
+        "created_at": datetime.utcnow(),
+        "paid_at": None,
+        "cancelled_at": None
+    }
+    
+    await db.tickets.insert_one(ticket_doc)
+    
+    # Update seller stats and commission
+    commission_rate = current_user.get("commission_rate", 10.0)
+    commission = total_amount * (commission_rate / 100)
+    
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {
+            "$inc": {"total_sales": total_amount, "total_commission": commission, "balance": commission},
+            "$set": {"last_activity": datetime.utcnow()}
+        }
+    )
+    
+    # Record sale transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "transaction_type": TransactionType.SALE.value,
+        "amount": total_amount,
+        "currency": ticket_data.currency.value,
+        "description": f"Venta multi-jugada ({len(plays_data)} jugadas)",
+        "reference_id": ticket_doc["id"],
+        "created_at": datetime.utcnow()
+    })
+    
+    # Record commission transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "transaction_type": TransactionType.COMMISSION.value,
+        "amount": commission,
+        "currency": ticket_data.currency.value,
+        "description": f"Comisión {commission_rate}% de multi-jugada {ticket_doc['ticket_number']}",
+        "reference_id": ticket_doc["id"],
+        "created_at": datetime.utcnow()
+    })
+    
+    return {**serialize_doc(ticket_doc), "commission_earned": commission}
+
 @api_router.get("/tickets")
 async def get_tickets(
     status: Optional[TicketStatus] = None,
