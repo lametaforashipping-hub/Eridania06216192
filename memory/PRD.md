@@ -81,15 +81,22 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (12 Feb 2026)
 
-### Implementado Hoy - Sesión Actual
-- ✅ **Bug Fix Crítico: Modal de Boletos** - Corregido crash al hacer click en boletos multi-play
-  - Error: `Cannot read properties of undefined (reading 'map')` en `selectedTicket.numbers.map`
-  - Solución: Agregadas verificaciones condicionales antes de mapear sobre arrays
-  - Ahora muestra correctamente las jugadas para multi-play y números para boletos simples
-- ✅ **Modal de Boletos Mejorado** - Soporte completo para ambos tipos de boletos
-- ✅ **Verificación Testing Agent** - 100% tests pasados (iteration_11.json)
+### Implementado Hoy - Sesión 2
+- ✅ **Gestión de Terminales Completada**
+  - Nuevo campo `terminal_id` en modelo de usuario (backend y frontend)
+  - Endpoint GET `/api/terminals` con búsqueda por terminal, nombre o email
+  - Endpoint GET `/api/terminals/next-id` para generar ID secuencial (T001, T002, etc.)
+  - Nueva pantalla `/terminals` con búsqueda y lista de terminales
+  - Campo "ID de Terminal" en formulario de creación de usuarios
+  - Menú "Terminales" agregado al dashboard
+- ✅ **Ticket HTML Rediseñado con Texto Bold**
+  - Fuente Arial Black con font-weight: 900
+  - Mejor contraste y legibilidad
+  - Soporte mejorado para boletos multi-play
+  - Diseño más compacto y profesional
+- ✅ **Testing Completado** - 100% tests pasados (iteration_12.json)
 
-### Implementado Sesión Anterior (12 Feb 2026)
+### Implementado Sesión 1 (12 Feb 2026)
 - ✅ **Reporte Detallado por Vendedor** - Nuevo endpoint y pantalla con períodos (diario/semanal/quincenal/mensual)
 - ✅ **Navegación a Reporte Detallado** - Click en vendedor abre su reporte detallado
 - ✅ **Mejora tickets.tsx** - Soporte completo para boletos multi-play y simples
