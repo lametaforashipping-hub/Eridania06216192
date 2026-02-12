@@ -2193,29 +2193,29 @@ async def get_detailed_seller_report(
                     "amount": play.get("amount", 0)
                 })
             ticket_details.append({
-                "id": t["id"],
-                "ticket_number": t["ticket_number"],
+                "id": t.get("id", ""),
+                "ticket_number": t.get("ticket_number", "N/A"),
                 "is_multi_play": True,
                 "plays": plays_summary,
                 "plays_count": t.get("plays_count", len(plays_summary)),
                 "total_amount": t.get("total_amount", 0),
                 "total_potential_win": t.get("total_potential_win", 0),
-                "status": t["status"],
-                "created_at": t["created_at"].isoformat() if isinstance(t["created_at"], datetime) else t["created_at"],
+                "status": t.get("status", "pending"),
+                "created_at": t["created_at"].isoformat() if isinstance(t.get("created_at"), datetime) else str(t.get("created_at", "")),
                 "customer_name": t.get("customer_name", ""),
                 "currency": t.get("currency", currency)
             })
         else:
             ticket_details.append({
-                "id": t["id"],
-                "ticket_number": t["ticket_number"],
+                "id": t.get("id", ""),
+                "ticket_number": t.get("ticket_number", "N/A"),
                 "is_multi_play": False,
                 "lottery_name": lottery_name,
                 "numbers": t.get("numbers", []),
                 "amount": t.get("amount", 0),
                 "potential_win": t.get("potential_win", 0),
-                "status": t["status"],
-                "created_at": t["created_at"].isoformat() if isinstance(t["created_at"], datetime) else t["created_at"],
+                "status": t.get("status", "pending"),
+                "created_at": t["created_at"].isoformat() if isinstance(t.get("created_at"), datetime) else str(t.get("created_at", "")),
                 "customer_name": t.get("customer_name", ""),
                 "position": t.get("position"),
                 "currency": t.get("currency", currency)
