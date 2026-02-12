@@ -1320,10 +1320,10 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         total_potential_win += potential_win
     
     # Check credit limit for vendors
-    if current_user["role"] == UserRole.VENDEDOR.value:
+    if effective_user["role"] == UserRole.VENDEDOR.value:
         today_sales = await db.tickets.aggregate([
             {"$match": {
-                "seller_id": current_user["id"],
+                "seller_id": effective_user["id"],
                 "created_at": {"$gte": datetime.utcnow().replace(hour=0, minute=0, second=0)},
                 "status": {"$ne": TicketStatus.CANCELLED.value}
             }},
@@ -1331,7 +1331,7 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         ]).to_list(1)
         
         current_sales = today_sales[0]["total"] if today_sales else 0
-        if current_sales + total_amount > current_user["credit_limit"]:
+        if current_sales + total_amount > effective_user["credit_limit"]:
             raise HTTPException(status_code=400, detail="Límite de crédito excedido")
     
     # Create the multi-play ticket
@@ -1339,8 +1339,8 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         "id": str(uuid.uuid4()),
         "ticket_number": generate_ticket_number(),
         "ticket_type": "multi_play",
-        "seller_id": current_user["id"],
-        "seller_name": current_user["name"],
+        "seller_id": effective_user["id"],
+        "seller_name": effective_user["name"],
         "plays": plays_data,
         "plays_count": len(plays_data),
         "total_amount": total_amount,
@@ -1350,17 +1350,18 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         "customer_name": ticket_data.customer_name,
         "created_at": datetime.utcnow(),
         "paid_at": None,
-        "cancelled_at": None
+        "cancelled_at": None,
+        "impersonated_by": impersonated_by  # Track if created by Super Admin on behalf
     }
     
     await db.tickets.insert_one(ticket_doc)
     
     # Update seller stats and commission
-    commission_rate = current_user.get("commission_rate", 10.0)
+    commission_rate = effective_user.get("commission_rate", 10.0)
     commission = total_amount * (commission_rate / 100)
     
     await db.users.update_one(
-        {"id": current_user["id"]},
+        {"id": effective_user["id"]},
         {
             "$inc": {"total_sales": total_amount, "total_commission": commission, "balance": commission},
             "$set": {"last_activity": datetime.utcnow()}
@@ -1370,12 +1371,12 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     # Record sale transaction
     await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
-        "user_id": current_user["id"],
-        "user_name": current_user["name"],
+        "user_id": effective_user["id"],
+        "user_name": effective_user["name"],
         "transaction_type": TransactionType.SALE.value,
         "amount": total_amount,
         "currency": ticket_data.currency.value,
-        "description": f"Venta multi-jugada ({len(plays_data)} jugadas)",
+        "description": f"Venta multi-jugada ({len(plays_data)} jugadas)" + (f" [Creado por Admin]" if impersonated_by else ""),
         "reference_id": ticket_doc["id"],
         "created_at": datetime.utcnow()
     })
@@ -1383,8 +1384,8 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     # Record commission transaction
     await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
-        "user_id": current_user["id"],
-        "user_name": current_user["name"],
+        "user_id": effective_user["id"],
+        "user_name": effective_user["name"],
         "transaction_type": TransactionType.COMMISSION.value,
         "amount": commission,
         "currency": ticket_data.currency.value,
