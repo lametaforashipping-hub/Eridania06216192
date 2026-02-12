@@ -22,6 +22,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
+interface WeeklyHours {
+  [key: string]: {
+    open: string;
+    close: string;
+  };
+}
+
+interface TodayHours {
+  open: string;
+  close: string;
+  day: string;
+}
+
 interface Lottery {
   id: string;
   name: string;
@@ -37,10 +50,32 @@ interface Lottery {
   active: boolean;
   opening_time?: string;
   closing_time?: string;
+  weekly_hours?: WeeklyHours;
   is_open?: boolean;
   next_draw_time?: string;
   closed_message?: string;
+  today_hours?: TodayHours;
 }
+
+const DAYS_OF_WEEK = [
+  { key: 'monday', label: 'Lun', fullLabel: 'Lunes' },
+  { key: 'tuesday', label: 'Mar', fullLabel: 'Martes' },
+  { key: 'wednesday', label: 'Mié', fullLabel: 'Miércoles' },
+  { key: 'thursday', label: 'Jue', fullLabel: 'Jueves' },
+  { key: 'friday', label: 'Vie', fullLabel: 'Viernes' },
+  { key: 'saturday', label: 'Sáb', fullLabel: 'Sábado' },
+  { key: 'sunday', label: 'Dom', fullLabel: 'Domingo' },
+];
+
+const DEFAULT_WEEKLY_HOURS: WeeklyHours = {
+  monday: { open: '08:00', close: '21:00' },
+  tuesday: { open: '08:00', close: '21:00' },
+  wednesday: { open: '08:00', close: '21:00' },
+  thursday: { open: '08:00', close: '21:00' },
+  friday: { open: '08:00', close: '21:00' },
+  saturday: { open: '08:00', close: '22:00' },
+  sunday: { open: '10:00', close: '20:00' },
+};
 
 const LOTTERY_TYPES = [
   { value: 'quiniela', label: 'Quiniela' },
