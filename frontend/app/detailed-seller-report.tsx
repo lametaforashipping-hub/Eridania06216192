@@ -780,6 +780,9 @@ export default function DetailedSellerReport() {
           {sellerName || report?.seller?.name || 'Reporte Detallado'}
         </Text>
         <View style={styles.headerActions}>
+          <TouchableOpacity onPress={() => setShowShareModal(true)} style={styles.headerButton}>
+            <Ionicons name="share-social" size={22} color="#22c55e" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={generatePDF} style={styles.headerButton}>
             <Ionicons name="document-text" size={22} color="#22c55e" />
           </TouchableOpacity>
@@ -788,6 +791,52 @@ export default function DetailedSellerReport() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Share Modal */}
+      <Modal
+        visible={showShareModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareModal(false)}
+        >
+          <View style={styles.shareModalContent}>
+            <Text style={styles.shareModalTitle}>Compartir Reporte</Text>
+            
+            <TouchableOpacity style={styles.shareOption} onPress={shareViaWhatsApp}>
+              <View style={[styles.shareIconBox, { backgroundColor: '#25D366' }]}>
+                <Ionicons name="logo-whatsapp" size={24} color="#ffffff" />
+              </View>
+              <Text style={styles.shareOptionText}>WhatsApp</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.shareOption} onPress={shareViaEmail}>
+              <View style={[styles.shareIconBox, { backgroundColor: '#EA4335' }]}>
+                <Ionicons name="mail" size={24} color="#ffffff" />
+              </View>
+              <Text style={styles.shareOptionText}>Correo Electrónico</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.shareOption} onPress={shareGeneric}>
+              <View style={[styles.shareIconBox, { backgroundColor: '#3b82f6' }]}>
+                <Ionicons name="share-outline" size={24} color="#ffffff" />
+              </View>
+              <Text style={styles.shareOptionText}>Otras Aplicaciones</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareCancelButton}
+              onPress={() => setShowShareModal(false)}
+            >
+              <Text style={styles.shareCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Period Selector */}
       <View style={styles.periodSelector}>
