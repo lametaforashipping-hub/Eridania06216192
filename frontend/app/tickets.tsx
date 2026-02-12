@@ -189,38 +189,42 @@ export default function Tickets() {
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-          .title { font-size: 18px; font-weight: bold; }
-          .ticket-number { font-size: 14px; font-weight: bold; margin: 10px 0; }
-          .numbers { font-size: 24px; font-weight: bold; text-align: center; padding: 15px; background: #f0f0f0; border-radius: 8px; margin: 10px 0; }
-          .details { font-size: 12px; }
-          .row { display: flex; justify-content: space-between; padding: 4px 0; }
-          .status { text-align: center; padding: 10px; margin: 10px 0; font-weight: bold; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Arial Black', 'Courier New', monospace; padding: 8px; max-width: 280px; margin: 0 auto; font-weight: bold; }
+          .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; }
+          .title { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
+          .ticket-number { font-size: 10px; font-weight: 900; margin: 3px 0; text-align: center; }
+          .numbers { font-size: 16px; font-weight: 900; text-align: center; padding: 6px 4px; background: #e5e5e5; border-radius: 4px; margin: 4px 0; letter-spacing: 2px; }
+          .details { font-size: 9px; font-weight: 700; }
+          .row { display: flex; justify-content: space-between; padding: 1px 0; }
+          .status { text-align: center; padding: 4px; margin: 3px 0; font-weight: 900; font-size: 11px; border-radius: 3px; }
           .won { background: #22c55e; color: white; }
-          .footer { text-align: center; border-top: 2px dashed #000; padding-top: 10px; margin-top: 10px; font-size: 10px; }
+          .paid { background: #3b82f6; color: white; }
+          .pending { background: #f59e0b; color: white; }
+          .amounts { font-size: 10px; font-weight: 900; margin: 3px 0; }
+          .amounts .row { padding: 2px 0; }
+          .prize { color: #22c55e; }
+          .footer { text-align: center; border-top: 1px dashed #000; padding-top: 3px; margin-top: 3px; font-size: 8px; font-weight: 700; }
+          .lottery-name { font-size: 11px; font-weight: 900; text-align: center; margin: 2px 0; }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="title">SISTEMA DE LOTERIA</div>
+          <div class="title">LOTERIA</div>
         </div>
-        <div class="ticket-number">BOLETO: ${ticket.ticket_number}</div>
+        <div class="ticket-number">${ticket.ticket_number}</div>
+        <div class="lottery-name">${ticket.lottery_name}</div>
         <div class="details">
-          <div class="row"><span>Lotería:</span><span>${ticket.lottery_name}</span></div>
-          <div class="row"><span>Fecha:</span><span>${date.toLocaleDateString('es-DO')}</span></div>
-          <div class="row"><span>Hora:</span><span>${date.toLocaleTimeString('es-DO')}</span></div>
+          <div class="row"><span>${date.toLocaleDateString('es-DO')}</span><span>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}</span></div>
           ${ticket.customer_name ? `<div class="row"><span>Cliente:</span><span>${ticket.customer_name}</span></div>` : ''}
         </div>
-        <div class="numbers">${ticket.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}</div>
-        <div class="status ${ticket.status === 'won' ? 'won' : ''}">${getStatusText(ticket.status)}</div>
-        <div class="details">
+        <div class="numbers">${ticket.numbers.map(n => n.toString().padStart(2, '0')).join('-')}</div>
+        <div class="status ${ticket.status === 'won' ? 'won' : ticket.status === 'paid' ? 'paid' : 'pending'}">${getStatusText(ticket.status)}</div>
+        <div class="amounts">
           <div class="row"><span>Monto:</span><span>${ticket.currency} ${ticket.amount.toLocaleString()}</span></div>
-          <div class="row"><span>Premio:</span><span>${ticket.currency} ${ticket.potential_win.toLocaleString()}</span></div>
+          <div class="row"><span>Premio:</span><span class="prize">${ticket.currency} ${ticket.potential_win.toLocaleString()}</span></div>
         </div>
-        <div class="footer">
-          <p>Vendedor: ${ticket.seller_name}</p>
-        </div>
+        <div class="footer">${ticket.seller_name}</div>
       </body>
       </html>
     `;
