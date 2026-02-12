@@ -262,7 +262,7 @@ export default function Lotteries() {
       {item.is_open !== undefined && (
         <View style={[styles.statusIndicator, item.is_open ? styles.statusOpen : styles.statusClosed]}>
           <Text style={styles.statusText}>
-            {item.is_open ? '🟢 ABIERTA' : `🔴 ${item.closed_message || 'CERRADA'}`}
+            {item.is_holiday ? '🎉 ' : ''}{item.is_open ? '🟢 ABIERTA' : `🔴 ${item.closed_message || 'CERRADA'}`}
           </Text>
         </View>
       )}
