@@ -530,69 +530,77 @@ export default function MultiPlay() {
 
       {/* Add Play Modal */}
       <Modal visible={showAddModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, isDesktop && styles.modalContentDesktop]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Agregar {selectedType.label}</Text>
-              <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                <Ionicons name="close" size={24} color="#ffffff" />
-              </TouchableOpacity>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <ScrollView 
+            contentContainerStyle={styles.modalScrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={[styles.modalContent, isDesktop && styles.modalContentDesktop]}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Agregar {selectedType.label}</Text>
+                <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.modalBody}>
+                <Text style={styles.modalHint}>
+                  {selectedType.numbers === 1 ? 'Ingresa 1 número (ej: 25)' : 
+                   selectedType.numbers === 2 ? 'Ingresa 2 números (ej: 20-50 o 2050)' :
+                   'Ingresa 3 números (ej: 20-50-30 o 205030)'}
+                </Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Número(s)</Text>
+                  <TextInput
+                    style={styles.numbersInput}
+                    value={numbersInput}
+                    onChangeText={setNumbersInput}
+                    placeholder={selectedType.numbers === 1 ? '25' : selectedType.numbers === 2 ? '20-50' : '20-50-30'}
+                    placeholderTextColor="#64748b"
+                    keyboardType="numeric"
+                    autoFocus
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Monto (RD$)</Text>
+                  <TextInput
+                    style={styles.amountInput}
+                    value={amountInput}
+                    onChangeText={setAmountInput}
+                    placeholder="5"
+                    placeholderTextColor="#64748b"
+                    keyboardType="numeric"
+                  />
+                </View>
+                
+                {/* Quick amount buttons */}
+                <View style={styles.quickAmounts}>
+                  {[5, 10, 20, 50, 100].map(amt => (
+                    <TouchableOpacity
+                      key={amt}
+                      style={[styles.quickAmountBtn, amountInput === amt.toString() && styles.quickAmountBtnSelected]}
+                      onPress={() => setAmountInput(amt.toString())}
+                    >
+                      <Text style={[styles.quickAmountText, amountInput === amt.toString() && styles.quickAmountTextSelected]}>
+                        ${amt}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                
+                <TouchableOpacity style={styles.addButton} onPress={addPlay}>
+                  <Ionicons name="add-circle" size={22} color="#ffffff" />
+                  <Text style={styles.addButtonText}>Agregar Jugada</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            
-            <View style={styles.modalBody}>
-              <Text style={styles.modalHint}>
-                {selectedType.numbers === 1 ? 'Ingresa 1 número (ej: 25)' : 
-                 selectedType.numbers === 2 ? 'Ingresa 2 números (ej: 20-50 o 2050)' :
-                 'Ingresa 3 números (ej: 20-50-30 o 205030)'}
-              </Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Número(s)</Text>
-                <TextInput
-                  style={styles.numbersInput}
-                  value={numbersInput}
-                  onChangeText={setNumbersInput}
-                  placeholder={selectedType.numbers === 1 ? '25' : selectedType.numbers === 2 ? '20-50' : '20-50-30'}
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                  autoFocus
-                />
-              </View>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Monto (RD$)</Text>
-                <TextInput
-                  style={styles.amountInput}
-                  value={amountInput}
-                  onChangeText={setAmountInput}
-                  placeholder="5"
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                />
-              </View>
-              
-              {/* Quick amount buttons */}
-              <View style={styles.quickAmounts}>
-                {[5, 10, 20, 50, 100].map(amt => (
-                  <TouchableOpacity
-                    key={amt}
-                    style={[styles.quickAmountBtn, amountInput === amt.toString() && styles.quickAmountBtnSelected]}
-                    onPress={() => setAmountInput(amt.toString())}
-                  >
-                    <Text style={[styles.quickAmountText, amountInput === amt.toString() && styles.quickAmountTextSelected]}>
-                      ${amt}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              
-              <TouchableOpacity style={styles.addButton} onPress={addPlay}>
-                <Ionicons name="add-circle" size={22} color="#ffffff" />
-                <Text style={styles.addButtonText}>Agregar Jugada</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Ticket Created Modal */}
