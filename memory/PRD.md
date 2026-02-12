@@ -35,6 +35,7 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - [x] Selección de lotería
 - [x] Cliente opcional
 - [x] Reset automático del formulario después de cada jugada
+- [x] **Bloqueo de ventas cuando la lotería está cerrada**
 
 ### Tickets y Verificación
 - [x] Lista de boletos con filtros por estado
@@ -42,26 +43,35 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - [x] Pago de premios
 - [x] Impresión de recibos (HTML)
 - [x] Compartir ticket (WhatsApp/Share)
-- [x] **Escáner/Verificador de tickets:**
-  - Entrada manual de número de ticket
-  - Cámara para escaneo de códigos (móvil)
-  - Endpoint público: GET /api/tickets/verify/{ticket_number}
-  - Muestra estado: GANADOR, PERDIDO, PENDIENTE, PAGADO, CANCELADO
+- [x] Escáner/Verificador de tickets
 
-### Recibos Impresos
-- [x] Diseño profesional
+### Recibos Impresos (ACTUALIZADO Feb 2026)
+- [x] Diseño profesional con logo de empresa
+- [x] **Código de barras real** (usando fuente Libre Barcode 128)
+- [x] **Información de la empresa** (RNC, teléfono, dirección)
 - [x] Detalles del ticket (números, monto, fecha)
-- [x] Código de barras para escaneo
-- [x] **Comisión NO visible** en recibo impreso (solo en vista del vendedor)
+- [x] URL de verificación
 - [x] Premio potencial
+- [x] Comisión NO visible en recibo impreso
+
+### Control de Horarios de Lotería (NUEVO Feb 2026)
+- [x] **Hora de apertura diaria** (configurable por lotería)
+- [x] **Hora de cierre diaria** (configurable por lotería)
+- [x] **Bloqueo automático de ventas** fuera del horario
+- [x] **Mensaje descriptivo** cuando la lotería está cerrada
+- [x] Indicador visual de estado (abierta/cerrada) en la lista de loterías
 
 ### Sistema de Notificaciones
 - [x] Campana de notificaciones en dashboard
 - [x] Badge con contador de notificaciones no leídas
 - [x] Notificaciones de resultados de sorteos (globales)
-- [x] **Alertas de ganadores personalizadas por vendedor**
+- [x] Alertas de ganadores personalizadas por vendedor
 - [x] Polling automático cada 30 segundos
 - [x] Tipos: draw_result, winner_alert, system
+
+### UI/UX Mejoras (Feb 2026)
+- [x] **KeyboardAvoidingView mejorado** en Multi-Jugada para evitar que el teclado tape el botón
+- [x] Scroll con padding inferior para mejor acceso a botones
 
 ### Monitoreo y Reportes
 - [x] Dashboard con estadísticas diarias
@@ -101,7 +111,9 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - GET /api/notifications/unread-count
 
 ### Loterías y Sorteos
-- GET /api/lotteries
+- GET /api/lotteries (incluye is_open, closed_message, opening_time, closing_time)
+- POST /api/lotteries (con opening_time, closing_time)
+- PUT /api/lotteries/{id} (actualizar horarios)
 - POST /api/draws
 - GET /api/draws
 
@@ -117,19 +129,48 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - [ ] Reportes detallados por vendedor con fechas
 
 ### Prioridad Media (P2)
-- [ ] Logo personalizado en recibos
+- [ ] Logo personalizado/configurable en recibos
 - [ ] Migración de datos para usuarios existentes (agregar commission_rate default)
+- [ ] Migración de datos para loterías existentes (agregar opening_time, closing_time)
 
 ### Prioridad Baja (P3)
 - [ ] Mejoras de UI adicionales
 - [ ] Notificaciones push nativas
 
-## Actualizaciones Recientes (Feb 2026)
+## Actualizaciones Recientes
+
+### Feb 2026 - Sesión Actual
+1. **Bug Fix:** KeyboardAvoidingView en Multi-Jugada para evitar que el teclado tape el botón
+2. **Mejora de Recibos:** 
+   - Código de barras real con fuente Libre Barcode 128
+   - Logo de empresa con diseño circular
+   - Información de empresa (RNC, teléfono, dirección)
+   - URL de verificación en el footer
+3. **Nueva Funcionalidad - Horarios de Lotería:**
+   - Campos opening_time y closing_time en modelo de lotería
+   - Función check_lottery_open actualizada para verificar horarios diarios
+   - Bloqueo automático de ventas fuera del horario
+   - Mensajes descriptivos de cierre
+   - UI actualizada para mostrar estado y horarios
+
+### Feb 2026 - Sesión Anterior
 1. Sistema de usuarios mejorado con campos adicionales
 2. Porcentaje de comisión individual por vendedor
 3. Pantalla de verificación de tickets (/scanner)
 4. Fix de seguridad: campos sensibles excluidos de API
 5. Reset automático de formulario después de jugadas
 6. Comisión oculta en recibos impresos
-7. **Sistema de notificaciones con alertas de ganadores**
-8. **Campana de notificaciones en dashboard con badge**
+7. Sistema de notificaciones con alertas de ganadores
+8. Campana de notificaciones en dashboard con badge
+
+## Archivos Clave
+- `/app/backend/server.py` - Backend principal
+- `/app/frontend/app/multi-play.tsx` - Pantalla de multi-jugada
+- `/app/frontend/app/sales.tsx` - Pantalla de venta individual
+- `/app/frontend/app/lotteries.tsx` - Gestión de loterías
+- `/app/frontend/app/tickets.tsx` - Lista de boletos
+
+## Test Reports
+- `/app/test_reports/iteration_1.json` - Tests de sesión anterior
+- `/app/test_reports/iteration_2.json` - Tests de horarios de lotería (13 tests pasados)
+- `/app/backend/tests/test_lottery_opening_hours.py` - Tests de horarios
