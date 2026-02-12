@@ -125,6 +125,8 @@ export default function Lotteries() {
           prize_multiplier: parseFloat(formMultiplier),
           schedule: ['12:00', '15:00', '21:00'],
           active: true,
+          opening_time: formOpeningTime,
+          closing_time: formClosingTime,
         }),
       });
 
