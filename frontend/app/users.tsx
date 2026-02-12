@@ -407,6 +407,26 @@ export default function Users() {
                 ))}
               </View>
 
+              <Text style={styles.inputLabel}>País y Moneda</Text>
+              <View style={styles.roleSelector}>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'RD' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('RD')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'RD' && styles.roleOptionTextSelected]}>
+                    Rep. Dominicana (RD$)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'US' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('US')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'US' && styles.roleOptionTextSelected]}>
+                    Estados Unidos (USD)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
               <Text style={styles.inputLabel}>Porcentaje de Comisión (%)</Text>
               <TextInput
                 style={styles.input}
