@@ -101,27 +101,33 @@ export default function Users() {
 
     setCreating(true);
     try {
+      const payload = {
+        email: newEmail.trim().toLowerCase(),
+        password: newPassword,
+        name: newName.trim(),
+        role: newRole,
+        credit_limit: parseFloat(newCreditLimit) || 10000,
+        commission_rate: parseFloat(newCommissionRate) || 10,
+        country: newCountry,
+        phone: newPhone?.trim() || null,
+        address: newAddress?.trim() || null,
+        cedula: newCedula?.trim() || null,
+        terminal_id: newTerminalId?.trim()?.toUpperCase() || null,
+      };
+
+      console.log('Creating user with payload:', JSON.stringify(payload));
+
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          email: newEmail,
-          password: newPassword,
-          name: newName,
-          role: newRole,
-          credit_limit: parseFloat(newCreditLimit),
-          commission_rate: parseFloat(newCommissionRate),
-          country: newCountry,
-          currency: newCountry === 'US' ? 'USD' : 'RD$',
-          phone: newPhone || null,
-          address: newAddress || null,
-          cedula: newCedula || null,
-          terminal_id: newTerminalId || null,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      const data = await response.json();
+      console.log('Create user response:', response.status, JSON.stringify(data));
 
       if (response.ok) {
         Alert.alert('Éxito', 'Usuario creado correctamente');
@@ -129,14 +135,79 @@ export default function Users() {
         resetForm();
         fetchUsers();
       } else {
-        const error = await response.json();
-        Alert.alert('Error', error.detail || 'No se pudo crear el usuario');
+        Alert.alert('Error', data.detail || 'No se pudo crear el usuario');
       }
     } catch (error) {
-      Alert.alert('Error', 'Error de conexión');
+      console.error('Create user error:', error);
+      Alert.alert('Error', 'Error de conexión. Verifica tu conexión a internet.');
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleEditUser = async () => {
+    if (!selectedUser) return;
+
+    setUpdating(true);
+    try {
+      const payload = {
+        name: newName?.trim() || undefined,
+        credit_limit: newCreditLimit ? parseFloat(newCreditLimit) : undefined,
+        commission_rate: newCommissionRate ? parseFloat(newCommissionRate) : undefined,
+        phone: newPhone?.trim() || undefined,
+        address: newAddress?.trim() || undefined,
+        cedula: newCedula?.trim() || undefined,
+        terminal_id: newTerminalId?.trim()?.toUpperCase() || undefined,
+        country: newCountry || undefined,
+      };
+
+      // Remove undefined values
+      const cleanPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, v]) => v !== undefined)
+      );
+
+      console.log('Updating user with payload:', JSON.stringify(cleanPayload));
+
+      const response = await fetch(`${API_URL}/api/users/${selectedUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(cleanPayload),
+      });
+
+      const data = await response.json();
+      console.log('Update user response:', response.status, JSON.stringify(data));
+
+      if (response.ok) {
+        Alert.alert('Éxito', 'Usuario actualizado correctamente');
+        setShowEditModal(false);
+        setSelectedUser(null);
+        resetForm();
+        fetchUsers();
+      } else {
+        Alert.alert('Error', data.detail || 'No se pudo actualizar el usuario');
+      }
+    } catch (error) {
+      console.error('Update user error:', error);
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const openEditModal = (user: User) => {
+    setSelectedUser(user);
+    setNewName(user.name);
+    setNewCreditLimit(user.credit_limit.toString());
+    setNewCommissionRate((user.commission_rate || 10).toString());
+    setNewPhone(user.phone || '');
+    setNewAddress(user.address || '');
+    setNewCedula(user.cedula || '');
+    setNewTerminalId(user.terminal_id || '');
+    setNewCountry(user.country || 'RD');
+    setShowEditModal(true);
   };
 
   const handleDeposit = async () => {
