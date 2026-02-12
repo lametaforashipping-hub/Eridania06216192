@@ -142,6 +142,7 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - [ ] Logo personalizado/configurable en recibos
 - [ ] Migración de datos para usuarios existentes (agregar commission_rate default)
 - [ ] Migración de datos para loterías existentes (agregar opening_time, closing_time)
+- [ ] Bug del teclado en Multi-Jugada (reportado pero pendiente verificación)
 
 ### Prioridad Baja (P3)
 - [ ] Mejoras de UI adicionales
@@ -149,7 +150,19 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 
 ## Actualizaciones Recientes
 
-### Feb 2026 - Sesión Actual
+### Feb 2026 - Sesión Actual (Límite por Número)
+1. **Nueva Funcionalidad - Límite de Boletos por Número:**
+   - Campo `ticket_limit_per_number` en modelo de lotería (GLOBAL, sin importar fecha)
+   - Validación en `POST /api/tickets` que bloquea ventas cuando se alcanza el límite
+   - Validación también en `POST /api/tickets/multi` para multi-jugadas
+   - Nuevo endpoint `GET /api/lotteries/{id}/number-stats` para ver estadísticas de ventas por número
+   - Mensaje de error descriptivo: "Límite alcanzado: El número X ya tiene Y boletos vendidos (máximo: Z)"
+   - Los boletos cancelados NO cuentan hacia el límite
+   - UI actualizada en pantalla de loterías mostrando el límite configurado
+   - Campo de entrada para límite en formulario de crear lotería
+   - Tests: 11/11 pasados (`/app/backend/tests/test_ticket_limit_per_number.py`)
+
+### Feb 2026 - Sesión Anterior (Horarios)
 1. **Bug Fix:** KeyboardAvoidingView en Multi-Jugada para evitar que el teclado tape el botón
 2. **Mejora de Recibos:** 
    - Código de barras real con fuente Libre Barcode 128
@@ -187,6 +200,8 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - `/app/test_reports/iteration_2.json` - Tests de horarios de lotería (13 tests pasados)
 - `/app/test_reports/iteration_3.json` - Tests de horarios semanales (11 tests pasados)
 - `/app/test_reports/iteration_4.json` - Tests de días festivos (17 tests pasados)
+- `/app/test_reports/iteration_5.json` - Tests de límite por número (11 tests pasados)
 - `/app/backend/tests/test_lottery_opening_hours.py` - Tests de horarios
 - `/app/backend/tests/test_weekly_hours.py` - Tests de horarios semanales
 - `/app/backend/tests/test_holiday_feature.py` - Tests de días festivos
+- `/app/backend/tests/test_ticket_limit_per_number.py` - Tests de límite por número
