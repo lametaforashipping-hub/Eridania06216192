@@ -1213,8 +1213,14 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     multi_play_limit_warnings = []  # Track numbers near limit across all plays
     
     for play in ticket_data.plays:
-        # Find matching lottery for this play type
-        lottery = lottery_map.get(play.lottery_type)
+        # First, try to use the specific lottery_id if provided (for multi-lotto support)
+        lottery = None
+        if play.lottery_id:
+            lottery = next((l for l in all_lotteries if l["id"] == play.lottery_id), None)
+        
+        # If no lottery_id provided or not found, fall back to lottery_type matching
+        if not lottery:
+            lottery = lottery_map.get(play.lottery_type)
         if not lottery:
             # Try to find any lottery with this type
             lottery = next((l for l in all_lotteries if l["lottery_type"] == play.lottery_type), None)
