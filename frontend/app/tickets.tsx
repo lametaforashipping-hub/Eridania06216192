@@ -577,20 +577,20 @@ export default function Tickets() {
                   </View>
                 </View>
 
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity style={styles.actionButton} onPress={() => setShowReceiptModal(true)}>
-                    <Ionicons name="eye" size={22} color="#ffffff" />
-                    <Text style={styles.actionButtonText}>Ver</Text>
+                <View style={styles.actionButtonsRow}>
+                  <TouchableOpacity style={styles.actionButtonSmall} onPress={() => setShowReceiptModal(true)}>
+                    <Ionicons name="eye" size={20} color="#ffffff" />
+                    <Text style={styles.actionButtonSmallText}>Ver</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.actionButton} onPress={handlePrint}>
-                    <Ionicons name="print" size={22} color="#ffffff" />
-                    <Text style={styles.actionButtonText}>Imprimir</Text>
+                  <TouchableOpacity style={styles.actionButtonSmall} onPress={handlePrint}>
+                    <Ionicons name="print" size={20} color="#ffffff" />
+                    <Text style={styles.actionButtonSmallText}>Imprimir</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.actionButton, styles.whatsappButton]} onPress={handleShare}>
-                    <Ionicons name="share-social" size={22} color="#ffffff" />
-                    <Text style={styles.actionButtonText}>Compartir</Text>
+                  <TouchableOpacity style={[styles.actionButtonSmall, styles.whatsappButtonSmall]} onPress={handleShare}>
+                    <Ionicons name="share-social" size={20} color="#ffffff" />
+                    <Text style={styles.actionButtonSmallText}>Compartir</Text>
                   </TouchableOpacity>
                 </View>
 
