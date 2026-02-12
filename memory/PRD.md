@@ -150,7 +150,7 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 
 ## Actualizaciones Recientes
 
-### Feb 2026 - Sesión Actual (Límite por Número + Alertas)
+### Feb 2026 - Sesión Actual (Límites + Recibo + Panel Admin)
 1. **Nueva Funcionalidad - Límite de Boletos por Número:**
    - Campo `ticket_limit_per_number` en modelo de lotería (GLOBAL, sin importar fecha)
    - Validación en `POST /api/tickets` que bloquea ventas cuando se alcanza el límite
@@ -167,6 +167,22 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
    - Campos nuevos en respuesta de tickets: `limit_warnings` y `limit_warning_message`
    - Frontend muestra Alert con mensaje: "Número 77: quedan 1 de 5" o "LÍMITE ALCANZADO (5/5)"
    - Funciona en ambas pantallas: Venta Individual y Multi-Jugada
+
+3. **Nuevo Panel de Administración de Límites** (`/number-limits`):
+   - Vista en tiempo real de números bloqueados y cercanos al límite
+   - Selector de lotería con filtro solo para loterías con límites
+   - Resumen con contadores: Bloqueados, Casi Llenos, Con Ventas
+   - Lista visual de números bloqueados
+   - Detalle por número con barra de progreso
+   - Accesible desde Dashboard para admin y super_admin
+
+4. **Rediseño del Recibo de Venta:**
+   - Código QR en lugar de código de barras (usando api.qrserver.com)
+   - Letras más grandes en todo el recibo
+   - Eliminado "Premio Potencial" y "Próximo Sorteo"
+   - Diseño reorganizado y más limpio
+   - Colores más claros y profesionales
+   - Actualizado en ambas pantallas: Venta Individual y Multi-Jugada
 
 ### Feb 2026 - Sesión Anterior (Horarios)
 1. **Bug Fix:** KeyboardAvoidingView en Multi-Jugada para evitar que el teclado tape el botón
