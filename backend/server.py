@@ -1940,8 +1940,8 @@ async def get_daily_chart_data(days: int = 7, current_user: dict = Depends(get_c
             "created_at": {"$gte": day_start, "$lt": day_end}
         }).to_list(10000)
         
-        sales = sum(t["amount"] for t in tickets if t["status"] != TicketStatus.CANCELLED.value)
-        wins = sum(t["potential_win"] for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+        sales = sum(t.get("amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
+        wins = sum(t.get("potential_win", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
         
         data.append({
             "date": day_start.strftime("%Y-%m-%d"),
