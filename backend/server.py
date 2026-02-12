@@ -1387,23 +1387,31 @@ async def get_accounting_summary(current_user: dict = Depends(get_current_user))
         vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
         user_filter["seller_id"] = {"$in": vendor_ids}
     
+    def get_amount(ticket):
+        """Get amount from ticket, handling both regular and multi-play tickets"""
+        return ticket.get("amount", ticket.get("total_amount", 0))
+    
+    def get_potential_win(ticket):
+        """Get potential win from ticket, handling both regular and multi-play tickets"""
+        return ticket.get("potential_win", ticket.get("total_potential_win", 0))
+    
     today_tickets = await db.tickets.find({**user_filter, "created_at": {"$gte": today}}).to_list(10000)
-    today_sales = sum(t["amount"] for t in today_tickets if t["status"] != TicketStatus.CANCELLED.value)
-    today_wins = sum(t["potential_win"] for t in today_tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    today_sales = sum(get_amount(t) for t in today_tickets if t.get("status") != TicketStatus.CANCELLED.value)
+    today_wins = sum(get_potential_win(t) for t in today_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
     week_tickets = await db.tickets.find({**user_filter, "created_at": {"$gte": week_ago}}).to_list(10000)
-    week_sales = sum(t["amount"] for t in week_tickets if t["status"] != TicketStatus.CANCELLED.value)
-    week_wins = sum(t["potential_win"] for t in week_tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    week_sales = sum(get_amount(t) for t in week_tickets if t.get("status") != TicketStatus.CANCELLED.value)
+    week_wins = sum(get_potential_win(t) for t in week_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
     month_tickets = await db.tickets.find({**user_filter, "created_at": {"$gte": month_ago}}).to_list(10000)
-    month_sales = sum(t["amount"] for t in month_tickets if t["status"] != TicketStatus.CANCELLED.value)
-    month_wins = sum(t["potential_win"] for t in month_tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    month_sales = sum(get_amount(t) for t in month_tickets if t.get("status") != TicketStatus.CANCELLED.value)
+    month_wins = sum(get_potential_win(t) for t in month_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
     return {
-        "today": {"sales": today_sales, "wins": today_wins, "profit": today_sales - today_wins, "tickets": len([t for t in today_tickets if t["status"] != TicketStatus.CANCELLED.value])},
-        "week": {"sales": week_sales, "wins": week_wins, "profit": week_sales - week_wins, "tickets": len([t for t in week_tickets if t["status"] != TicketStatus.CANCELLED.value])},
-        "month": {"sales": month_sales, "wins": month_wins, "profit": month_sales - month_wins, "tickets": len([t for t in month_tickets if t["status"] != TicketStatus.CANCELLED.value])},
-        "currency": current_user["currency"]
+        "today": {"sales": today_sales, "wins": today_wins, "profit": today_sales - today_wins, "tickets": len([t for t in today_tickets if t.get("status") != TicketStatus.CANCELLED.value])},
+        "week": {"sales": week_sales, "wins": week_wins, "profit": week_sales - week_wins, "tickets": len([t for t in week_tickets if t.get("status") != TicketStatus.CANCELLED.value])},
+        "month": {"sales": month_sales, "wins": month_wins, "profit": month_sales - month_wins, "tickets": len([t for t in month_tickets if t.get("status") != TicketStatus.CANCELLED.value])},
+        "currency": current_user.get("currency", "RD$")
     }
 
 @api_router.get("/accounting/sellers-report")
