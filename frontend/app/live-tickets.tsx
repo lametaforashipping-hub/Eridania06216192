@@ -683,6 +683,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
   },
+  potentialWinContainer: {
+    alignItems: 'flex-end',
+  },
+  potentialWinLabel: {
+    fontSize: 10,
+    color: '#ef4444',
+  },
+  potentialWinValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ef4444',
+  },
   cancelButton: {
     flexDirection: 'row',
     alignItems: 'center',
