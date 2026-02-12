@@ -218,6 +218,7 @@ export default function Users() {
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.name}</Text>
           <Text style={styles.userEmail}>{item.email}</Text>
+          {item.phone && <Text style={styles.userPhone}>{item.phone}</Text>}
           <View style={[styles.roleBadge, { backgroundColor: getRoleColor(item.role) + '30' }]}>
             <Text style={[styles.roleText, { color: getRoleColor(item.role) }]}>
               {getRoleLabel(item.role)}
@@ -240,12 +241,25 @@ export default function Users() {
           </Text>
         </View>
         <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Comisión</Text>
+          <Text style={[styles.detailValue, styles.commissionValue]}>
+            {item.commission_rate || 10}%
+          </Text>
+        </View>
+        <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>Balance</Text>
           <Text style={[styles.detailValue, styles.balanceValue]}>
             {item.currency} {item.balance.toLocaleString()}
           </Text>
         </View>
       </View>
+
+      {item.cedula && (
+        <View style={styles.extraInfo}>
+          <Ionicons name="card-outline" size={14} color="#64748b" />
+          <Text style={styles.extraInfoText}>Cédula: {item.cedula}</Text>
+        </View>
+      )}
 
       <View style={styles.userActions}>
         <TouchableOpacity
