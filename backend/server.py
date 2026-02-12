@@ -1884,6 +1884,7 @@ async def get_accounting_summary(current_user: dict = Depends(get_current_user))
 async def get_sellers_report(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    country: Optional[str] = None,
     current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
 ):
     if not start_date:
@@ -1896,18 +1897,45 @@ async def get_sellers_report(
     else:
         end = datetime.fromisoformat(end_date)
     
+    # Determine country filter based on user role
+    user_country = current_user.get("country", "RD")
+    filter_country = None
+    
     if current_user["role"] == UserRole.SUPER_ADMIN.value:
-        sellers = await db.users.find({"role": UserRole.VENDEDOR.value}).to_list(1000)
+        # Super admin can filter by country or see all
+        filter_country = country  # Can be None to see all
     else:
-        sellers = await db.users.find({"created_by": current_user["id"], "role": UserRole.VENDEDOR.value}).to_list(1000)
+        # Admin users only see sellers from their country
+        filter_country = user_country
+    
+    # Build seller query with country filter
+    seller_query = {"role": UserRole.VENDEDOR.value}
+    if current_user["role"] != UserRole.SUPER_ADMIN.value:
+        seller_query["created_by"] = current_user["id"]
+    
+    if filter_country:
+        seller_query["country"] = filter_country
+    
+    sellers = await db.users.find(seller_query).to_list(1000)
+    
+    # Get lottery IDs for the country filter if applicable
+    country_lottery_ids = None
+    if filter_country:
+        country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
+        country_lottery_ids = [l["id"] for l in country_lotteries]
     
     reports = []
     
     for seller in sellers:
-        tickets = await db.tickets.find({
+        ticket_query = {
             "seller_id": seller["id"],
             "created_at": {"$gte": start, "$lte": end}
-        }).to_list(10000)
+        }
+        # Apply country filter to tickets
+        if country_lottery_ids is not None:
+            ticket_query["lottery_id"] = {"$in": country_lottery_ids}
+        
+        tickets = await db.tickets.find(ticket_query).to_list(10000)
         
         total_sales = sum(t["amount"] for t in tickets if t["status"] != TicketStatus.CANCELLED.value)
         total_wins = sum(t["potential_win"] for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
@@ -1920,6 +1948,7 @@ async def get_sellers_report(
         reports.append({
             "seller_id": seller["id"],
             "seller_name": seller["name"],
+            "seller_country": seller.get("country", "RD"),
             "total_sales": total_sales,
             "total_wins": total_wins,
             "total_commission": total_commission,
@@ -1940,7 +1969,8 @@ async def get_sellers_report(
             "total_wins": sum(r["total_wins"] for r in reports),
             "total_commission": sum(r["total_commission"] for r in reports),
             "net_profit": sum(r["net_profit"] for r in reports)
-        }
+        },
+        "country_filter": filter_country
     }
 
 @api_router.get("/accounting/daily-chart")
