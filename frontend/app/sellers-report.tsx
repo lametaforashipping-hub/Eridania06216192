@@ -207,7 +207,7 @@ export default function SellersReport() {
             <TouchableOpacity
               key={seller.seller_id}
               style={styles.sellerCard}
-              onPress={() => router.push(`/detailed-seller-report?sellerId=${seller.seller_id}&sellerName=${encodeURIComponent(seller.seller_name)}`)}
+              onPress={() => router.push(`/seller-profile?sellerId=${seller.seller_id}&sellerName=${encodeURIComponent(seller.seller_name)}`)}
             >
               <View style={styles.sellerHeader}>
                 <View style={styles.rankBadge}>
