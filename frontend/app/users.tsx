@@ -392,11 +392,15 @@ export default function Users() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} data-testid="back-button">
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Usuarios</Text>
-        <TouchableOpacity onPress={() => setShowCreateModal(true)}>
+        <TouchableOpacity 
+          onPress={() => setShowCreateModal(true)}
+          data-testid="create-user-button"
+          style={styles.addButton}
+        >
           <Ionicons name="add-circle" size={28} color="#22c55e" />
         </TouchableOpacity>
       </View>
