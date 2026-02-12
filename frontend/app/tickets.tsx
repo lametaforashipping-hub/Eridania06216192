@@ -272,9 +272,9 @@ export default function Tickets() {
       </View>
 
       <View style={styles.numbersContainer}>
-        {item.numbers.map((num, index) => (
+        {(item.numbers || []).map((num, index) => (
           <View key={index} style={[styles.numberBall, item.status === 'won' && styles.winnerBall]}>
-            <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
+            <Text style={styles.numberBallText}>{num?.toString().padStart(2, '0') || '--'}</Text>
           </View>
         ))}
       </View>
