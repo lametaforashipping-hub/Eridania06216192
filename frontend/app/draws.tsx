@@ -601,10 +601,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 12,
   },
   numberInputWrapper: {
     alignItems: 'center',
+    marginHorizontal: 6,
+    marginVertical: 6,
   },
   numberInputLabel: {
     fontSize: 12,
