@@ -70,7 +70,8 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Conteo de boletos:** Total, Pendientes, Ganadores, Pagados, Perdidos, Cancelados
 - **Desglose diario:** Gráfico de barras con ventas por día (para períodos semanal+)
 - **Detalle de boletos:** Lista expandible con todos los tickets del período
-- **Acceso:** Click en vendedor desde "Reporte por Vendedores"
+- **📄 Exportar PDF:** Botón para generar e imprimir reporte en formato PDF
+- **Acceso:** Click en vendedor desde "Reporte por Vendedores" o ir a "Mi Reporte Detallado"
 
 ### 🎫 Lista de Boletos Mejorada (NUEVO - 12 Feb 2026)
 - **Soporte Multi-jugada:** Muestra "Multi-jugada (X jugadas)" con detalle de plays
