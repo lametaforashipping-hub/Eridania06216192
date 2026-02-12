@@ -640,6 +640,114 @@ export default function Tickets() {
           </View>
         </View>
       </Modal>
+
+      {/* Receipt View Modal */}
+      <Modal
+        visible={showReceiptModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowReceiptModal(false)}
+      >
+        <View style={styles.receiptModalOverlay}>
+          <View style={styles.receiptModalContent}>
+            <View style={styles.receiptModalHeader}>
+              <Text style={styles.receiptModalTitle}>Recibo del Boleto</Text>
+              <TouchableOpacity onPress={() => setShowReceiptModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            
+            {selectedTicket && (
+              <View style={styles.receiptBody}>
+                <View style={styles.receiptHeader}>
+                  <Text style={styles.receiptLogo}>🎰 LOTERIA 🎰</Text>
+                </View>
+                
+                <View style={styles.receiptTicketNumber}>
+                  <Text style={styles.receiptTicketNumberText}>{selectedTicket.ticket_number}</Text>
+                </View>
+                
+                <Text style={styles.receiptLotteryName}>
+                  {selectedTicket.ticket_type === 'multi_play' 
+                    ? `MULTI-JUGADA (${selectedTicket.plays?.length || 0})` 
+                    : selectedTicket.lottery_name?.toUpperCase()}
+                </Text>
+                
+                <View style={styles.receiptDateRow}>
+                  <Text style={styles.receiptDate}>
+                    {new Date(selectedTicket.created_at).toLocaleDateString('es-DO')}
+                  </Text>
+                  <Text style={styles.receiptTime}>
+                    {new Date(selectedTicket.created_at).toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}
+                  </Text>
+                </View>
+                
+                {selectedTicket.customer_name && (
+                  <View style={styles.receiptRow}>
+                    <Text style={styles.receiptLabel}>Cliente:</Text>
+                    <Text style={styles.receiptValue}>{selectedTicket.customer_name}</Text>
+                  </View>
+                )}
+                
+                {selectedTicket.ticket_type === 'multi_play' && selectedTicket.plays ? (
+                  <View style={styles.receiptPlaysContainer}>
+                    <Text style={styles.receiptPlaysTitle}>JUGADAS</Text>
+                    {selectedTicket.plays.map((play: any, idx: number) => (
+                      <View key={idx} style={styles.receiptPlayRow}>
+                        <Text style={styles.receiptPlayType}>{play.lottery_type || play.lottery_name}</Text>
+                        <Text style={styles.receiptPlayNumbers}>
+                          {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.receiptNumbersContainer}>
+                    <Text style={styles.receiptNumbersLabel}>NÚMEROS</Text>
+                    <Text style={styles.receiptNumbers}>
+                      {(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}
+                    </Text>
+                  </View>
+                )}
+                
+                <View style={[styles.receiptStatusBadge, { backgroundColor: getStatusColor(selectedTicket.status) }]}>
+                  <Text style={styles.receiptStatusText}>{getStatusText(selectedTicket.status)}</Text>
+                </View>
+                
+                <View style={styles.receiptAmounts}>
+                  <View style={styles.receiptAmountRow}>
+                    <Text style={styles.receiptAmountLabel}>MONTO:</Text>
+                    <Text style={styles.receiptAmountValue}>
+                      {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.receiptAmountRow}>
+                    <Text style={styles.receiptAmountLabel}>PREMIO:</Text>
+                    <Text style={[styles.receiptAmountValue, styles.greenText]}>
+                      {selectedTicket.currency} {(selectedTicket.potential_win || selectedTicket.total_potential_win || 0).toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.receiptFooter}>
+                  <Text style={styles.receiptSellerName}>{selectedTicket.seller_name}</Text>
+                </View>
+              </View>
+            )}
+            
+            <View style={styles.receiptActions}>
+              <TouchableOpacity style={styles.receiptActionBtn} onPress={handlePrint}>
+                <Ionicons name="print" size={20} color="#ffffff" />
+                <Text style={styles.receiptActionText}>Imprimir</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.receiptActionBtn, styles.shareBtn]} onPress={handleShare}>
+                <Ionicons name="share-social" size={20} color="#ffffff" />
+                <Text style={styles.receiptActionText}>Compartir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
