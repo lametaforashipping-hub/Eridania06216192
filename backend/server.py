@@ -224,6 +224,7 @@ class LotteryUpdate(BaseModel):
     prize_rules: Optional[List[Dict]] = None
     opening_time: Optional[str] = None
     closing_time: Optional[str] = None
+    weekly_hours: Optional[Dict[str, Dict[str, str]]] = None
 
 class TicketCreate(BaseModel):
     lottery_id: str
