@@ -208,6 +208,8 @@ class LotteryUpdate(BaseModel):
     closing_minutes_before: Optional[int] = None
     active: Optional[bool] = None
     prize_rules: Optional[List[Dict]] = None
+    opening_time: Optional[str] = None
+    closing_time: Optional[str] = None
 
 class TicketCreate(BaseModel):
     lottery_id: str
