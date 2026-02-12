@@ -849,8 +849,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editButton: {
-    padding: 6,
-    backgroundColor: '#1e3a5f',
+    padding: 8,
+    backgroundColor: '#3b82f6',
     borderRadius: 8,
     marginRight: 12,
   },
