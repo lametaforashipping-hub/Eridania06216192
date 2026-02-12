@@ -119,8 +119,9 @@ export default function Sales() {
 
   const generateTicketHTML = (ticket: TicketResponse) => {
     const date = new Date(ticket.created_at);
-    const drawTime = ticket.next_draw_time || 'Próximo sorteo';
-    const barcodeData = ticket.ticket_number.replace(/-/g, '');
+    // Generate QR code URL using Google Charts API
+    const qrData = encodeURIComponent(`TICKET:${ticket.ticket_number}|LOTTERY:${ticket.lottery_id}|DATE:${date.toISOString()}`);
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}`;
     
     return `
       <!DOCTYPE html>
@@ -128,136 +129,122 @@ export default function Sales() {
       <head>
         <meta charset="utf-8">
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
-            font-family: 'Courier New', monospace; 
-            padding: 10px; 
-            max-width: 300px; 
+            font-family: 'Arial', sans-serif; 
+            padding: 8px; 
+            max-width: 320px; 
             margin: 0 auto;
             background: #fff;
           }
           .ticket {
-            border: 2px solid #000;
-            border-radius: 8px;
+            border: 3px solid #1e3a5f;
+            border-radius: 12px;
             overflow: hidden;
           }
           .header { 
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
             color: white;
-            padding: 15px 10px;
+            padding: 16px 12px;
             text-align: center;
           }
           .company-logo { 
-            width: 60px; 
-            height: 60px; 
+            width: 50px; 
+            height: 50px; 
             background: linear-gradient(135deg, #22c55e, #16a34a);
             border-radius: 50%;
             margin: 0 auto 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid #fff;
+            border: 2px solid #fff;
           }
-          .company-logo span { font-size: 30px; }
-          .brand { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
-          .company-info { font-size: 8px; color: #94a3b8; margin-top: 5px; line-height: 1.4; }
-          .slogan { font-size: 9px; color: #86efac; margin-top: 5px; font-style: italic; }
-          .ticket-info {
+          .company-logo span { font-size: 26px; }
+          .brand { font-size: 20px; font-weight: bold; letter-spacing: 2px; }
+          .company-info { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.5; }
+          
+          .ticket-number-section {
             background: #22c55e;
             color: white;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
           }
-          .ticket-number { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
-          .ticket-type { font-size: 10px; margin-top: 2px; opacity: 0.9; }
-          .body { padding: 12px; }
+          .ticket-label { font-size: 12px; opacity: 0.9; }
+          .ticket-number { font-size: 16px; font-weight: bold; letter-spacing: 1px; margin-top: 4px; }
+          
+          .body { padding: 14px; }
+          
           .lottery-name {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 5px;
-            padding: 8px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+            border-radius: 8px;
+            padding: 12px;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
           }
-          .lottery-name span { font-weight: bold; color: #0369a1; font-size: 13px; }
+          .lottery-name span { font-weight: bold; color: #fff; font-size: 18px; }
+          
           .numbers-section {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 2px solid #f59e0b;
-            border-radius: 8px;
-            padding: 15px;
+            border: 3px solid #f59e0b;
+            border-radius: 10px;
+            padding: 18px;
             text-align: center;
-            margin: 10px 0;
+            margin: 14px 0;
           }
-          .numbers-label { font-size: 10px; color: #92400e; margin-bottom: 5px; }
-          .numbers { font-size: 32px; font-weight: bold; color: #1e3a5f; letter-spacing: 3px; }
-          .details { font-size: 11px; margin: 10px 0; }
+          .numbers-label { font-size: 14px; color: #92400e; margin-bottom: 8px; font-weight: 600; }
+          .numbers { font-size: 42px; font-weight: bold; color: #1e3a5f; letter-spacing: 4px; }
+          
+          .details { 
+            font-size: 14px; 
+            margin: 14px 0;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+          }
           .row { 
             display: flex; 
             justify-content: space-between; 
-            padding: 4px 0;
-            border-bottom: 1px dotted #e5e7eb;
+            padding: 6px 0;
+            border-bottom: 1px solid #e2e8f0;
           }
           .row:last-child { border-bottom: none; }
-          .row span:first-child { color: #6b7280; }
-          .row span:last-child { font-weight: 600; color: #1f2937; }
-          .amounts {
-            background: #f0fdf4;
-            border: 1px solid #22c55e;
-            border-radius: 5px;
-            padding: 10px;
-            margin: 10px 0;
-          }
-          .amount-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-          }
-          .amount-label { font-size: 11px; color: #166534; }
-          .amount-value { font-size: 14px; font-weight: bold; color: #15803d; }
-          .potential-win { 
-            background: #22c55e; 
-            color: white; 
-            padding: 3px 8px; 
-            border-radius: 4px;
-            font-size: 13px;
-          }
-          .draw-time {
-            background: #fef2f2;
-            border: 1px solid #ef4444;
-            border-radius: 5px;
-            padding: 8px;
+          .row span:first-child { color: #64748b; font-size: 13px; }
+          .row span:last-child { font-weight: 700; color: #1e293b; font-size: 14px; }
+          
+          .amount-section {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 10px;
+            padding: 14px;
             text-align: center;
-            margin: 10px 0;
+            margin: 14px 0;
           }
-          .draw-label { font-size: 9px; color: #991b1b; }
-          .draw-value { font-size: 12px; font-weight: bold; color: #dc2626; }
+          .amount-label { font-size: 13px; color: rgba(255,255,255,0.9); }
+          .amount-value { font-size: 28px; font-weight: bold; color: #fff; margin-top: 4px; }
+          
           .footer { 
-            background: #f8fafc;
-            padding: 12px;
+            background: #f1f5f9;
+            padding: 14px;
             text-align: center;
-            border-top: 2px dashed #cbd5e1;
+            border-top: 2px dashed #94a3b8;
           }
-          .barcode-container { 
+          .qr-container { 
             background: #fff; 
             padding: 10px; 
-            margin: 8px 0; 
-            border-radius: 4px;
+            margin: 0 auto 10px; 
+            border-radius: 8px;
+            display: inline-block;
+            border: 2px solid #e2e8f0;
           }
-          .barcode { 
-            font-family: 'Libre Barcode 128 Text', cursive; 
-            font-size: 48px; 
-            letter-spacing: 0; 
-            line-height: 1;
-          }
-          .barcode-number { font-size: 10px; color: #374151; letter-spacing: 2px; margin-top: 4px; }
-          .footer-text { font-size: 9px; color: #64748b; margin: 2px 0; }
+          .qr-code { width: 120px; height: 120px; }
+          .qr-label { font-size: 11px; color: #64748b; margin-top: 6px; }
+          .footer-text { font-size: 12px; color: #475569; margin: 4px 0; font-weight: 500; }
+          
           .promo {
             background: #1e3a5f;
             color: #fbbf24;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
-            font-size: 10px;
+            font-size: 13px;
             font-weight: bold;
           }
         </style>
@@ -273,12 +260,11 @@ export default function Sales() {
               RNC: 000-00000-0 | Tel: (809) 555-0000<br>
               Av. Principal #123, Santo Domingo, RD
             </div>
-            <div class="slogan">✨ Tu suerte está aquí ✨</div>
           </div>
           
-          <div class="ticket-info">
-            <div class="ticket-number">BOLETO INDIVIDUAL</div>
-            <div class="ticket-type">#${ticket.ticket_number}</div>
+          <div class="ticket-number-section">
+            <div class="ticket-label">BOLETO #</div>
+            <div class="ticket-number">${ticket.ticket_number}</div>
           </div>
           
           <div class="body">
@@ -287,55 +273,42 @@ export default function Sales() {
             </div>
             
             <div class="numbers-section">
-              <div class="numbers-label">🔢 NÚMEROS JUGADOS</div>
+              <div class="numbers-label">NÚMEROS JUGADOS</div>
               <div class="numbers">${ticket.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}</div>
             </div>
             
             <div class="details">
               <div class="row">
-                <span>📅 Fecha:</span>
+                <span>Fecha:</span>
                 <span>${date.toLocaleDateString('es-DO')}</span>
               </div>
               <div class="row">
-                <span>🕐 Hora:</span>
+                <span>Hora:</span>
                 <span>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}</span>
               </div>
               ${ticket.customer_name ? `
               <div class="row">
-                <span>👤 Cliente:</span>
+                <span>Cliente:</span>
                 <span>${ticket.customer_name}</span>
               </div>` : ''}
             </div>
             
-            <div class="amounts">
-              <div class="amount-row">
-                <span class="amount-label">💵 Monto Jugado:</span>
-                <span class="amount-value">${ticket.currency} ${ticket.amount.toLocaleString()}</span>
-              </div>
-              <div class="amount-row">
-                <span class="amount-label">🏆 Premio Potencial:</span>
-                <span class="potential-win">${ticket.currency} ${ticket.potential_win.toLocaleString()}</span>
-              </div>
-            </div>
-            
-            <div class="draw-time">
-              <div class="draw-label">⏰ PRÓXIMO SORTEO</div>
-              <div class="draw-value">${drawTime}</div>
+            <div class="amount-section">
+              <div class="amount-label">MONTO JUGADO</div>
+              <div class="amount-value">${ticket.currency} ${ticket.amount.toLocaleString()}</div>
             </div>
           </div>
           
           <div class="footer">
-            <div class="barcode-container">
-              <div class="barcode">${barcodeData}</div>
-              <div class="barcode-number">${ticket.ticket_number}</div>
+            <div class="qr-container">
+              <img class="qr-code" src="${qrCodeUrl}" alt="QR Code" />
+              <div class="qr-label">Escanear para verificar</div>
             </div>
-            <div class="footer-text">━━━━━━━━━━━━━━━━━━━━━━━</div>
             <div class="footer-text">✓ Conserve este boleto para cobrar</div>
-            <div class="footer-text">✓ Válido solo con original</div>
-            <div class="footer-text">✓ Verifique en: loteria.com/verificar</div>
+            <div class="footer-text">✓ Válido solo con boleto original</div>
           </div>
           
-          <div class="promo">🍀 ¡BUENA SUERTE! - JUEGA RESPONSABLEMENTE 🍀</div>
+          <div class="promo">🍀 ¡BUENA SUERTE! 🍀</div>
         </div>
       </body>
       </html>
