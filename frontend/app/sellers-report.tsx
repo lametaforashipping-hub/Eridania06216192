@@ -115,6 +115,39 @@ export default function SellersReport() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
         }
       >
+        {/* Country Filter for Super Admin */}
+        {user?.role === 'super_admin' && (
+          <View style={styles.countryFilter}>
+            <Text style={styles.filterLabel}>Filtrar por país:</Text>
+            <View style={styles.countryButtons}>
+              <TouchableOpacity
+                style={[styles.countryButton, !selectedCountry && styles.countryButtonActive]}
+                onPress={() => setSelectedCountry(null)}
+              >
+                <Text style={[styles.countryButtonText, !selectedCountry && styles.countryButtonTextActive]}>
+                  Todos
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.countryButton, selectedCountry === 'RD' && styles.countryButtonActive]}
+                onPress={() => setSelectedCountry('RD')}
+              >
+                <Text style={[styles.countryButtonText, selectedCountry === 'RD' && styles.countryButtonTextActive]}>
+                  RD
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.countryButton, selectedCountry === 'US' && styles.countryButtonActive]}
+                onPress={() => setSelectedCountry('US')}
+              >
+                <Text style={[styles.countryButtonText, selectedCountry === 'US' && styles.countryButtonTextActive]}>
+                  USA
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         <Text style={styles.periodText}>Período: {period}</Text>
 
         {/* Totals */}
