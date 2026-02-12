@@ -439,38 +439,47 @@ export default function Sales() {
     }
   };
 
-  const renderNumberGrid = () => {
+  // Manual number input section instead of grid
+  const renderManualNumberInput = () => {
     if (!selectedLottery) return null;
 
-    const numbers = [];
-    for (let i = selectedLottery.min_number; i <= selectedLottery.max_number; i++) {
-      numbers.push(i);
-    }
-
-    const gridColumns = isDesktop ? 10 : 6;
-
     return (
-      <View style={[styles.numberGrid, isDesktop && styles.numberGridDesktop]}>
-        {numbers.map(num => (
-          <TouchableOpacity
-            key={num}
-            style={[
-              styles.numberButton,
-              isDesktop && styles.numberButtonDesktop,
-              selectedNumbers.includes(num) && styles.numberButtonSelected,
-            ]}
-            onPress={() => handleNumberSelect(num)}
+      <View style={styles.manualInputSection}>
+        <Text style={styles.manualInputTitle}>
+          Ingresa el número ({selectedLottery.min_number}-{selectedLottery.max_number})
+        </Text>
+        <View style={styles.manualInputRow}>
+          <TextInput
+            style={styles.manualNumberInput}
+            value={numberInput}
+            onChangeText={setNumberInput}
+            placeholder={`Ej: ${selectedLottery.min_number}`}
+            placeholderTextColor="#64748b"
+            keyboardType="numeric"
+            maxLength={3}
+            onSubmitEditing={addNumberFromInput}
+          />
+          <TouchableOpacity 
+            style={styles.addNumberButton}
+            onPress={addNumberFromInput}
           >
-            <Text
-              style={[
-                styles.numberText,
-                selectedNumbers.includes(num) && styles.numberTextSelected,
-              ]}
-            >
-              {num.toString().padStart(2, '0')}
-            </Text>
+            <Ionicons name="add-circle" size={24} color="#ffffff" />
+            <Text style={styles.addNumberButtonText}>Agregar</Text>
           </TouchableOpacity>
-        ))}
+        </View>
+        <View style={styles.quickActionsRow}>
+          <TouchableOpacity style={styles.quickPickButton} onPress={handleQuickPick}>
+            <Ionicons name="shuffle" size={18} color="#ffffff" />
+            <Text style={styles.quickPickText}>Aleatorio</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.clearButton} 
+            onPress={() => setSelectedNumbers([])}
+          >
+            <Ionicons name="trash" size={18} color="#ffffff" />
+            <Text style={styles.clearButtonText}>Limpiar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
