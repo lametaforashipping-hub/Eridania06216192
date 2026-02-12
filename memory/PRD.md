@@ -151,21 +151,18 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ### P0 - Completado ✅
 - ~~Bug Fix: Modal de boletos crasheaba al ver detalles~~ - **CORREGIDO**
+- ~~Gestión de Terminales~~ - **COMPLETADO**
+- ~~Texto del boleto en negritas~~ - **COMPLETADO**
 
 ### P1 - Prioridad Alta
-- **Hacer texto del boleto en negritas** - Mejorar visibilidad en recibo impreso
-- **Gestión de Usuarios/Terminales:**
-  - Agregar campo "terminal" único a cada usuario
-  - Crear pantalla de lista de terminales
-  - Agregar búsqueda de terminales
-
-### P2 - Prioridad Media
-- **Interfaz de pago de boletos ganadores** - Marcar boletos como "Pagado" (parcialmente implementado)
+- **Interfaz de pago de boletos ganadores** - Marcar boletos como "Pagado" (parcialmente implementado, falta UI mejorada)
 - **Configuración de premios por Super Admin:**
   - Porcentajes por tier (1ro, 2do, 3ro)
   - Porcentajes diferentes por lotería
-- **Multi-Play con múltiples loterías**
-- **Perfil de empresa con logo personalizable**
+
+### P2 - Prioridad Media
+- **Multi-Play con múltiples loterías** - Seleccionar varias loterías diferentes
+- **Perfil de empresa con logo personalizable** - Logo en recibos
 - Optimizar carga de página de Usuarios
 - Chequeo general del sistema móvil y web
 
