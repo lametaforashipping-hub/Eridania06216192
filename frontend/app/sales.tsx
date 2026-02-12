@@ -105,6 +105,36 @@ export default function Sales() {
     }
   };
 
+  // Function to add a number from manual input
+  const addNumberFromInput = () => {
+    if (!selectedLottery || !numberInput.trim()) return;
+    
+    const num = parseInt(numberInput.trim(), 10);
+    
+    if (isNaN(num)) {
+      Alert.alert('Error', 'Ingresa un número válido');
+      return;
+    }
+    
+    if (num < selectedLottery.min_number || num > selectedLottery.max_number) {
+      Alert.alert('Error', `El número debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+    
+    if (selectedNumbers.includes(num)) {
+      Alert.alert('Error', 'Este número ya fue seleccionado');
+      return;
+    }
+    
+    if (selectedNumbers.length >= selectedLottery.numbers_to_pick) {
+      Alert.alert('Error', `Solo puedes seleccionar ${selectedLottery.numbers_to_pick} número(s)`);
+      return;
+    }
+    
+    setSelectedNumbers([...selectedNumbers, num].sort((a, b) => a - b));
+    setNumberInput('');
+  };
+
   const handleQuickPick = () => {
     if (!selectedLottery) return;
     
