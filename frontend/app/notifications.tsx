@@ -317,4 +317,30 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 16,
   },
+  winnerTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#22c55e',
+    marginBottom: 4,
+  },
+  prizeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#22c55e20',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginVertical: 6,
+    alignSelf: 'flex-start',
+  },
+  prizeLabel: {
+    fontSize: 12,
+    color: '#22c55e',
+    marginRight: 6,
+  },
+  prizeAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
 });
