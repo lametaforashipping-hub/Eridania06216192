@@ -1034,6 +1034,21 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
             if num < min_num or num > max_num:
                 raise HTTPException(status_code=400, detail=f"Número {num} fuera de rango ({min_num}-{max_num})")
         
+        # Check ticket limit per number (global) for multi-play
+        ticket_limit = lottery.get("ticket_limit_per_number")
+        if ticket_limit and ticket_limit > 0:
+            for num in play.numbers:
+                sold_count = await db.tickets.count_documents({
+                    "lottery_id": lottery["id"],
+                    "numbers": num,
+                    "status": {"$ne": TicketStatus.CANCELLED.value}
+                })
+                if sold_count >= ticket_limit:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"Límite alcanzado: El número {num} ya tiene {sold_count} boletos vendidos (máximo: {ticket_limit})"
+                    )
+        
         # Calculate potential win for this play
         multiplier = lottery.get("prize_multiplier", 70)
         if play.position and lottery.get("prize_rules"):
