@@ -241,8 +241,10 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Perfil de empresa con logo personalizable** - Logo en recibos
 
 ## Archivos Clave
-- `/app/backend/server.py` - API completa con Multi-Lotto, favoritos, pagos, filtrado
-- `/app/frontend/app/multi-play.tsx` - Multi-Play con selector de lotería (MODIFICADO)
+- `/app/backend/server.py` - API completa con Multi-Lotto, favoritos, pagos, filtrado, suplantación
+- `/app/frontend/app/multi-play.tsx` - Multi-Play con selector de lotería y soporte suplantación (MODIFICADO)
+- `/app/frontend/app/impersonate.tsx` - Hub de suplantación para Super Admin (NUEVO)
+- `/app/frontend/app/seller-profile.tsx` - Perfil vendedor con botón suplantación (MODIFICADO)
 - `/app/frontend/app/sales.tsx` - Sistema de carrito con favoritos
 - `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
 - `/app/frontend/app/tickets.tsx` - Lista de tickets con Ver Recibo
