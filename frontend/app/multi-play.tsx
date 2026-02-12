@@ -140,8 +140,9 @@ export default function MultiPlay() {
     };
     
     setPlays([...plays, newPlay]);
+    // Reset form for next play - IMPORTANT: keeps amount for convenience
     setNumbersInput('');
-    setAmountInput('');
+    // Keep the amount for consecutive plays with same amount
     setShowAddModal(false);
   };
 
