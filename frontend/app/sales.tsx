@@ -283,7 +283,7 @@ export default function Sales() {
 
     setSubmitting(true);
     try {
-      // Group plays by lottery type for the API
+      // Group plays for the API using lottery_type
       const plays = cart.map(item => {
         const lottery = lotteries.find(l => l.id === item.lotteryId);
         return {
@@ -303,7 +303,7 @@ export default function Sales() {
         body: JSON.stringify({
           plays,
           customer_name: customerName || null,
-          currency: cart[0].currency,
+          currency: cart[0].currency === 'RD$' ? 'RD' : 'USD',
         }),
       });
 
