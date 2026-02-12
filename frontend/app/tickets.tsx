@@ -188,6 +188,15 @@ export default function Tickets() {
 
   const generateTicketHTML = (ticket: Ticket) => {
     const date = new Date(ticket.created_at);
+    const isMultiPlay = ticket.ticket_type === 'multi_play';
+    const amount = ticket.amount || ticket.total_amount || 0;
+    const potentialWin = ticket.potential_win || ticket.total_potential_win || 0;
+    
+    // Generate plays HTML for multi-play tickets
+    const playsHTML = isMultiPlay && ticket.plays ? ticket.plays.map(play => 
+      `<div class="play-row"><strong>${play.lottery_type || play.lottery_name}:</strong> ${(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}</div>`
+    ).join('') : '';
+    
     return `
       <!DOCTYPE html>
       <html>
@@ -195,41 +204,158 @@ export default function Tickets() {
         <meta charset="utf-8">
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Arial Black', 'Courier New', monospace; padding: 8px; max-width: 280px; margin: 0 auto; font-weight: bold; }
-          .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; }
-          .title { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
-          .ticket-number { font-size: 10px; font-weight: 900; margin: 3px 0; text-align: center; }
-          .numbers { font-size: 16px; font-weight: 900; text-align: center; padding: 6px 4px; background: #e5e5e5; border-radius: 4px; margin: 4px 0; letter-spacing: 2px; }
-          .details { font-size: 9px; font-weight: 700; }
-          .row { display: flex; justify-content: space-between; padding: 1px 0; }
-          .status { text-align: center; padding: 4px; margin: 3px 0; font-weight: 900; font-size: 11px; border-radius: 3px; }
+          body { 
+            font-family: 'Arial Black', 'Helvetica Neue', sans-serif; 
+            padding: 10px; 
+            max-width: 280px; 
+            margin: 0 auto; 
+            font-weight: 900; 
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .header { 
+            text-align: center; 
+            border-bottom: 2px dashed #000; 
+            padding-bottom: 6px; 
+            margin-bottom: 6px; 
+          }
+          .title { 
+            font-size: 18px; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            text-transform: uppercase;
+          }
+          .ticket-number { 
+            font-size: 12px; 
+            font-weight: 900; 
+            margin: 4px 0; 
+            text-align: center; 
+            background: #000;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+          }
+          .lottery-name { 
+            font-size: 14px; 
+            font-weight: 900; 
+            text-align: center; 
+            margin: 4px 0; 
+            text-transform: uppercase;
+          }
+          .details { 
+            font-size: 11px; 
+            font-weight: 900; 
+            margin: 6px 0;
+          }
+          .row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 2px 0; 
+            font-weight: 900;
+          }
+          .numbers { 
+            font-size: 22px; 
+            font-weight: 900; 
+            text-align: center; 
+            padding: 10px 6px; 
+            background: #f0f0f0; 
+            border: 2px solid #000;
+            border-radius: 6px; 
+            margin: 6px 0; 
+            letter-spacing: 4px;
+          }
+          .plays-container {
+            background: #f5f5f5;
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 8px;
+            margin: 6px 0;
+          }
+          .plays-title {
+            font-size: 12px;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+          }
+          .play-row {
+            font-size: 11px;
+            font-weight: 900;
+            padding: 3px 0;
+            border-bottom: 1px dotted #999;
+          }
+          .play-row:last-child {
+            border-bottom: none;
+          }
+          .status { 
+            text-align: center; 
+            padding: 6px 8px; 
+            margin: 6px 0; 
+            font-weight: 900; 
+            font-size: 14px; 
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
           .won { background: #22c55e; color: white; }
           .paid { background: #3b82f6; color: white; }
           .pending { background: #f59e0b; color: white; }
-          .amounts { font-size: 10px; font-weight: 900; margin: 3px 0; }
-          .amounts .row { padding: 2px 0; }
-          .prize { color: #22c55e; }
-          .footer { text-align: center; border-top: 1px dashed #000; padding-top: 3px; margin-top: 3px; font-size: 8px; font-weight: 700; }
-          .lottery-name { font-size: 11px; font-weight: 900; text-align: center; margin: 2px 0; }
+          .lost { background: #ef4444; color: white; }
+          .amounts { 
+            font-size: 14px; 
+            font-weight: 900; 
+            margin: 6px 0;
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 8px;
+            background: #fafafa;
+          }
+          .amounts .row { 
+            padding: 4px 0; 
+            font-weight: 900;
+          }
+          .amounts .label {
+            font-weight: 900;
+          }
+          .amounts .value {
+            font-weight: 900;
+            font-size: 15px;
+          }
+          .prize { color: #16a34a; }
+          .footer { 
+            text-align: center; 
+            border-top: 2px dashed #000; 
+            padding-top: 6px; 
+            margin-top: 6px; 
+            font-size: 10px; 
+            font-weight: 900;
+          }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="title">LOTERIA</div>
+          <div class="title">🎰 LOTERIA 🎰</div>
         </div>
         <div class="ticket-number">${ticket.ticket_number}</div>
-        <div class="lottery-name">${ticket.lottery_name}</div>
+        <div class="lottery-name">${isMultiPlay ? `MULTI-JUGADA (${ticket.plays?.length || 0})` : ticket.lottery_name}</div>
         <div class="details">
-          <div class="row"><span>${date.toLocaleDateString('es-DO')}</span><span>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}</span></div>
-          ${ticket.customer_name ? `<div class="row"><span>Cliente:</span><span>${ticket.customer_name}</span></div>` : ''}
+          <div class="row"><strong>${date.toLocaleDateString('es-DO')}</strong><strong>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}</strong></div>
+          ${ticket.customer_name ? `<div class="row"><strong>Cliente:</strong><strong>${ticket.customer_name}</strong></div>` : ''}
         </div>
-        <div class="numbers">${(ticket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join('-')}</div>
-        <div class="status ${ticket.status === 'won' ? 'won' : ticket.status === 'paid' ? 'paid' : 'pending'}">${getStatusText(ticket.status)}</div>
+        ${isMultiPlay ? `
+          <div class="plays-container">
+            <div class="plays-title">Jugadas</div>
+            ${playsHTML}
+          </div>
+        ` : `
+          <div class="numbers">${(ticket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}</div>
+        `}
+        <div class="status ${ticket.status === 'won' ? 'won' : ticket.status === 'paid' ? 'paid' : ticket.status === 'lost' ? 'lost' : 'pending'}">${getStatusText(ticket.status)}</div>
         <div class="amounts">
-          <div class="row"><span>Monto:</span><span>${ticket.currency} ${ticket.amount.toLocaleString()}</span></div>
-          <div class="row"><span>Premio:</span><span class="prize">${ticket.currency} ${ticket.potential_win.toLocaleString()}</span></div>
+          <div class="row"><span class="label">MONTO:</span><span class="value">${ticket.currency} ${amount.toLocaleString()}</span></div>
+          <div class="row"><span class="label">PREMIO:</span><span class="value prize">${ticket.currency} ${potentialWin.toLocaleString()}</span></div>
         </div>
-        <div class="footer">${ticket.seller_name}</div>
+        <div class="footer"><strong>${ticket.seller_name}</strong></div>
       </body>
       </html>
     `;
