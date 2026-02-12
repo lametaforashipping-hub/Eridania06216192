@@ -753,8 +753,16 @@ async def get_lottery(lottery_id: str):
     if not lottery:
         raise HTTPException(status_code=404, detail="Lotería no encontrada")
     
-    is_open, next_draw, closed_message, today_hours = check_lottery_open(lottery)
-    return {**serialize_doc(lottery), "is_open": is_open, "next_draw_time": next_draw, "closed_message": closed_message, "today_hours": today_hours}
+    is_open, next_draw, closed_message, today_hours, holiday_info = check_lottery_open(lottery)
+    return {
+        **serialize_doc(lottery), 
+        "is_open": is_open, 
+        "next_draw_time": next_draw, 
+        "closed_message": closed_message, 
+        "today_hours": today_hours,
+        "is_holiday": holiday_info is not None,
+        "holiday_name": holiday_info.get("name") if holiday_info else None
+    }
 
 @api_router.put("/lotteries/{lottery_id}")
 async def update_lottery(lottery_id: str, update: LotteryUpdate, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
