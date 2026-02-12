@@ -65,8 +65,6 @@ class LotteryType(str, Enum):
     CASH4LIFE = "cash4life"
     MEGACHANCE = "megachance"
     QUINIELOTO = "quinieloto"
-    ANIMALITOS = "animalitos"
-    ANIMALITOS_TRIPLE = "animalitos_triple"
 
 # Lista de Animalitos con sus números (0-36)
 ANIMALITOS_LIST = [
