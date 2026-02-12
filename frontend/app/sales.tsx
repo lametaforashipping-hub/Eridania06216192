@@ -1026,6 +1026,104 @@ export default function Sales() {
           </View>
         </View>
       </Modal>
+
+      {/* Favorites List Modal */}
+      <Modal visible={showFavoritesModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>⭐ Mis Favoritos</Text>
+              <TouchableOpacity onPress={() => setShowFavoritesModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.favoritesListContainer}>
+              {favorites.length > 0 ? (
+                favorites.map(fav => (
+                  <View key={fav.id} style={styles.favoriteItem}>
+                    <TouchableOpacity 
+                      style={styles.favoriteItemContent}
+                      onPress={() => handleUseFavorite(fav)}
+                    >
+                      <View style={styles.favoriteItemHeader}>
+                        <Text style={styles.favoriteItemName}>{fav.name}</Text>
+                        <Text style={styles.favoriteItemUses}>
+                          Usado {fav.use_count}x
+                        </Text>
+                      </View>
+                      <Text style={styles.favoriteItemPlays}>
+                        {fav.plays.length} jugada(s) • {fav.plays.map(p => p.numbers.join('-')).join(', ')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.favoriteDeleteButton}
+                      onPress={() => handleDeleteFavorite(fav)}
+                    >
+                      <Ionicons name="trash" size={20} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.emptyFavorites}>
+                  <Ionicons name="star-outline" size={48} color="#475569" />
+                  <Text style={styles.emptyFavoritesText}>No tienes favoritos</Text>
+                  <Text style={styles.emptyFavoritesSubtext}>
+                    Agrega jugadas al carrito y guárdalas como favorito
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowFavoritesModal(false)}
+            >
+              <Text style={styles.modalCloseText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Save Favorite Modal */}
+      <Modal visible={showSaveFavoriteModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.saveFavoriteModalContent, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>⭐ Guardar Favorito</Text>
+              <TouchableOpacity onPress={() => setShowSaveFavoriteModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.saveFavoriteForm}>
+              <Text style={styles.saveFavoriteLabel}>Nombre del favorito:</Text>
+              <TextInput
+                style={styles.saveFavoriteInput}
+                value={favoriteName}
+                onChangeText={setFavoriteName}
+                placeholder="Ej: Don Pedro - 25"
+                placeholderTextColor="#64748b"
+                autoFocus
+              />
+              <Text style={styles.saveFavoriteInfo}>
+                Se guardarán {cart.length} jugadas del carrito
+              </Text>
+              <TouchableOpacity
+                style={[styles.saveFavoriteSubmit, savingFavorite && styles.buttonDisabled]}
+                onPress={handleSaveFavorite}
+                disabled={savingFavorite}
+              >
+                {savingFavorite ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <>
+                    <Ionicons name="star" size={20} color="#ffffff" />
+                    <Text style={styles.saveFavoriteSubmitText}>Guardar Favorito</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
