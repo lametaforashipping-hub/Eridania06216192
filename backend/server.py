@@ -359,14 +359,17 @@ def require_role(allowed_roles: List[UserRole]):
 def check_lottery_open(lottery: dict) -> tuple:
     """
     Check if lottery is currently open for sales.
-    Returns: (is_open, next_draw, message, today_hours)
+    Returns: (is_open, next_draw, message, today_hours, holiday_info)
     
     A lottery is CLOSED if:
-    1. Current time is before opening_time for this day
-    2. Current time is after closing_time for this day
-    3. Current time is within closing_minutes_before a draw
+    1. Today is a holiday marked as closed
+    2. Current time is before opening_time for this day
+    3. Current time is after closing_time for this day
+    4. Current time is within closing_minutes_before a draw
     
-    Supports weekly_hours for different hours per day of the week.
+    Supports:
+    - weekly_hours for different hours per day of the week
+    - holidays for special days (closed or special hours)
     """
     from datetime import timezone
     now = datetime.now(timezone.utc)
@@ -376,25 +379,51 @@ def check_lottery_open(lottery: dict) -> tuple:
     # Get day of week (monday=0, sunday=6)
     day_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     current_day = day_names[local_now.weekday()]
+    today_date = local_now.strftime("%Y-%m-%d")
     
     closing_minutes = lottery.get("closing_minutes_before", 15)
     schedule = lottery.get("schedule", [])
     weekly_hours = lottery.get("weekly_hours")
-    
-    # Get opening/closing times for today
-    if weekly_hours and current_day in weekly_hours:
-        day_schedule = weekly_hours[current_day]
-        opening_time = day_schedule.get("open", "08:00")
-        closing_time_daily = day_schedule.get("close", "21:00")
-    else:
-        # Fallback to simple daily times
-        opening_time = lottery.get("opening_time", "08:00")
-        closing_time_daily = lottery.get("closing_time", "21:00")
+    holidays = lottery.get("holidays", [])
     
     is_open = True
     next_draw = None
     message = None
-    today_hours = {"open": opening_time, "close": closing_time_daily, "day": current_day}
+    holiday_info = None
+    
+    # Check if today is a holiday
+    for holiday in holidays:
+        if holiday.get("date") == today_date:
+            holiday_info = holiday
+            if holiday.get("closed", False):
+                # Lottery is closed for the holiday
+                is_open = False
+                holiday_name = holiday.get("name", "Día festivo")
+                message = f"🎉 Cerrada por {holiday_name}"
+                today_hours = {"open": None, "close": None, "day": current_day, "holiday": holiday_name, "closed": True}
+                return is_open, next_draw, message, today_hours, holiday_info
+            else:
+                # Special hours for holiday
+                opening_time = holiday.get("open", "10:00")
+                closing_time_daily = holiday.get("close", "18:00")
+                break
+    else:
+        # Not a holiday - use weekly_hours or default
+        if weekly_hours and current_day in weekly_hours:
+            day_schedule = weekly_hours[current_day]
+            opening_time = day_schedule.get("open", "08:00")
+            closing_time_daily = day_schedule.get("close", "21:00")
+        else:
+            # Fallback to simple daily times
+            opening_time = lottery.get("opening_time", "08:00")
+            closing_time_daily = lottery.get("closing_time", "21:00")
+    
+    today_hours = {
+        "open": opening_time, 
+        "close": closing_time_daily, 
+        "day": current_day,
+        "holiday": holiday_info.get("name") if holiday_info else None
+    }
     
     # Check daily opening/closing time
     if opening_time:
@@ -402,20 +431,38 @@ def check_lottery_open(lottery: dict) -> tuple:
         opening_datetime = local_now.replace(hour=open_hour, minute=open_minute, second=0, microsecond=0)
         if local_now < opening_datetime:
             is_open = False
-            message = f"Abre hoy a las {opening_time}"
+            if holiday_info:
+                message = f"🎉 {holiday_info.get('name', 'Festivo')} - Abre a las {opening_time}"
+            else:
+                message = f"Abre hoy a las {opening_time}"
     
     if closing_time_daily and is_open:
         close_hour, close_minute = map(int, closing_time_daily.split(":"))
         closing_datetime = local_now.replace(hour=close_hour, minute=close_minute, second=0, microsecond=0)
         if local_now > closing_datetime:
             is_open = False
-            # Get tomorrow's opening time
+            # Check if tomorrow is a holiday
+            tomorrow_date = (local_now + timedelta(days=1)).strftime("%Y-%m-%d")
             tomorrow_day = day_names[(local_now.weekday() + 1) % 7]
-            if weekly_hours and tomorrow_day in weekly_hours:
-                tomorrow_open = weekly_hours[tomorrow_day].get("open", "08:00")
+            tomorrow_holiday = None
+            
+            for holiday in holidays:
+                if holiday.get("date") == tomorrow_date:
+                    tomorrow_holiday = holiday
+                    break
+            
+            if tomorrow_holiday:
+                if tomorrow_holiday.get("closed", False):
+                    message = f"Cerrada. Mañana cerrado por {tomorrow_holiday.get('name', 'festivo')}"
+                else:
+                    tomorrow_open = tomorrow_holiday.get("open", "10:00")
+                    message = f"Cerrada. Mañana ({tomorrow_holiday.get('name', 'festivo')}) abre a las {tomorrow_open}"
             else:
-                tomorrow_open = opening_time
-            message = f"Cerrada. Abre mañana ({tomorrow_day[:3]}) a las {tomorrow_open}"
+                if weekly_hours and tomorrow_day in weekly_hours:
+                    tomorrow_open = weekly_hours[tomorrow_day].get("open", "08:00")
+                else:
+                    tomorrow_open = opening_time
+                message = f"Cerrada. Abre mañana ({tomorrow_day[:3]}) a las {tomorrow_open}"
     
     # Check draw-specific closing (if still open)
     if is_open and schedule:
@@ -431,7 +478,7 @@ def check_lottery_open(lottery: dict) -> tuple:
                     message = f"Cerrada para sorteo {draw_time}. Reabre después del sorteo."
                 break
     
-    return is_open, next_draw, message, today_hours
+    return is_open, next_draw, message, today_hours, holiday_info
 
 def calculate_prize(ticket: dict, lottery: dict, winning_numbers: List[int], position: str = None) -> float:
     """Calculate prize based on lottery rules and position"""
