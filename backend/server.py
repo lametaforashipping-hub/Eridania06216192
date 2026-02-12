@@ -1231,31 +1231,68 @@ async def get_draw(draw_id: str):
 # ==================== NOTIFICATIONS ====================
 @api_router.get("/notifications")
 async def get_notifications(limit: int = 50, current_user: dict = Depends(get_current_user)):
-    """Get recent notifications"""
-    notifications = await db.notifications.find({}).sort("created_at", -1).to_list(limit)
+    """Get recent notifications - includes both global and user-specific"""
+    user_id = current_user["id"]
+    
+    # Get notifications that are either:
+    # 1. Global (no user_id) - draw results
+    # 2. Specific to this user - winner alerts
+    query = {
+        "$or": [
+            {"user_id": {"$exists": False}},  # Global notifications
+            {"user_id": user_id}  # User-specific notifications
+        ]
+    }
+    
+    notifications = await db.notifications.find(query).sort("created_at", -1).to_list(limit)
     
     # Mark which ones user has read
     for n in notifications:
-        n["is_read"] = current_user["id"] in n.get("read_by", [])
+        # For user-specific notifications, use the 'read' field
+        if "user_id" in n:
+            n["is_read"] = n.get("read", False)
+        else:
+            # For global notifications, check read_by array
+            n["is_read"] = user_id in n.get("read_by", [])
     
     return serialize_doc(notifications)
 
 @api_router.post("/notifications/{notification_id}/read")
 async def mark_notification_read(notification_id: str, current_user: dict = Depends(get_current_user)):
     """Mark notification as read"""
-    await db.notifications.update_one(
-        {"id": notification_id},
-        {"$addToSet": {"read_by": current_user["id"]}}
+    # Try to update user-specific notification first
+    result = await db.notifications.update_one(
+        {"id": notification_id, "user_id": current_user["id"]},
+        {"$set": {"read": True}}
     )
+    
+    # If not a user-specific notification, update the read_by array
+    if result.modified_count == 0:
+        await db.notifications.update_one(
+            {"id": notification_id},
+            {"$addToSet": {"read_by": current_user["id"]}}
+        )
+    
     return {"message": "Notificación marcada como leída"}
 
 @api_router.get("/notifications/unread-count")
 async def get_unread_count(current_user: dict = Depends(get_current_user)):
-    """Get count of unread notifications"""
-    count = await db.notifications.count_documents({
-        "read_by": {"$ne": current_user["id"]}
+    """Get count of unread notifications for this user"""
+    user_id = current_user["id"]
+    
+    # Count global notifications not read by user
+    global_unread = await db.notifications.count_documents({
+        "user_id": {"$exists": False},
+        "read_by": {"$ne": user_id}
     })
-    return {"unread_count": count}
+    
+    # Count user-specific notifications not read
+    user_unread = await db.notifications.count_documents({
+        "user_id": user_id,
+        "read": {"$ne": True}
+    })
+    
+    return {"unread_count": global_unread + user_unread}
 
 # ==================== STATISTICS ====================
 @api_router.get("/stats/numbers/{lottery_id}")
