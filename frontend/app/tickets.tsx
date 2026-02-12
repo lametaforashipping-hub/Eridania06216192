@@ -222,7 +222,7 @@ export default function Tickets() {
           <div class="row"><span>${date.toLocaleDateString('es-DO')}</span><span>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}</span></div>
           ${ticket.customer_name ? `<div class="row"><span>Cliente:</span><span>${ticket.customer_name}</span></div>` : ''}
         </div>
-        <div class="numbers">${ticket.numbers.map(n => n.toString().padStart(2, '0')).join('-')}</div>
+        <div class="numbers">${(ticket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join('-')}</div>
         <div class="status ${ticket.status === 'won' ? 'won' : ticket.status === 'paid' ? 'paid' : 'pending'}">${getStatusText(ticket.status)}</div>
         <div class="amounts">
           <div class="row"><span>Monto:</span><span>${ticket.currency} ${ticket.amount.toLocaleString()}</span></div>
@@ -249,7 +249,7 @@ export default function Tickets() {
     const message = `🎰 *BOLETO DE LOTERIA*\n\n` +
       `📋 *Boleto:* ${selectedTicket.ticket_number}\n` +
       `🎲 *Lotería:* ${selectedTicket.lottery_name}\n` +
-      `🔢 *Números:* ${selectedTicket.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}\n` +
+      `🔢 *Números:* ${(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
       `💰 *Monto:* ${selectedTicket.currency} ${selectedTicket.amount.toLocaleString()}\n` +
       `🏆 *Estado:* ${getStatusText(selectedTicket.status)}\n` +
       `${selectedTicket.status === 'won' ? `💵 *Premio:* ${selectedTicket.currency} ${selectedTicket.potential_win.toLocaleString()}\n` : ''}`;
@@ -414,14 +414,31 @@ export default function Tickets() {
               <View style={styles.modalBody}>
                 <View style={styles.ticketPreview}>
                   <Text style={styles.previewNumber}>{selectedTicket.ticket_number}</Text>
-                  <Text style={styles.previewLottery}>{selectedTicket.lottery_name}</Text>
-                  <View style={styles.previewNumbers}>
-                    {selectedTicket.numbers.map((num, idx) => (
-                      <View key={idx} style={styles.previewBall}>
-                        <Text style={styles.previewBallText}>{num.toString().padStart(2, '0')}</Text>
-                      </View>
-                    ))}
-                  </View>
+                  <Text style={styles.previewLottery}>
+                    {selectedTicket.ticket_type === 'multi_play' 
+                      ? `Multi-jugada (${selectedTicket.plays?.length || 0} jugadas)` 
+                      : selectedTicket.lottery_name}
+                  </Text>
+                  {selectedTicket.numbers && selectedTicket.numbers.length > 0 ? (
+                    <View style={styles.previewNumbers}>
+                      {selectedTicket.numbers.map((num, idx) => (
+                        <View key={idx} style={styles.previewBall}>
+                          <Text style={styles.previewBallText}>{num?.toString().padStart(2, '0') || '--'}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : selectedTicket.plays && selectedTicket.plays.length > 0 ? (
+                    <View style={styles.playsPreview}>
+                      {selectedTicket.plays.slice(0, 4).map((play: any, idx: number) => (
+                        <Text key={idx} style={styles.playPreviewText}>
+                          {play.lottery_type || play.lottery_name}: {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
+                        </Text>
+                      ))}
+                      {selectedTicket.plays.length > 4 && (
+                        <Text style={styles.playPreviewText}>+{selectedTicket.plays.length - 4} más...</Text>
+                      )}
+                    </View>
+                  ) : null}
                   <View style={[styles.previewStatus, { backgroundColor: getStatusColor(selectedTicket.status) }]}>
                     <Text style={styles.previewStatusText}>{getStatusText(selectedTicket.status)}</Text>
                   </View>
