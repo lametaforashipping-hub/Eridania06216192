@@ -84,6 +84,7 @@ export default function Notifications() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'draw_result': return 'trophy';
+      case 'winner_alert': return 'gift';
       case 'winner': return 'cash';
       case 'system': return 'information-circle';
       default: return 'notifications';
@@ -93,6 +94,7 @@ export default function Notifications() {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'draw_result': return '#f59e0b';
+      case 'winner_alert': return '#22c55e';
       case 'winner': return '#22c55e';
       case 'system': return '#3b82f6';
       default: return '#94a3b8';
