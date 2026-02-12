@@ -647,13 +647,35 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 2,
   },
-  extraInfo: {
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  terminalBadge: {
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  terminalText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  extraInfoRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#334155',
+  },
+  extraInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   extraInfoText: {
     fontSize: 12,
