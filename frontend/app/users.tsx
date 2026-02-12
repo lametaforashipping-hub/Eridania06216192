@@ -366,6 +366,13 @@ export default function Users() {
       <View style={styles.userActions}>
         <TouchableOpacity
           style={styles.actionButton}
+          onPress={() => openEditModal(item)}
+        >
+          <Ionicons name="create" size={18} color="#3b82f6" />
+          <Text style={[styles.actionText, { color: '#3b82f6' }]}>Editar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionButton}
           onPress={() => {
             setSelectedUser(item);
             setShowDepositModal(true);
