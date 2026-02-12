@@ -334,7 +334,6 @@ export default function Tickets() {
       </TouchableOpacity>
     );
   };
-  );
 
   const filters = [
     { key: 'all', label: 'Todos' },
