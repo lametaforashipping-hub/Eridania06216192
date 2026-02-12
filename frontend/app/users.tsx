@@ -183,6 +183,10 @@ export default function Users() {
     setNewName('');
     setNewRole('vendedor');
     setNewCreditLimit('10000');
+    setNewCommissionRate('10');
+    setNewPhone('');
+    setNewAddress('');
+    setNewCedula('');
   };
 
   const getRoleLabel = (role: string) => {
