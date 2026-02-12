@@ -846,6 +846,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f172a',
   },
+  impersonationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f59e0b',
+    paddingVertical: 8,
+    gap: 8,
+  },
+  impersonationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
