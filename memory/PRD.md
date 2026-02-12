@@ -231,10 +231,10 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Pantalla de configuración del sistema~~ - **COMPLETADO**
 - ~~Ver recibo sin imprimir~~ - **COMPLETADO**
 - ~~Multi-Lotto para Multi-Play~~ - **COMPLETADO**
+- ~~Suplantación de Super Admin~~ - **COMPLETADO** (12 Feb 2026)
 
 ### P1 - Prioridad Alta
-- **Suplantación de Super Admin** - Permitir al Super Admin realizar acciones como vendedor (crear tickets, cancelar, etc.)
-- **Reportes de comisión detallados** - Desglose exacto de cómo se deducen las comisiones
+- **Reportes de comisión detallados** - Desglose exacto de cómo se deducen las comisiones por vendedor
 
 ### P2 - Prioridad Media
 - **Interfaz de Pago de Premios** - Marcar tickets ganadores como "Pagados"
