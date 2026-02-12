@@ -71,6 +71,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Desglose diario:** Gráfico de barras con ventas por día (para períodos semanal+)
 - **Detalle de boletos:** Lista expandible con todos los tickets del período
 - **📄 Exportar PDF:** Botón para generar e imprimir reporte en formato PDF
+- **📤 Compartir Reporte:** Opciones para compartir por WhatsApp, Email o cualquier otra app
 - **Acceso:** Click en vendedor desde "Reporte por Vendedores" o ir a "Mi Reporte Detallado"
 
 ### 🎫 Lista de Boletos Mejorada (NUEVO - 12 Feb 2026)
