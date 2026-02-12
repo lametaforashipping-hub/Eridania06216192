@@ -109,7 +109,10 @@ export default function Lotteries() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingLottery, setEditingLottery] = useState<Lottery | null>(null);
   const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Form states
   const [formName, setFormName] = useState('');
@@ -126,6 +129,7 @@ export default function Lotteries() {
   const [formWeeklyHours, setFormWeeklyHours] = useState<WeeklyHours>(DEFAULT_WEEKLY_HOURS);
   const [useWeeklySchedule, setUseWeeklySchedule] = useState(false);
   const [formTicketLimit, setFormTicketLimit] = useState('');
+  const [formSchedule, setFormSchedule] = useState('12:00,15:00,21:00');
 
   const fetchLotteries = useCallback(async () => {
     try {
