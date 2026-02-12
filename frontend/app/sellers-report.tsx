@@ -34,18 +34,23 @@ interface SellerReport {
 }
 
 export default function SellersReport() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
   const [sellers, setSellers] = useState<SellerReport[]>([]);
   const [totals, setTotals] = useState<any>(null);
   const [period, setPeriod] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   const fetchReport = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${API_URL}/api/accounting/sellers-report`, {
+      let url = `${API_URL}/api/accounting/sellers-report`;
+      if (selectedCountry) {
+        url += `?country=${selectedCountry}`;
+      }
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -59,7 +64,7 @@ export default function SellersReport() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, selectedCountry]);
 
   useEffect(() => {
     fetchReport();
