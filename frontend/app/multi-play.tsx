@@ -172,44 +172,71 @@ export default function MultiPlay() {
         <meta charset="utf-8">
         <style>
           body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-          .title { font-size: 18px; font-weight: bold; }
-          .ticket-number { font-size: 12px; margin: 5px 0; }
-          .plays { margin: 15px 0; }
-          .play-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; }
-          .play-type { font-weight: bold; width: 70px; }
-          .play-numbers { font-weight: bold; font-size: 14px; }
-          .play-amount { color: #22c55e; }
-          .totals { margin-top: 15px; padding-top: 10px; border-top: 2px solid #000; }
-          .total-row { display: flex; justify-content: space-between; padding: 3px 0; }
-          .total-amount { font-size: 18px; font-weight: bold; }
-          .footer { text-align: center; margin-top: 15px; font-size: 10px; }
+          .ticket { border: 2px solid #000; border-radius: 8px; overflow: hidden; }
+          .header { 
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            color: white; padding: 15px 10px; text-align: center;
+          }
+          .logo { font-size: 28px; margin-bottom: 5px; }
+          .brand { font-size: 14px; font-weight: bold; letter-spacing: 2px; }
+          .slogan { font-size: 9px; color: #86efac; margin-top: 5px; font-style: italic; }
+          .ticket-info { background: #8b5cf6; color: white; padding: 8px; text-align: center; }
+          .ticket-number { font-size: 12px; font-weight: bold; }
+          .body { padding: 12px; }
+          .customer { background: #f0f9ff; border-radius: 5px; padding: 8px; margin-bottom: 10px; text-align: center; }
+          .plays { margin: 10px 0; }
+          .plays-title { font-weight: bold; font-size: 12px; margin-bottom: 8px; color: #1e3a5f; border-bottom: 2px solid #1e3a5f; padding-bottom: 5px; }
+          .play-row { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px dotted #e5e7eb; align-items: center; }
+          .play-type { background: #22c55e; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+          .play-numbers { font-weight: bold; font-size: 16px; color: #1e3a5f; letter-spacing: 2px; }
+          .play-amount { color: #22c55e; font-weight: bold; font-size: 12px; }
+          .totals { background: #f0fdf4; border: 1px solid #22c55e; border-radius: 5px; padding: 10px; margin: 10px 0; }
+          .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
+          .total-label { color: #166534; font-size: 11px; }
+          .total-amount { font-size: 16px; font-weight: bold; color: #15803d; }
+          .potential { background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px; }
+          .footer { background: #f8fafc; padding: 10px; text-align: center; border-top: 2px dashed #cbd5e1; }
+          .footer-text { font-size: 9px; color: #64748b; margin: 2px 0; }
+          .barcode { font-size: 32px; letter-spacing: -2px; margin: 5px 0; }
+          .promo { background: #1e3a5f; color: #fbbf24; padding: 8px; text-align: center; font-size: 10px; font-weight: bold; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">SISTEMA DE LOTERIA</div>
-          <div class="ticket-number">BOLETO: ${ticket.ticket_number}</div>
-          <div>Fecha: ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}</div>
-          ${ticket.customer_name ? `<div>Cliente: ${ticket.customer_name}</div>` : ''}
-        </div>
-        <div class="plays">
-          <div style="font-weight: bold; margin-bottom: 5px;">JUGADAS (${ticket.plays.length}):</div>
-          ${playsHTML}
-        </div>
-        <div class="totals">
-          <div class="total-row">
-            <span>Total Jugado:</span>
-            <span class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</span>
+        <div class="ticket">
+          <div class="header">
+            <div class="logo">🎰</div>
+            <div class="brand">LOTERÍA NACIONAL</div>
+            <div class="slogan">✨ Tu suerte está aquí ✨</div>
           </div>
-          <div class="total-row">
-            <span>Premio Potencial:</span>
-            <span>${ticket.currency} ${ticket.total_potential_win.toLocaleString()}</span>
+          <div class="ticket-info">
+            <div class="ticket-number">BOLETO MULTI-JUGADA #${ticket.ticket_number}</div>
           </div>
-        </div>
-        <div class="footer">
-          <p>🍀 ¡Buena Suerte!</p>
-          <p>Conserve este boleto</p>
+          <div class="body">
+            <div class="customer">
+              📅 ${date.toLocaleDateString('es-DO')} | 🕐 ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
+              ${ticket.customer_name ? `<br>👤 ${ticket.customer_name}` : ''}
+            </div>
+            <div class="plays">
+              <div class="plays-title">🎲 JUGADAS (${ticket.plays.length})</div>
+              ${playsHTML}
+            </div>
+            <div class="totals">
+              <div class="total-row">
+                <span class="total-label">💵 Total Jugado:</span>
+                <span class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</span>
+              </div>
+              <div class="total-row">
+                <span class="total-label">🏆 Premio Potencial:</span>
+                <span class="potential">${ticket.currency} ${ticket.total_potential_win.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+          <div class="footer">
+            <div class="barcode">|||${ticket.ticket_number}|||</div>
+            <div class="footer-text">✓ Conserve este boleto</div>
+            <div class="footer-text">✓ Presente para cobrar premio</div>
+          </div>
+          <div class="promo">🍀 ¡BUENA SUERTE! - JUEGA RESPONSABLEMENTE 🍀</div>
         </div>
       </body>
       </html>
