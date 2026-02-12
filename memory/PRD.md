@@ -61,6 +61,11 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
   - Sábados: horario extendido (08:00-22:00 por defecto)
   - Domingos: horario reducido (10:00-20:00 por defecto)
   - Configurable para cada día individualmente
+- [x] **Días Festivos** (holidays)
+  - Cerrar completamente en días festivos (Navidad, Año Nuevo, etc.)
+  - Horarios especiales para días festivos (ej: 10:00-18:00)
+  - API para agregar/eliminar festivos: POST/DELETE /api/lotteries/{id}/holidays
+  - Mensaje con emoji 🎉 cuando es día festivo
 - [x] **Bloqueo automático de ventas** fuera del horario
 - [x] **Mensaje descriptivo** cuando la lotería está cerrada (incluye día siguiente)
 - [x] Indicador visual de estado (abierta/cerrada) en la lista de loterías
