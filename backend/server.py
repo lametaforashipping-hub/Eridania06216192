@@ -2054,15 +2054,15 @@ async def get_daily_chart_data(
     return {"chart_data": data, "country_filter": filter_country}
 
 # ==================== FAVORITES ====================
-class FavoritePlay(BaseModel):
+class FavoritePlayItem(BaseModel):
     lottery_type: str
     lottery_id: Optional[str] = None
     numbers: List[int]
     amount: float
 
-class CreateFavorite(BaseModel):
+class CreateFavoriteRequest(BaseModel):
     name: str
-    plays: List[FavoritePlay]
+    plays: List[FavoritePlayItem]
     currency: str = "RD"
 
 @api_router.get("/favorites")
@@ -2072,7 +2072,7 @@ async def get_favorites(current_user: dict = Depends(get_current_user)):
     return serialize_doc(favorites)
 
 @api_router.post("/favorites")
-async def create_favorite(data: CreateFavorite, current_user: dict = Depends(get_current_user)):
+async def create_favorite(data: CreateFavoriteRequest, current_user: dict = Depends(get_current_user)):
     """Create a new favorite play combination"""
     # Check if name already exists for this user
     existing = await db.favorites.find_one({"user_id": current_user["id"], "name": data.name})
