@@ -11,6 +11,8 @@ import {
   FlatList,
   Alert,
   Platform,
+  Linking,
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
