@@ -150,39 +150,33 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 
 ## Actualizaciones Recientes
 
-### Feb 2026 - Sesión Actual (Límites + Recibo + Panel Admin)
+### Feb 2026 - Sesión Actual (Límites + Edición + Sorteos)
 1. **Nueva Funcionalidad - Límite de Boletos por Número:**
    - Campo `ticket_limit_per_number` en modelo de lotería (GLOBAL, sin importar fecha)
-   - Validación en `POST /api/tickets` que bloquea ventas cuando se alcanza el límite
-   - Validación también en `POST /api/tickets/multi` para multi-jugadas
-   - Nuevo endpoint `GET /api/lotteries/{id}/number-stats` para ver estadísticas de ventas por número
-   - Mensaje de error descriptivo: "Límite alcanzado: El número X ya tiene Y boletos vendidos (máximo: Z)"
-   - Los boletos cancelados NO cuentan hacia el límite
-   - UI actualizada en pantalla de loterías mostrando el límite configurado
-   - Campo de entrada para límite en formulario de crear lotería
-   - Tests: 11/11 pasados (`/app/backend/tests/test_ticket_limit_per_number.py`)
+   - Validación en endpoints de tickets
+   - Endpoint `GET /api/lotteries/{id}/number-stats` para estadísticas
 
 2. **Alertas Automáticas de Límite (80%):**
-   - Cuando un número alcanza el 80% del límite, el sistema muestra una alerta
-   - Campos nuevos en respuesta de tickets: `limit_warnings` y `limit_warning_message`
-   - Frontend muestra Alert con mensaje: "Número 77: quedan 1 de 5" o "LÍMITE ALCANZADO (5/5)"
-   - Funciona en ambas pantallas: Venta Individual y Multi-Jugada
+   - Cuando un número alcanza el 80% del límite muestra alerta
 
 3. **Nuevo Panel de Administración de Límites** (`/number-limits`):
-   - Vista en tiempo real de números bloqueados y cercanos al límite
-   - Selector de lotería con filtro solo para loterías con límites
-   - Resumen con contadores: Bloqueados, Casi Llenos, Con Ventas
-   - Lista visual de números bloqueados
-   - Detalle por número con barra de progreso
-   - Accesible desde Dashboard para admin y super_admin
+   - Vista en tiempo real de números bloqueados
 
 4. **Rediseño del Recibo de Venta:**
-   - Código QR en lugar de código de barras (usando api.qrserver.com)
-   - Letras más grandes en todo el recibo
-   - Eliminado "Premio Potencial" y "Próximo Sorteo"
-   - Diseño reorganizado y más limpio
-   - Colores más claros y profesionales
-   - Actualizado en ambas pantallas: Venta Individual y Multi-Jugada
+   - Código QR en lugar de código de barras
+   - Letras más grandes, eliminado "Premio Potencial" y "Próximo Sorteo"
+
+5. **Edición de Loterías** (NUEVO):
+   - Botón "Editar Lotería" en cada tarjeta de lotería
+   - Modal de edición para cambiar: nombre, precio, multiplicador, límite por número, horarios de sorteo, horarios de apertura/cierre
+   - Backend `PUT /api/lotteries/{id}` actualizado para aceptar todos los campos editables
+
+6. **Sorteos Manuales** (NUEVO):
+   - Sistema para ingresar números ganadores manualmente
+   - Backend `POST /api/draws` acepta `winning_numbers` opcional
+   - Si no se proporcionan números, se generan aleatoriamente
+   - Campo `is_manual: true` en sorteos con entrada manual
+   - Frontend actualizado con modal para ingresar números
 
 ### Feb 2026 - Sesión Anterior (Horarios)
 1. **Bug Fix:** KeyboardAvoidingView en Multi-Jugada para evitar que el teclado tape el botón
