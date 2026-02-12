@@ -190,10 +190,10 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Perfil del vendedor para Admin~~ - **COMPLETADO**
 - ~~Alertas de alto riesgo~~ - **COMPLETADO**
 - ~~Configuración de premios por lotería~~ - **COMPLETADO**
+- ~~Pantalla de configuración del sistema~~ - **COMPLETADO**
 
 ### P1 - Prioridad Alta
-- **UI para configurar premios:** Pantalla en sección Loterías para editar multiplicadores
-- **Notificaciones push** para alertas de alto riesgo (opcional)
+- **Ninguna tarea pendiente de alta prioridad**
 
 ### P2 - Prioridad Media
 - **Multi-Play con múltiples loterías** - Seleccionar varias loterías diferentes
