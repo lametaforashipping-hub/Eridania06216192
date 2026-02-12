@@ -29,6 +29,7 @@ interface User {
   credit_limit: number;
   balance: number;
   currency: string;
+  country?: string;
   active: boolean;
   created_at: string;
   commission_rate?: number;
@@ -58,6 +59,7 @@ export default function Users() {
   const [newPhone, setNewPhone] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [newCedula, setNewCedula] = useState('');
+  const [newCountry, setNewCountry] = useState('RD');
   const [depositAmount, setDepositAmount] = useState('');
 
   const fetchUsers = useCallback(async () => {
