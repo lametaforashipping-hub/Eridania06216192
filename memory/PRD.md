@@ -166,9 +166,11 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Bug Fix: Modal de boletos crasheaba al ver detalles~~ - **CORREGIDO**
 - ~~Gestión de Terminales~~ - **COMPLETADO**
 - ~~Texto del boleto en negritas~~ - **COMPLETADO**
+- ~~Tickets en tiempo real~~ - **COMPLETADO**
+- ~~Super Admin cancela cualquier ticket~~ - **COMPLETADO**
+- ~~Perfil del vendedor para Admin~~ - **COMPLETADO**
 
 ### P1 - Prioridad Alta
-- **Interfaz de pago de boletos ganadores** - Marcar boletos como "Pagado" (parcialmente implementado, falta UI mejorada)
 - **Configuración de premios por Super Admin:**
   - Porcentajes por tier (1ro, 2do, 3ro)
   - Porcentajes diferentes por lotería
@@ -177,7 +179,6 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Multi-Play con múltiples loterías** - Seleccionar varias loterías diferentes
 - **Perfil de empresa con logo personalizable** - Logo en recibos
 - Optimizar carga de página de Usuarios
-- Chequeo general del sistema móvil y web
 
 ## Archivos Clave
 - `/app/backend/server.py` - API completa con reporte detallado, favoritos, pagos, filtrado
