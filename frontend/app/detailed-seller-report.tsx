@@ -372,6 +372,320 @@ export default function DetailedSellerReport() {
     }
   };
 
+  const generateReportText = () => {
+    if (!report) return '';
+    
+    const currency = report.summary.currency;
+    const reportTitle = sellerName || report.seller?.name || 'Reporte General';
+    const formatAmount = (amount: number) => amount.toLocaleString('es-DO', { minimumFractionDigits: 2 });
+    
+    let text = `📊 *REPORTE DETALLADO*\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `👤 *${reportTitle}*\n`;
+    text += `📅 ${report.period_label}\n\n`;
+    
+    text += `💰 *RESUMEN*\n`;
+    text += `• Ventas: ${currency} ${formatAmount(report.summary.total_sales)}\n`;
+    text += `• Premios: ${currency} ${formatAmount(report.summary.total_wins)}\n`;
+    text += `• Comisión (${report.summary.commission_rate}%): ${currency} ${formatAmount(report.summary.total_commission)}\n`;
+    text += `• *Ganancia Neta: ${currency} ${formatAmount(report.summary.net_profit)}*\n\n`;
+    
+    text += `🎫 *BOLETOS*\n`;
+    text += `• Total: ${report.ticket_counts.total}\n`;
+    text += `• Pendientes: ${report.ticket_counts.pending}\n`;
+    text += `• Ganadores: ${report.ticket_counts.won}\n`;
+    text += `• Pagados: ${report.ticket_counts.paid}\n`;
+    text += `• Perdidos: ${report.ticket_counts.lost}\n`;
+    text += `• Cancelados: ${report.ticket_counts.cancelled}\n`;
+    
+    if (report.daily_breakdown && report.daily_breakdown.length > 0) {
+      text += `\n📈 *DESGLOSE DIARIO*\n`;
+      report.daily_breakdown.forEach(day => {
+        const sign = day.profit >= 0 ? '+' : '';
+        text += `• ${day.day_name} ${day.label}: ${currency} ${formatAmount(day.sales)} (${sign}${formatAmount(day.profit)})\n`;
+      });
+    }
+    
+    text += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `📱 Sistema de Lotería\n`;
+    text += `⏰ ${new Date().toLocaleString('es-DO')}`;
+    
+    return text;
+  };
+
+  const shareViaWhatsApp = async () => {
+    const text = generateReportText();
+    const encodedText = encodeURIComponent(text);
+    
+    // Try to open WhatsApp with the message
+    const whatsappUrl = `whatsapp://send?text=${encodedText}`;
+    const webWhatsAppUrl = `https://wa.me/?text=${encodedText}`;
+    
+    try {
+      if (Platform.OS === 'web') {
+        window.open(webWhatsAppUrl, '_blank');
+      } else {
+        const canOpen = await Linking.canOpenURL(whatsappUrl);
+        if (canOpen) {
+          await Linking.openURL(whatsappUrl);
+        } else {
+          // Fallback to web version
+          await Linking.openURL(webWhatsAppUrl);
+        }
+      }
+      setShowShareModal(false);
+    } catch (error) {
+      console.error('Error sharing via WhatsApp:', error);
+      Alert.alert('Error', 'No se pudo abrir WhatsApp');
+    }
+  };
+
+  const shareViaEmail = async () => {
+    if (!report) return;
+    
+    const reportTitle = sellerName || report.seller?.name || 'Reporte General';
+    const subject = encodeURIComponent(`Reporte Detallado - ${reportTitle} - ${report.period_label}`);
+    const body = encodeURIComponent(generateReportText().replace(/\*/g, '')); // Remove markdown asterisks for email
+    
+    const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+    
+    try {
+      if (Platform.OS === 'web') {
+        window.open(mailtoUrl, '_blank');
+      } else {
+        await Linking.openURL(mailtoUrl);
+      }
+      setShowShareModal(false);
+    } catch (error) {
+      console.error('Error sharing via email:', error);
+      Alert.alert('Error', 'No se pudo abrir el correo');
+    }
+  };
+
+  const shareGeneric = async () => {
+    if (!report) return;
+    
+    try {
+      // Generate PDF and share
+      const html = await generatePDFHTML();
+      if (Platform.OS === 'web') {
+        const text = generateReportText();
+        await navigator.clipboard.writeText(text.replace(/\*/g, ''));
+        Alert.alert('Copiado', 'El reporte ha sido copiado al portapapeles');
+      } else {
+        const { uri } = await Print.printToFileAsync({ html });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri);
+        }
+      }
+      setShowShareModal(false);
+    } catch (error) {
+      console.error('Error sharing:', error);
+      Alert.alert('Error', 'No se pudo compartir el reporte');
+    }
+  };
+
+  const generatePDFHTML = async () => {
+    if (!report) return '';
+    
+    const getStatusTextLocal = (status: string) => {
+      switch (status) {
+        case 'won': return 'GANADOR';
+        case 'paid': return 'PAGADO';
+        case 'lost': return 'PERDIDO';
+        case 'cancelled': return 'CANCELADO';
+        default: return 'PENDIENTE';
+      }
+    };
+
+    const getStatusColorLocal = (status: string) => {
+      switch (status) {
+        case 'won': return '#22c55e';
+        case 'paid': return '#3b82f6';
+        case 'lost': return '#ef4444';
+        case 'cancelled': return '#64748b';
+        default: return '#f59e0b';
+      }
+    };
+
+    const formatAmount = (amount: number) => {
+      return amount.toLocaleString('es-DO', { minimumFractionDigits: 2 });
+    };
+
+    const currency = report.summary.currency;
+    const reportTitle = sellerName || report.seller?.name || 'Reporte General';
+    
+    let dailyRows = '';
+    if (report.daily_breakdown && report.daily_breakdown.length > 0) {
+      dailyRows = report.daily_breakdown.map(day => `
+        <tr>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155;">${day.day_name} ${day.label}</td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155; text-align: right;">${currency} ${formatAmount(day.sales)}</td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155; text-align: right; color: ${day.profit >= 0 ? '#22c55e' : '#ef4444'};">
+            ${day.profit >= 0 ? '+' : ''}${currency} ${formatAmount(day.profit)}
+          </td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #334155; text-align: center;">${day.tickets}</td>
+        </tr>
+      `).join('');
+    }
+
+    let ticketRows = '';
+    if (report.tickets && report.tickets.length > 0) {
+      ticketRows = report.tickets.slice(0, 30).map(t => {
+        const amount = t.amount || t.total_amount || 0;
+        const displayInfo = t.is_multi_play 
+          ? `Multi-jugada (${t.plays?.length || 0})` 
+          : `${t.lottery_name || ''} - ${(t.numbers || []).map(n => n.toString().padStart(2, '0')).join('-')}`;
+        return `
+          <tr>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; font-size: 10px;">${t.ticket_number}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; font-size: 10px;">${displayInfo}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; text-align: right; font-size: 10px;">${currency} ${formatAmount(amount)}</td>
+            <td style="padding: 4px 6px; border-bottom: 1px solid #334155; text-align: center;">
+              <span style="background: ${getStatusColorLocal(t.status)}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 8px; font-weight: bold;">
+                ${getStatusTextLocal(t.status)}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Helvetica', 'Arial', sans-serif; background: #0f172a; color: #ffffff; padding: 20px; }
+          .header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #22c55e; margin-bottom: 20px; }
+          .title { font-size: 20px; font-weight: bold; color: #22c55e; }
+          .subtitle { font-size: 12px; color: #94a3b8; margin-top: 5px; }
+          .period { font-size: 14px; color: #ffffff; margin-top: 8px; }
+          .summary-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+          .summary-card { flex: 1; min-width: 120px; background: #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
+          .summary-card.profit { border: 1px solid #22c55e; }
+          .summary-label { font-size: 10px; color: #94a3b8; }
+          .summary-value { font-size: 14px; font-weight: bold; margin-top: 4px; }
+          .green { color: #22c55e; }
+          .red { color: #ef4444; }
+          .yellow { color: #f59e0b; }
+          .section { background: #1e293b; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+          .section-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #ffffff; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background: #334155; padding: 8px; text-align: left; font-size: 11px; color: #94a3b8; }
+          .counts-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+          .count-item { text-align: center; min-width: 60px; }
+          .count-number { font-size: 20px; font-weight: bold; }
+          .count-label { font-size: 9px; color: #94a3b8; }
+          .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #334155; font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">REPORTE DETALLADO</div>
+          <div class="subtitle">${reportTitle}</div>
+          <div class="period">${report.period_label}</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Ventas Totales</div>
+            <div class="summary-value">${currency} ${formatAmount(report.summary.total_sales)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Premios</div>
+            <div class="summary-value red">${currency} ${formatAmount(report.summary.total_wins)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Comisión (${report.summary.commission_rate}%)</div>
+            <div class="summary-value yellow">${currency} ${formatAmount(report.summary.total_commission)}</div>
+          </div>
+          <div class="summary-card profit">
+            <div class="summary-label">Ganancia Neta</div>
+            <div class="summary-value ${report.summary.net_profit >= 0 ? 'green' : 'red'}">
+              ${currency} ${formatAmount(report.summary.net_profit)}
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Resumen de Boletos</div>
+          <div class="counts-grid">
+            <div class="count-item">
+              <div class="count-number">${report.ticket_counts.total}</div>
+              <div class="count-label">Total</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #f59e0b;">${report.ticket_counts.pending}</div>
+              <div class="count-label">Pendientes</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #22c55e;">${report.ticket_counts.won}</div>
+              <div class="count-label">Ganadores</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #3b82f6;">${report.ticket_counts.paid}</div>
+              <div class="count-label">Pagados</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #ef4444;">${report.ticket_counts.lost}</div>
+              <div class="count-label">Perdidos</div>
+            </div>
+            <div class="count-item">
+              <div class="count-number" style="color: #64748b;">${report.ticket_counts.cancelled}</div>
+              <div class="count-label">Cancelados</div>
+            </div>
+          </div>
+        </div>
+
+        ${dailyRows ? `
+        <div class="section">
+          <div class="section-title">Desglose Diario</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Día</th>
+                <th style="text-align: right;">Ventas</th>
+                <th style="text-align: right;">Ganancia</th>
+                <th style="text-align: center;">Boletos</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dailyRows}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${ticketRows ? `
+        <div class="section">
+          <div class="section-title">Detalle de Boletos</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Jugada</th>
+                <th style="text-align: right;">Monto</th>
+                <th style="text-align: center;">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ticketRows}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <div class="footer">
+          Generado el ${new Date().toLocaleString('es-DO')} | Sistema de Lotería
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
   const formatCurrency = (amount: number, currency: string = 'RD$') => {
     const flag = currency === 'USD' || currency === '$' ? '🇺🇸' : '🇩🇴';
     const symbol = currency === 'USD' || currency === '$' ? '$' : 'RD$';
