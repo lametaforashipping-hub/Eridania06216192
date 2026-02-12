@@ -35,6 +35,11 @@ interface Lottery {
   prize_multiplier: number;
   schedule: string[];
   active: boolean;
+  opening_time?: string;
+  closing_time?: string;
+  is_open?: boolean;
+  next_draw_time?: string;
+  closed_message?: string;
 }
 
 const LOTTERY_TYPES = [
