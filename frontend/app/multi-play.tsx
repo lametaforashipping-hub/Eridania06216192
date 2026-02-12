@@ -616,9 +616,15 @@ export default function MultiPlay() {
               </View>
               
               <View style={styles.modalBody}>
+                <Text style={styles.modalHint}>
+                  {selectedType.numbers === 1 ? 'Ingresa 1 número (ej: 25)' : 
+                   selectedType.numbers === 2 ? 'Ingresa 2 números (ej: 20-50 o 2050)' :
+                   'Ingresa 3 números (ej: 20-50-30 o 205030)'}
+                </Text>
+                
                 {/* Lottery Selector */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Seleccionar Lotería</Text>
+                  <Text style={styles.inputLabel}>Lotería</Text>
                   <TouchableOpacity 
                     style={styles.lotterySelector}
                     onPress={() => setShowLotterySelector(true)}
@@ -634,12 +640,6 @@ export default function MultiPlay() {
                     <Ionicons name="chevron-down" size={20} color="#94a3b8" />
                   </TouchableOpacity>
                 </View>
-                
-                <Text style={styles.modalHint}>
-                  {selectedType.numbers === 1 ? 'Ingresa 1 número (ej: 25)' : 
-                   selectedType.numbers === 2 ? 'Ingresa 2 números (ej: 20-50 o 2050)' :
-                   'Ingresa 3 números (ej: 20-50-30 o 205030)'}
-                </Text>
                 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Número(s)</Text>
