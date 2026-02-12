@@ -1,0 +1,94 @@
+{
+  "summary": "Completed testing of per-number ticket limit feature. All 11 backend tests passed. Frontend correctly displays 'Límite por número' field in lottery cards showing 'Sin límite' or 'X boletos'. Backend APIs working: POST /tickets blocks when limit reached with descriptive error, GET /number-stats returns correct statistics, PUT /lotteries/{id} updates limit correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Lotteries page",
+        "issues": ["Ticket limit field shows 'boletos' plural even for 1 boleto - should be '1 boleto' singular"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_ticket_limit_per_number.py",
+    "/app/test_reports/pytest/ticket_limit_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend correctly validates ticket limit per number globally (not per date) as required",
+    "POST /api/tickets returns descriptive error message: 'Límite alcanzado: El número X ya tiene Y boletos vendidos (máximo: Z)'",
+    "POST /api/tickets/multi also validates ticket limits for multi-play tickets",
+    "GET /api/lotteries/{id}/number-stats correctly returns blocked_numbers array and individual number stats",
+    "Cancelled tickets correctly excluded from limit count (status != CANCELLED check)",
+    "Frontend displays ticket limit in lottery cards with 'Sin límite' or 'X boletos' format",
+    "Create lottery modal has 'Límite de Ventas' section with ticket limit field"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ticket_limit_per_number.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 passed)",
+    "frontend": "100% - UI displays ticket limit correctly"
+  },
+  "test_credentials": {
+    "email": "admin@loteria.com",
+    "password": "admin123"
+  },
+  "seed_data_creation": "Created multiple TEST_ prefixed lotteries with various ticket limits (1, 2, 3, 5). Existing lottery 'Quiniela 24H Limite Test' (5be25beb-5b88-40c9-82de-8a60fe768e1a) has limit=3.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Per-number ticket limit feature fully tested. Backend tests at /app/backend/tests/test_ticket_limit_per_number.py. All core features working: create lottery with limit, sell until limit, block when reached, number-stats endpoint, multi-play limit validation, update limit via PUT. Frontend displays limits correctly after hot reload.",
+  "features_tested": {
+    "POST /api/lotteries with ticket_limit_per_number": {
+      "status": "PASS",
+      "notes": "Creates lottery with limit correctly saved"
+    },
+    "GET /api/lotteries/{id} returns ticket_limit_per_number": {
+      "status": "PASS",
+      "notes": "Field correctly returned in lottery details"
+    },
+    "POST /api/tickets within limit": {
+      "status": "PASS",
+      "notes": "Allows selling tickets up to limit"
+    },
+    "POST /api/tickets when limit reached": {
+      "status": "PASS",
+      "notes": "Returns 400 with descriptive error message including number and counts"
+    },
+    "Other numbers available after one blocked": {
+      "status": "PASS",
+      "notes": "Only blocks the specific number at limit"
+    },
+    "GET /api/lotteries/{id}/number-stats": {
+      "status": "PASS",
+      "notes": "Returns sold_count, remaining, is_blocked, blocked_numbers array"
+    },
+    "PUT /api/lotteries/{id} to update limit": {
+      "status": "PASS",
+      "notes": "Updates limit and allows more sales for previously blocked numbers"
+    },
+    "POST /api/tickets/multi validates limits": {
+      "status": "PASS",
+      "notes": "Multi-play tickets also respect per-number limits"
+    },
+    "Cancelled tickets excluded from count": {
+      "status": "PASS",
+      "notes": "Only non-cancelled tickets count towards limit"
+    },
+    "Frontend 'Límite por número' display": {
+      "status": "PASS",
+      "notes": "Shows 'Sin límite' or 'X boletos' in lottery cards"
+    }
+  },
+  "pytest_results": {
+    "passed": 11,
+    "failed": 0,
+    "total": 11,
+    "failed_tests": []
+  }
+}
