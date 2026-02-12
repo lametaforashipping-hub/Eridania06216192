@@ -825,11 +825,20 @@ export default function Sales() {
             <Text style={styles.sectionTitle}>
               <Text style={styles.stepNumber}>4</Text> Carrito ({cart.length} jugadas)
             </Text>
-            {cart.length > 0 && (
-              <TouchableOpacity onPress={clearCart}>
-                <Text style={styles.clearCartText}>Vaciar</Text>
+            <View style={styles.cartHeaderButtons}>
+              <TouchableOpacity 
+                style={styles.favoritesButton} 
+                onPress={() => setShowFavoritesModal(true)}
+              >
+                <Ionicons name="star" size={18} color="#f59e0b" />
+                <Text style={styles.favoritesButtonText}>Favoritos</Text>
               </TouchableOpacity>
-            )}
+              {cart.length > 0 && (
+                <TouchableOpacity onPress={clearCart}>
+                  <Text style={styles.clearCartText}>Vaciar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           {cart.length > 0 ? (
@@ -840,6 +849,15 @@ export default function Sales() {
                 keyExtractor={item => item.id}
                 scrollEnabled={false}
               />
+
+              {/* Save as Favorite Button */}
+              <TouchableOpacity 
+                style={styles.saveFavoriteButton}
+                onPress={() => setShowSaveFavoriteModal(true)}
+              >
+                <Ionicons name="star-outline" size={20} color="#f59e0b" />
+                <Text style={styles.saveFavoriteText}>Guardar como Favorito</Text>
+              </TouchableOpacity>
 
               {/* Customer Name */}
               <View style={styles.customerSection}>
