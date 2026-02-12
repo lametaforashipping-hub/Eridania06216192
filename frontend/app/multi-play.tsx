@@ -28,9 +28,24 @@ interface PlayItem {
   id: string;
   lottery_type: string;
   lottery_type_label: string;
+  lottery_id?: string;
+  lottery_name?: string;
   numbers: number[];
   amount: number;
   position?: string;
+}
+
+interface Lottery {
+  id: string;
+  name: string;
+  lottery_type: string;
+  numbers_to_pick: number;
+  min_number: number;
+  max_number: number;
+  is_open: boolean;
+  closed_message?: string;
+  prize_multiplier: number;
+  currency: string;
 }
 
 interface TicketResponse {
