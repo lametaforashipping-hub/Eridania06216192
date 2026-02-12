@@ -360,6 +360,44 @@ def require_role(allowed_roles: List[UserRole]):
         return user
     return role_checker
 
+def parse_time_string(time_str: str) -> tuple:
+    """
+    Parse time string in various formats to (hour, minute).
+    Supports: "08:00", "8:00", "08:00pm", "8:00 PM", etc.
+    Returns (None, None) if parsing fails.
+    """
+    if not time_str:
+        return None, None
+    
+    time_str = time_str.strip().lower()
+    
+    # Check for AM/PM format
+    is_pm = 'pm' in time_str
+    is_am = 'am' in time_str
+    
+    # Remove am/pm
+    time_str = time_str.replace('pm', '').replace('am', '').strip()
+    
+    try:
+        if ':' in time_str:
+            parts = time_str.split(':')
+            hour = int(parts[0].strip())
+            minute = int(parts[1].strip()) if len(parts) > 1 else 0
+        else:
+            # Just a number
+            hour = int(time_str)
+            minute = 0
+        
+        # Apply AM/PM conversion
+        if is_pm and hour < 12:
+            hour += 12
+        elif is_am and hour == 12:
+            hour = 0
+        
+        return hour, minute
+    except (ValueError, IndexError):
+        return None, None
+
 def check_lottery_open(lottery: dict) -> tuple:
     """
     Check if lottery is currently open for sales.
