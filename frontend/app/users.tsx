@@ -601,6 +601,132 @@ export default function Users() {
           </View>
         </View>
       </Modal>
+
+      {/* Edit User Modal */}
+      <Modal visible={showEditModal} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Editar Usuario</Text>
+              <TouchableOpacity onPress={() => { setShowEditModal(false); setSelectedUser(null); resetForm(); }}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.editUserHeader}>
+                <Text style={styles.editUserEmail}>{selectedUser?.email}</Text>
+                <View style={[styles.roleBadge, { backgroundColor: getRoleColor(selectedUser?.role || '') + '30' }]}>
+                  <Text style={[styles.roleText, { color: getRoleColor(selectedUser?.role || '') }]}>
+                    {getRoleLabel(selectedUser?.role || '')}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.inputLabel}>Nombre</Text>
+              <TextInput
+                style={styles.input}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="Nombre completo"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>Cédula / Identificación</Text>
+              <TextInput
+                style={styles.input}
+                value={newCedula}
+                onChangeText={setNewCedula}
+                placeholder="000-0000000-0"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>ID de Terminal</Text>
+              <TextInput
+                style={styles.input}
+                value={newTerminalId}
+                onChangeText={setNewTerminalId}
+                placeholder="T001"
+                placeholderTextColor="#64748b"
+                autoCapitalize="characters"
+              />
+
+              <Text style={styles.inputLabel}>Teléfono</Text>
+              <TextInput
+                style={styles.input}
+                value={newPhone}
+                onChangeText={setNewPhone}
+                placeholder="809-000-0000"
+                placeholderTextColor="#64748b"
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.inputLabel}>Dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={newAddress}
+                onChangeText={setNewAddress}
+                placeholder="Dirección completa"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>País y Moneda</Text>
+              <View style={styles.roleSelector}>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'RD' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('RD')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'RD' && styles.roleOptionTextSelected]}>
+                    Rep. Dominicana (RD$)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'US' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('US')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'US' && styles.roleOptionTextSelected]}>
+                    Estados Unidos (USD)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.inputLabel}>Porcentaje de Comisión (%)</Text>
+              <TextInput
+                style={styles.input}
+                value={newCommissionRate}
+                onChangeText={setNewCommissionRate}
+                placeholder="10"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+
+              <Text style={styles.inputLabel}>Límite de Crédito</Text>
+              <TextInput
+                style={styles.input}
+                value={newCreditLimit}
+                onChangeText={setNewCreditLimit}
+                placeholder="10000"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+
+              <TouchableOpacity
+                style={[styles.submitButton, styles.editButton, updating && styles.submitButtonDisabled]}
+                onPress={handleEditUser}
+                disabled={updating}
+              >
+                {updating ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Guardar Cambios</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
