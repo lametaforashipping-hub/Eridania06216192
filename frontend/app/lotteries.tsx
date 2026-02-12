@@ -319,12 +319,20 @@ export default function Lotteries() {
             <Text style={styles.lotteryType}>{getTypeLabel(item.lottery_type)}</Text>
           </View>
         </View>
-        <Switch
-          value={item.active}
-          onValueChange={() => toggleLotteryStatus(item)}
-          trackColor={{ false: '#334155', true: '#14532d' }}
-          thumbColor={item.active ? '#22c55e' : '#94a3b8'}
-        />
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => openEditModal(item)}
+          >
+            <Ionicons name="create-outline" size={22} color="#3b82f6" />
+          </TouchableOpacity>
+          <Switch
+            value={item.active}
+            onValueChange={() => toggleLotteryStatus(item)}
+            trackColor={{ false: '#334155', true: '#14532d' }}
+            thumbColor={item.active ? '#22c55e' : '#94a3b8'}
+          />
+        </View>
       </View>
 
       {/* Status indicator */}
