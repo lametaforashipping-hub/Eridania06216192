@@ -103,6 +103,11 @@ export default function Tickets() {
 
   const canCancel = (ticket: Ticket) => {
     if (ticket.status !== 'pending') return false;
+    
+    // Super Admin can cancel ANY pending ticket at ANY time
+    if (user?.role === 'super_admin') return true;
+    
+    // For other users, check 5-minute limit
     const created = new Date(ticket.created_at);
     const now = new Date();
     const diffMinutes = (now.getTime() - created.getTime()) / 60000;
