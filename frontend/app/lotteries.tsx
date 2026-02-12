@@ -175,6 +175,8 @@ export default function Lotteries() {
     setFormPrice('20');
     setFormCurrency('RD$');
     setFormMultiplier('70');
+    setFormOpeningTime('08:00');
+    setFormClosingTime('21:00');
   };
 
   const getTypeLabel = (type: string) => {
