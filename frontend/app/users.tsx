@@ -752,6 +752,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ffffff',
   },
+  addButton: {
+    padding: 8,
+  },
   loader: {
     flex: 1,
     justifyContent: 'center',
