@@ -109,6 +109,8 @@ export default function Lotteries() {
   const [formMultiplier, setFormMultiplier] = useState('70');
   const [formOpeningTime, setFormOpeningTime] = useState('08:00');
   const [formClosingTime, setFormClosingTime] = useState('21:00');
+  const [formWeeklyHours, setFormWeeklyHours] = useState<WeeklyHours>(DEFAULT_WEEKLY_HOURS);
+  const [useWeeklySchedule, setUseWeeklySchedule] = useState(false);
 
   const fetchLotteries = useCallback(async () => {
     try {
