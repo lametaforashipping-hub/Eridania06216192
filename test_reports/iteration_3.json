@@ -1,0 +1,76 @@
+{
+  "summary": "Completed backend testing of weekly_hours feature for different opening/closing times per day of week. All 11 tests passed. Verified: API returns weekly_hours and today_hours fields; check_lottery_open uses weekly_hours correctly based on current day; create lottery with custom weekly_hours saves correctly; closed message includes next day name (e.g., 'Abre mañana (thu) a las 08:00').",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/lotteries",
+        "issue": "Old lotteries created before weekly_hours feature don't have weekly_hours field stored in DB (returns null). Backend correctly uses DEFAULT_WEEKLY_SCHEDULE as fallback, so today_hours still works.",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_weekly_hours.py",
+    "/app/test_reports/pytest/weekly_hours_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "check_lottery_open() correctly uses weekly_hours when available, with fallback to opening_time/closing_time and then to DEFAULT_WEEKLY_SCHEDULE",
+    "Closed message format now includes day abbreviation: 'Cerrada. Abre mañana (thu) a las 08:00'",
+    "today_hours correctly computed from weekly_hours based on current weekday",
+    "New lotteries default to DEFAULT_WEEKLY_SCHEDULE if weekly_hours not provided (different saturday 08:00-22:00 and sunday 10:00-20:00)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_weekly_hours.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A (not tested per request)"
+  },
+  "test_credentials": {
+    "email": "admin@loteria.com",
+    "password": "admin123"
+  },
+  "seed_data_creation": "Created 4 TEST_ prefixed lotteries with various weekly_hours configurations for testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend tests for weekly_hours at /app/backend/tests/test_weekly_hours.py. All 11 tests passing. Current UTC-4 time is Wednesday night (after close) so all lotteries show as closed. New lotteries with custom weekly_hours are saved correctly. Old lotteries without weekly_hours field work via fallback logic. today_hours field includes 'day' with current weekday name.",
+  "features_tested": {
+    "GET /api/lotteries returns today_hours": {
+      "status": "PASS",
+      "notes": "today_hours contains {open, close, day} for current day of week"
+    },
+    "GET /api/lotteries returns weekly_hours": {
+      "status": "PASS",
+      "notes": "New lotteries have weekly_hours stored, old ones return null but use fallback"
+    },
+    "POST /api/lotteries with weekly_hours": {
+      "status": "PASS",
+      "notes": "Custom weekly_hours saved correctly, defaults to DEFAULT_WEEKLY_SCHEDULE if not provided"
+    },
+    "PUT /api/lotteries/{id} update weekly_hours": {
+      "status": "PASS",
+      "notes": "Can update weekly_hours field"
+    },
+    "check_lottery_open uses weekly_hours": {
+      "status": "PASS",
+      "notes": "today_hours correctly reflects the weekly_hours for current day"
+    },
+    "closed_message includes day name": {
+      "status": "PASS",
+      "notes": "Format: 'Cerrada. Abre mañana (thu) a las 08:00' with 3-letter day abbreviation"
+    }
+  },
+  "pytest_results": {
+    "passed": 11,
+    "failed": 0,
+    "total": 11,
+    "failed_tests": []
+  }
+}
