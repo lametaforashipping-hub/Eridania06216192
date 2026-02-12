@@ -323,8 +323,9 @@ export default function Lotteries() {
           <TouchableOpacity 
             style={styles.editButton} 
             onPress={() => openEditModal(item)}
+            data-testid={`edit-lottery-${item.id}`}
           >
-            <Ionicons name="create-outline" size={22} color="#3b82f6" />
+            <Ionicons name="create-outline" size={18} color="#ffffff" />
           </TouchableOpacity>
           <Switch
             value={item.active}
