@@ -131,9 +131,24 @@ export default function Dashboard() {
           <Text style={styles.userName}>{user?.name}</Text>
           <Text style={styles.userRole}>{getRoleLabel(user?.role || '')}</Text>
         </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#ef4444" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.notificationButton} 
+            onPress={() => router.push('/notifications')}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#f59e0b" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
