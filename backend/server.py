@@ -264,25 +264,33 @@ class NotificationCreate(BaseModel):
     type: str  # "draw_result", "winner", "system"
 
 # ==================== HELPERS ====================
-def serialize_doc(doc):
+def serialize_doc(doc, exclude_fields=None):
+    """Serialize MongoDB documents, excluding sensitive fields"""
+    if exclude_fields is None:
+        exclude_fields = ['_id', 'password']  # Default sensitive fields to exclude
+    
     if doc is None:
         return None
     if isinstance(doc, list):
-        return [serialize_doc(d) for d in doc]
+        return [serialize_doc(d, exclude_fields) for d in doc]
     if isinstance(doc, dict):
         result = {}
         for key, value in doc.items():
+            # Skip excluded fields
+            if key in exclude_fields:
+                continue
             if isinstance(value, ObjectId):
                 result[key] = str(value)
             elif isinstance(value, datetime):
                 result[key] = value.isoformat()
             elif isinstance(value, dict):
-                result[key] = serialize_doc(value)
+                result[key] = serialize_doc(value, exclude_fields)
             elif isinstance(value, list):
-                result[key] = serialize_doc(value)
+                result[key] = serialize_doc(value, exclude_fields)
             else:
                 result[key] = value
         return result
+    return doc
     return doc
 
 def generate_ticket_number():
