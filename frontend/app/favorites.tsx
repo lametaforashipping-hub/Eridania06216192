@@ -21,13 +21,22 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
 
+interface FavoritePlay {
+  lottery_id?: string;
+  lottery_type?: string;
+  numbers: number[];
+  amount?: number;
+}
+
 interface Favorite {
   id: string;
   name: string;
-  lottery_id: string;
-  numbers: number[];
+  lottery_id?: string;
+  numbers?: number[];
+  plays?: FavoritePlay[];
   use_count: number;
   created_at: string;
+  currency?: string;
 }
 
 interface Lottery {
