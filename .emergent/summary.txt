@@ -1,106 +1,96 @@
 <analysis>**original_problem_statement:**
-The user initially requested the following features:
-1.  A detailed report accessible by administrators and sellers, showing a summary and a ticket-by-ticket breakdown.
-2.  A redesign of the printed ticket to be more compact and readable.
+The user's overall goal is to build a comprehensive lottery management system for a Super Admin to oversee all operations in real-time.
 
-Subsequently, the user added more requirements:
-1.  Export the detailed report to PDF.
-2.  Add options to share the report via WhatsApp and Email.
-3.  Add a unique identifier (e.g., terminal 01) to each user/seller upon creation.
-4.  Create a search feature and a list view for these terminals.
-5.  Develop an interface for paying out winning tickets.
-6.  Allow a Super Admin to edit the winning percentage for each prize tier (1st, 2nd, 3rd).
-7.  Allow the Super Admin to set different prize percentages for different lotteries.
-8.  In the multi-play interface, allow the selection of all available lotteries.
-9.  Make all information on the printed ticket bold for better visibility.
-10. Create a company profile page where the logo can be changed, and have it automatically update on the ticket/receipt.
+Initial requests from the previous session included:
+*   A detailed report for admins/sellers with ticket-by-ticket breakdowns.
+*   A compact, readable, and bolded printed ticket design.
+*   PDF export and sharing options (WhatsApp/Email) for reports.
+*   A terminal identifier for each user/seller, with a dedicated search and list view.
+*   An interface for paying out winning tickets.
+*   Super Admin controls to edit winning percentages per prize tier and per lottery.
+*   Allowing the selection of all available lotteries in the multi-play interface.
+*   A company profile page to manage a logo that appears on receipts.
+
+New requests from the current session:
+1.  **Real-time Monitoring:** All tickets must be visible to the Super Admin in real-time as they are created.
+2.  **Super Admin Impersonation:** The Super Admin must be able to enter a seller's profile and perform actions on their behalf (e.g., make plays, cancel tickets, manage profile).
+3.  **Unrestricted Cancellation:** The Super Admin must be able to cancel any ticket at any time, overriding the standard 5-minute window.
+4.  **Automatic Commission Deduction:** Seller commissions should be automatically calculated and deducted in reports.
+5.  **High-Risk Alerts:** The system should automatically flag high-value or high-risk bets and alert the Super Admin. The risk threshold should be configurable.
+6.  **Ticket Preview:** A feature to view the ticket receipt visually within the app without needing to print it.
+7.  **Multi-Lotto for Multi-Play:** The ability to include plays for multiple different lotteries within a single multi-play ticket.
+8.  **Lottery Hours Validation:** Prevent users from placing bets for lotteries that are currently closed.
 
 **User's preferred language**: Spanish. The next agent MUST respond in Spanish.
 
 **what currently exists?**
-The application is a lottery management system. It has a frontend built with React Native (Expo) and a Node.js (Express) backend with a Prisma ORM connected to an SQLite database. Key features include user management (admins, sellers), ticket creation (simple and multi-play), and basic reporting (e.g., sellers report).
+The application is a lottery management system with a React Native (Expo) frontend and a Python (FastAPI) backend using a MongoDB database.
+
+The system now includes:
+*   User roles (Super Admin, Seller).
+*   Ticket creation (simple and multi-play).
+*   **Terminal Management:** A dedicated screen to list and search for users by their unique Terminal ID. The user creation form now includes this field.
+*   **Live Ticket Monitoring:** A real-time dashboard for the Super Admin () that auto-refreshes, displays live stats (total sales, pending, winners), and lists incoming tickets.
+*   **High-Risk Alerts:** The live ticket screen highlights tickets that exceed a configurable prize potential, showing an ALTO RIESGO banner.
+*   **Seller Profile View:** A screen where the Super Admin can view a seller's profile, balance, stats, and recent activity.
+*   **System Configuration:** A Super Admin-only page to configure the high-risk alert threshold, auto-refresh interval, and prize multipliers for each lottery tier.
+*   **Super Admin Privileges:** The Super Admin can now cancel any ticket, ignoring the 5-minute time limit.
 
 **Last working item**:
-*   **Last item agent was working:** The agent was implementing the functionality to share the detailed seller report. This involved adding a Share icon to the report's header, which opens a modal with options to Share via WhatsApp and Share via Email.
-*   **Status:** USER VERIFICATION PENDING
-*   **Agent Testing Done:** N (The agent added the UI elements and logic but noted that testing the modal's appearance via the screenshot tool was difficult. The agent assumed the implementation was complete without full verification of the modal popping up and the share functions being called.)
-*   **Which testing method agent to use?** screenshot tool. The agent needs to take a screenshot after clicking the share button to verify that the modal appears correctly.
+*   **Last item agent was working:** Implementing the View Receipt without Printing feature. The agent added a Ver (View) button to the ticket actions modal, which is intended to open a new modal displaying the HTML receipt.
+*   **Status:** IN PROGRESS
+*   **Agent Testing Done:** N
+*   **Which testing method agent to use?** screenshot tool. The agent needs to navigate to the tickets screen, click a ticket to open the actions modal, and verify the Ver button is visible and functional.
 *   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1:** The  page crashes when viewing ticket details.
-    *   **Priority:** P0 (HIGH) - This is a blocking issue for viewing tickets.
-*   **Issue 2:** The sharing modal on the detailed report page has not been visually verified.
-    *   **Priority:** P1 (MEDIUM)
+*   **Issue 1:** The Ver (View) button is not visible in the ticket actions modal.
+    *   **Priority:** P0 (HIGH)
 
 **Issues Detail:**
-*   **Issue 1:** Crash on ticket details page.
-    *   **Attempted fixes:** The agent identified the error  related to  in  (line 419). The agent acknowledged the bug but deferred fixing it to focus on the sharing feature. No fix was attempted.
+*   **Issue 1:** Ver button not visible in ticket actions modal.
+    *   **Attempted fixes:** The agent identified that the row of action buttons (, , ) was overflowing the modal's visible area. An attempt was made to fix this by reorganizing the buttons and adding new styles in , but the issue persisted, likely due to a layout or caching problem.
     *   **Next debug checklist:**
-        1.  Go to the Boletos page.
-        2.  Click on a ticket to view its details.
-        3.  The app crashes. Check the console logs for the exact error.
-        4.  Inspect  around line 419.
-        5.  Add a conditional check to ensure  exists and is an array before calling  on it. It's likely that for some ticket types, this property is missing.
-    *   **Why fix this issue and what will be achieved with the fix?** Fixing this will restore the core functionality of viewing ticket details, which is currently broken.
-    *   **Status:** NOT STARTED
-    *   **Is recurring issue?** N
-    *   **Should Test frontend/backend/both after fix?** Frontend
-    *   **Blocked on other issue:** None
-
-*   **Issue 2:** Share modal functionality needs verification.
-    *   **Attempted fixes:** The agent added the share button and the modal component with its corresponding logic in .
-    *   **Next debug checklist:**
-        1.  Navigate to the detailed seller report page.
-        2.  Click the new share icon (📤).
-        3.  Use the screenshot tool to verify that a modal with Compartir por WhatsApp and Compartir por Correo buttons appears.
-    *   **Why fix this issue and what will be achieved with the fix?** This will complete the implementation of the Share Report feature requested by the user.
+        1.  Inspect the styles for the ticket actions modal in .
+        2.  Ensure the modal's content container () allows for scrolling or that the button container uses flex-wrap to accommodate all buttons.
+        3.  Use the screenshot tool with  actions to open the modal and verify the button's visibility. If not visible, try scrolling within the modal if possible.
+        4.  Once the button is visible, click it and verify that the new receipt preview modal appears correctly.
+    *   **Why fix this issue and what will be achieved with the fix?** This will complete the user's request to allow viewing a ticket receipt without printing.
     *   **Status:** IN PROGRESS
     *   **Is recurring issue?** N
     *   **Should Test frontend/backend/both after fix?** Frontend
     *   **Blocked on other issue:** None
 
 **In progress Task List**:
-*   **Task 1:** Complete and verify the Share Report feature.
-    *   **Where to resume:** Resume by verifying the modal appears upon clicking the share icon in .
-    *   **What will be achieved with this?** The user will be able to share reports via WhatsApp and email.
+*   **Task 1:** Complete and verify the View Receipt feature.
+    *   **Where to resume:** . Debug the layout of the action buttons inside the  modal.
+    *   **What will be achieved with this?** Users will be able to preview a ticket receipt directly in the app.
     *   **Status:** IN PROGRESS
     *   **Should Test frontend/backend/both after fix?** Frontend
-    *   **Blocked on something:** Blocked on completing verification (Issue 2).
+    *   **Blocked on something:** Blocked on fixing the button visibility issue (Issue 1).
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **(P0) Make ticket information bold:** Modify the CSS/styling in  within the  function to make all text bold for better visibility on the printed receipt.
-    *   **(P1) User/Terminal Management:**
-        *   Phase 1: Modify the user creation/editing forms and backend () to include a new field for a unique identifier (terminal).
-        *   Phase 2: Create a new screen to list all users/terminals.
-        *   Phase 3: Add a search bar to the new screen to filter terminals by their identifier.
-    *   **(P1) Payout Interface:** Create a new screen and corresponding backend logic to allow an admin/seller to mark a winning ticket as Paid. This will likely involve updating the ticket status in the database.
+    *   **(P0) Multi-Lotto for Multi-Play:** Enhance the multi-play creation screen () to allow selecting and adding plays from multiple different lotteries into a single transaction. The backend  endpoint will also need to be updated to handle an array of plays across different lotteries.
+    *   **(P1) Super Admin Impersonation (Full Functionality):** The Seller Profile screen is currently read-only. It needs to be enhanced to allow the Super Admin to perform actions *as* the selected seller, such as creating a new ticket or cancelling one of their tickets. This will require a new act as context or passing the seller's ID to the respective action endpoints.
 *   **Future Tasks:**
-    *   **(P2) Super Admin Prize Configuration:**
-        *   Create a new settings page accessible only by the Super Admin role.
-        *   On this page, add input fields to set the winning percentages for each prize tier (1st, 2nd, 3rd).
-        *   Implement backend logic to save and retrieve these percentage values.
-        *   The prize calculation logic must be updated to use these configurable percentages.
-    *   **(P2) Lottery-Specific Prize Configuration:** Extend the prize configuration page to allow setting different percentages for different lotteries. This will require associating prize percentages with lottery types in the database.
-    *   **(P2) Multi-Play Lottery Selection:** Enhance the multi-play ticket creation screen to allow selecting multiple lotteries for a single multi-play bet.
-    *   **(P3) Company Profile and Logo:**
-        *   Create a Company Profile page in the admin section.
-        *   Allow uploading a company logo.
-        *   Store the logo URL and update the  function in  to display this logo on the printed receipt.
+    *   **(P2) Payout Interface:** Create a new screen and corresponding backend logic to allow an admin/seller to mark a winning ticket as Paid.
+    *   **(P2) Company Profile and Logo:** Create a Company Profile page where a logo can be uploaded and then dynamically displayed on the ticket receipt HTML generated in .
+    *   **(P2) Detailed Commission Reporting:** While commissions are calculated, the user wants a more detailed breakdown in reports showing exactly how commissions are deducted from a seller's balance/payout. This involves enhancing the accounting endpoints in .
 
 **Completed work in this session**
-*   **Detailed Seller Report:** Created a new backend endpoint () and a corresponding frontend screen () that shows a comprehensive breakdown of a seller's activity with period filters.
-*   **Ticket Redesign:** Modified  to handle multi-play tickets correctly and make the ticket list more compact.
-*   **Multi-Play Bug Fixes:** Resolved backend and frontend errors related to  tickets not having the same data structure as single tickets (e.g., using  vs ).
-*   **PDF Export:** Implemented PDF generation and export functionality for the detailed seller report using  and . A button was added to the report header.
+- **Critical Bug Fix:** Fixed the app crash that occurred when viewing ticket details in  by adding null checks for .
+- **Terminal Management Feature:** Implemented backend and frontend for creating users with a unique Terminal ID and a new screen to list/search terminals.
+- **Live Ticket Monitoring:** Created a new En Vivo screen for the Super Admin with real-time stats and an auto-refreshing list of new tickets.
+- **Super Admin Unrestricted Cancellation:** Modified backend and frontend logic to allow users with the Super Admin role to cancel any ticket at any time.
+- **System Configuration Screen:** Created a new page for Super Admins to configure prize multipliers per lottery and set system-wide high-risk alert thresholds.
+- **High-Risk Alert System:** Implemented logic to identify and flag high-risk tickets on the En Vivo screen.
+- **Seller Profile Screen:** Created a new page for the Super Admin to view a seller's details, balance, and recent activity.
+- **Lottery Hours Validation:** Added backend validation to the multi-play endpoint to prevent bets on closed lotteries.
+- **Ticket Design:** Made text on the HTML ticket receipt bold for better readability.
 
 **Earlier issues found/mentioned but not fixed**
-*   **Issue 1:** Crash when viewing ticket details.
-    *   **Debug checklist:** The agent noticed the error  on  in . A conditional check is needed before mapping over .
-    *   **Why to solve this issue and what will be achieved with this?** This is a critical bug that prevents users from viewing ticket details, a core function of the app.
-    *   **Should Test frontend/backend/both after fix:** Frontend
-    *   **Is recurring issue?** N
+*   None. The critical crash from the previous session was fixed.
 
 **Known issue recurrence from previous fork**
 *   None.
@@ -110,64 +100,75 @@ The application is a lottery management system. It has a frontend built with Rea
 
 **Key Technical Concepts**
 *   **Frontend:** React Native, Expo
-*   **Backend:** Node.js, Express.js
-*   **Database:** SQLite with Prisma ORM
-*   **API:** RESTful API for communication between frontend and backend.
-*   **PDF Generation:** , 
+*   **Backend:** Python, FastAPI
+*   **Database:** MongoDB
+*   **Real-time (Polling):** The frontend uses  to periodically fetch data for the live tickets screen.
 
 **key DB schema**
 *   **User:** 
-*   **Ticket:** 
-*   **Play:** 
+*   **Lottery:** 
+*   **SystemConfig:**  (Singleton document)
 
 **changes in tech stack**
-*   **Added dependencies:**  and  were installed to handle PDF generation and sharing.
+*   The initial handoff incorrectly identified the backend as Node.js/Prisma/SQLite. The actual stack is **Python/FastAPI/MongoDB**. This is a critical correction.
 
 **All files of reference**
-*   : Modified to add the new  endpoint.
-*   : Created to display the new report, including logic for data fetching, PDF export, and sharing.
-*   : Modified significantly to fix bugs with multi-play tickets, adjust the UI, and handle ticket detail display. Contains the known bug.
-*   : Modified to add a navigation link to the new detailed report screen.
-*   : Modified to add the new action buttons (PDF, Share, Refresh) to the navigation header.
+*   ****: Heavily modified to fix crashes, add the View Receipt modal, and allow Super Admin cancellation. Contains the current pending UI issue.
+*   ****: New file for the real-time ticket monitoring dashboard.
+*   ****: New file for the Super Admin configuration page.
+*   ****: New file for listing and searching user terminals.
+*   ****: New file for viewing a seller's details.
+*   ****: Modified to include the  in the creation modal and user cards.
+*   ** & **: Multiple backend files were created or modified to add new endpoints for terminals, live tickets, system settings, and to update logic for user creation and ticket cancellation.
 
 **Areas that need refactoring**:
-*   The  file has become complex and was the source of several bugs. It could benefit from being broken down into smaller components, especially the  and ticket detail modal logic.
+*   The  file is becoming very large and complex, managing the ticket list, multiple modals (actions, details, receipt preview), and role-based logic. It should be broken down into smaller, reusable components (e.g., , , ).
 
 **key api endpoints**
-*   : Fetches data for the detailed seller report. Accepts  and  (daily, weekly, bi-weekly, monthly) as query parameters.
+*   : Fetches real-time ticket data for the Super Admin dashboard.
+*   , : Endpoints for managing system configuration.
+*   : Searches for users by terminal ID, name, or email.
+*   : Fetches detailed profile data for a specific seller.
+*   : Creates a multi-play ticket. (Updated with validation).
+*   : Cancels a ticket. (Updated for Super Admin).
 
 **Critical Info for New Agent**
-*   The user has provided a large list of new features. It is crucial to confirm the priority of these tasks with the user before starting implementation. The suggested priority is: (1) Fix the  crash, (2) Implement UI changes (bold text on tickets), (3) Implement user/terminal management.
-*   The agent deferred a critical bug fix in . This bug must be addressed with high priority as it breaks core functionality.
+*   **Tech Stack Correction:** The backend is Python/FastAPI with MongoDB, not Node.js as stated in the previous handoff. All backend work should use Python.
+*   **Prioritize User Requests:** The user frequently adds new, complex features. Always confirm priorities before implementation. The next logical task is to fix the View Receipt button, then tackle the Multi-Lotto for Multi-Play feature.
+*   **Act as Seller is incomplete:** The user wants the Super Admin to be able to perform actions on behalf of a seller. Only the read-only profile view has been implemented. This will require significant work.
 
 **documents and test reports created in this job**
-*   : This file was updated multiple times to reflect the completed tasks and new requests.
-*   : A test report generated by the testing agent, which indicated all tests passed at that time (before the share feature was fully added and before the  crash was deferred).
+*   : Updated multiple times to reflect new user requirements and completed tasks.
+*   , , : Test reports generated by the testing agent after major features were implemented, all reporting 100% success at the time of execution.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.   (yes): User confirms they want to proceed with adding PDF export. (Completed)
-2.   (yes): User confirms they want to proceed with adding share via WhatsApp/Email. (In Progress)
-3.  : User requests a large set of new features: unique IDs for users (terminals), a search/list for terminals, an interface to pay winning tickets, and super-admin controls for setting prize percentages. (Not Started)
-4.  : User clarifies the prize percentage feature, adding requirements for different percentages per lottery, multi-lottery selection in multi-play, making ticket info bold, and a company profile page to change the logo on receipts. (Not Started)
+1.  **User:** ver el recivo sin tener que imprimir abrir el tiker sin imprimir configurar multiple jugada con la loteria no puede acer jugada si la loteria esta cerradas - Request to view receipt without printing, configure multi-play with multiple lotteries, and block plays on closed lotteries. (In Progress / Not Started)
+2.  **User:** si - Confirms the plan to create the system configuration screen. (Completed)
+3.  **User:** continuar ambas el parcentaje lo elige el super admin de toda la loteria mandeme el link para entrar en la pc - Asks to continue with both tasks (high-risk alerts and prize percentages), clarifies the super admin sets percentages, and asks for the preview link. (Completed)
+4.  **User:** si - Confirms the plan to implement Super Admin impersonation and automatic commission reports. (In Progress)
+5.  **User:** si y todo lo lo tiker tienen que llegar automaticamente a la principal super admin ver en tiempo real el super admmin puede cancelar cualquier tiker en cuarquier momento rebajar automticamente de los reporte la comicion de el vendedor reporte y cuadre destallado por cada vendedor el super admin puede entrar al perfil de el vendedo y hacer cuarquier canbio cancelar recibo hacer jugada entre otra cosa de todos los usuario y venderores y adminitradore - A large request for real-time tickets, unrestricted cancellation, automatic commissions, and Super Admin impersonation. (Partially Completed)
+6.  **User:** segir trabajando - Instruction to continue working on the planned tasks. (Completed)
 
 **Project Health Check:**
-*   **Broken:** The ticket detail view in  is broken due to an unhandled  on an  property.
+*   **Broken:** The UI layout for action buttons in the ticket modal () is broken, preventing the Ver button from being visible.
 *   **Mocked:** None.
 
 **3rd Party Integrations**
 *   **expo-print**: Used for generating PDF documents.
-*   **expo-sharing**: Used for sharing generated files (like PDFs).
+*   **expo-sharing**: Used for sharing generated files.
 
 **Testing status**
-*   **Testing agent used after significant changes:** YES (but before the final share feature was added and the  bug was deferred).
+*   **Testing agent used after significant changes:** YES. The agent ran the testing agent multiple times after completing major features like bug fixes, terminal management, and the live tickets screen.
 *   **Troubleshoot agent used after agent stuck in loop:** NO
-*   **Test files created:** None.
-*   **Known regressions:** The ticket detail view, which was likely working before, is now crashing.
+*   **Test files created:** Test terminals were created by the testing agent, but no persistent test files ( or ) were created.
+*   **Known regressions:** None.
 
 **Credentials to test flow:**
-Use the standard Super Admin login credentials to access all features:
-*   **Username:** 
-*   **Password:** 
+*   **Super Admin:**
+    *   Email: 
+    *   Password: 
+*   **Seller:**
+    *   Use one of the seller accounts like  or one of the terminal accounts  -  created by the test agent. Passwords are likely .
 
 **What agent forgot to execute**
-*   The agent identified a critical crash in  ( error) but explicitly chose to defer fixing it. This should have been a P0 priority.</analysis>
+*   The agent did not implement the **Multi-Lotto for Multi-Play** feature, which was requested by the user. The agent implemented the lottery hours validation but missed the core part of the request, which was to allow a single multi-play ticket to contain bets for several different lotteries.</analysis>
