@@ -76,6 +76,11 @@ const LOTTERY_TYPES = [
 export default function MultiPlay() {
   const { token, user } = useAuth();
   const router = useRouter();
+  const { actAs, actAsName } = useLocalSearchParams<{ actAs?: string; actAsName?: string }>();
+  
+  // Impersonation mode
+  const isImpersonating = !!actAs;
+  
   const [plays, setPlays] = useState<PlayItem[]>([]);
   const [customerName, setCustomerName] = useState('');
   const [submitting, setSubmitting] = useState(false);
