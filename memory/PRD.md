@@ -139,6 +139,11 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Menú "Configuración" agregado al dashboard
 
 ### Implementado Sesión 4 - Gestión Usuarios y Búsqueda Tickets (12 Feb 2026)
+- ✅ **Creación de Usuarios desde Frontend**
+  - Botón "+ Nuevo" visible y prominente en la pantalla de Usuarios
+  - Modal de creación con todos los campos requeridos
+  - Validación de campos obligatorios (Nombre, Email, Contraseña)
+  - Creación exitosa verificada tanto por curl como por UI
 - ✅ **Edición de Usuarios**
   - Nuevo botón "Editar" (azul) en cada tarjeta de usuario
   - Modal de edición con campos: Nombre, Cédula, Terminal ID, Teléfono, Dirección, País, Comisión, Límite de Crédito
