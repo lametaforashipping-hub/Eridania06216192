@@ -277,7 +277,7 @@ export default function Lotteries() {
       <View style={styles.operatingHours}>
         <Ionicons name="time-outline" size={16} color="#22c55e" />
         <Text style={styles.operatingHoursText}>
-          Horario: {item.opening_time || '08:00'} - {item.closing_time || '21:00'}
+          Hoy ({item.today_hours?.day ? item.today_hours.day.substring(0, 3) : 'N/A'}): {item.today_hours?.open || item.opening_time || '08:00'} - {item.today_hours?.close || item.closing_time || '21:00'}
         </Text>
       </View>
 
