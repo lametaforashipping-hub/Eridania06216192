@@ -1,0 +1,969 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  Share,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../src/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Print from 'expo-print';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const { width } = Dimensions.get('window');
+const isDesktop = width > 768;
+
+interface PlayItem {
+  id: string;
+  lottery_type: string;
+  lottery_type_label: string;
+  numbers: number[];
+  amount: number;
+  position?: string;
+}
+
+interface TicketResponse {
+  id: string;
+  ticket_number: string;
+  plays: Array<{
+    lottery_type: string;
+    lottery_name: string;
+    numbers: number[];
+    amount: number;
+    potential_win: number;
+  }>;
+  total_amount: number;
+  total_potential_win: number;
+  currency: string;
+  customer_name?: string;
+  created_at: string;
+  commission_earned?: number;
+}
+
+const LOTTERY_TYPES = [
+  { key: 'quiniela', label: 'Quiniela', numbers: 1, icon: '1️⃣' },
+  { key: 'pale', label: 'Pale', numbers: 2, icon: '2️⃣' },
+  { key: 'tripleta', label: 'Tripleta', numbers: 3, icon: '3️⃣' },
+  { key: 'super_pale', label: 'Super Pale', numbers: 2, icon: '💎' },
+];
+
+export default function MultiPlay() {
+  const { token, user } = useAuth();
+  const router = useRouter();
+  const [plays, setPlays] = useState<PlayItem[]>([]);
+  const [customerName, setCustomerName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [lastTicket, setLastTicket] = useState<TicketResponse | null>(null);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  
+  // Form state for adding new play
+  const [selectedType, setSelectedType] = useState(LOTTERY_TYPES[0]);
+  const [numbersInput, setNumbersInput] = useState('');
+  const [amountInput, setAmountInput] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const parseNumbers = (input: string): number[] => {
+    // Parse input like "20-50" or "20,50" or "20 50" or "2050"
+    const cleaned = input.trim();
+    
+    // Try hyphen format (20-50)
+    if (cleaned.includes('-')) {
+      return cleaned.split('-').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+    }
+    
+    // Try comma format (20,50)
+    if (cleaned.includes(',')) {
+      return cleaned.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+    }
+    
+    // Try space format (20 50)
+    if (cleaned.includes(' ')) {
+      return cleaned.split(' ').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+    }
+    
+    // Try consecutive 2-digit numbers (2050 -> [20, 50] or 205030 -> [20, 50, 30])
+    if (cleaned.length >= 2) {
+      const numbers: number[] = [];
+      for (let i = 0; i < cleaned.length; i += 2) {
+        const num = parseInt(cleaned.substring(i, i + 2));
+        if (!isNaN(num)) {
+          numbers.push(num);
+        }
+      }
+      if (numbers.length > 0) return numbers;
+    }
+    
+    // Single number
+    const single = parseInt(cleaned);
+    return isNaN(single) ? [] : [single];
+  };
+
+  const addPlay = () => {
+    const numbers = parseNumbers(numbersInput);
+    const amount = parseFloat(amountInput);
+    
+    if (numbers.length !== selectedType.numbers) {
+      Alert.alert('Error', `${selectedType.label} requiere ${selectedType.numbers} número(s). Ingresa como: ${selectedType.numbers === 1 ? '25' : selectedType.numbers === 2 ? '20-50 o 2050' : '20-50-30 o 205030'}`);
+      return;
+    }
+    
+    // Validate number range (0-99)
+    for (const num of numbers) {
+      if (num < 0 || num > 99) {
+        Alert.alert('Error', `Número ${num} fuera de rango (0-99)`);
+        return;
+      }
+    }
+    
+    if (!amount || amount <= 0) {
+      Alert.alert('Error', 'Ingresa un monto válido');
+      return;
+    }
+    
+    const newPlay: PlayItem = {
+      id: Date.now().toString(),
+      lottery_type: selectedType.key,
+      lottery_type_label: selectedType.label,
+      numbers,
+      amount,
+    };
+    
+    setPlays([...plays, newPlay]);
+    setNumbersInput('');
+    setAmountInput('');
+    setShowAddModal(false);
+  };
+
+  const removePlay = (playId: string) => {
+    setPlays(plays.filter(p => p.id !== playId));
+  };
+
+  const getTotalAmount = () => plays.reduce((sum, p) => sum + p.amount, 0);
+
+  const formatNumbers = (numbers: number[]) => {
+    return numbers.map(n => n.toString().padStart(2, '0')).join('-');
+  };
+
+  const generateTicketHTML = (ticket: TicketResponse) => {
+    const date = new Date(ticket.created_at);
+    const playsHTML = ticket.plays.map(p => `
+      <div class="play-row">
+        <span class="play-type">${p.lottery_type.toUpperCase()}</span>
+        <span class="play-numbers">${p.numbers.map(n => n.toString().padStart(2, '0')).join('-')}</span>
+        <span class="play-amount">RD$ ${p.amount}</span>
+      </div>
+    `).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
+          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+          .title { font-size: 18px; font-weight: bold; }
+          .ticket-number { font-size: 12px; margin: 5px 0; }
+          .plays { margin: 15px 0; }
+          .play-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; }
+          .play-type { font-weight: bold; width: 70px; }
+          .play-numbers { font-weight: bold; font-size: 14px; }
+          .play-amount { color: #22c55e; }
+          .totals { margin-top: 15px; padding-top: 10px; border-top: 2px solid #000; }
+          .total-row { display: flex; justify-content: space-between; padding: 3px 0; }
+          .total-amount { font-size: 18px; font-weight: bold; }
+          .footer { text-align: center; margin-top: 15px; font-size: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">SISTEMA DE LOTERIA</div>
+          <div class="ticket-number">BOLETO: ${ticket.ticket_number}</div>
+          <div>Fecha: ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}</div>
+          ${ticket.customer_name ? `<div>Cliente: ${ticket.customer_name}</div>` : ''}
+        </div>
+        <div class="plays">
+          <div style="font-weight: bold; margin-bottom: 5px;">JUGADAS (${ticket.plays.length}):</div>
+          ${playsHTML}
+        </div>
+        <div class="totals">
+          <div class="total-row">
+            <span>Total Jugado:</span>
+            <span class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</span>
+          </div>
+          <div class="total-row">
+            <span>Premio Potencial:</span>
+            <span>${ticket.currency} ${ticket.total_potential_win.toLocaleString()}</span>
+          </div>
+        </div>
+        <div class="footer">
+          <p>🍀 ¡Buena Suerte!</p>
+          <p>Conserve este boleto</p>
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
+  const handlePrintTicket = async () => {
+    if (!lastTicket) return;
+    try {
+      await Print.printAsync({ html: generateTicketHTML(lastTicket) });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo imprimir');
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    if (!lastTicket) return;
+    
+    const date = new Date(lastTicket.created_at);
+    const playsText = lastTicket.plays.map(p => 
+      `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map(n => n.toString().padStart(2, '0')).join('-')} x RD$ ${p.amount}`
+    ).join('\n');
+
+    const message = `🎰 *BOLETO MULTI-JUGADA*\n\n` +
+      `📋 *Boleto:* ${lastTicket.ticket_number}\n` +
+      `📅 *Fecha:* ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}\n` +
+      `${lastTicket.customer_name ? `👤 *Cliente:* ${lastTicket.customer_name}\n` : ''}` +
+      `\n🎲 *JUGADAS (${lastTicket.plays.length}):*\n${playsText}\n\n` +
+      `💰 *Total:* ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +
+      `🏆 *Premio Potencial:* ${lastTicket.currency} ${lastTicket.total_potential_win.toLocaleString()}\n` +
+      `\n¡Buena suerte! 🍀`;
+
+    try {
+      await Share.share({ message });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo compartir');
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (plays.length === 0) {
+      Alert.alert('Error', 'Agrega al menos una jugada');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch(`${API_URL}/api/tickets/multi`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          plays: plays.map(p => ({
+            lottery_type: p.lottery_type,
+            numbers: p.numbers,
+            amount: p.amount,
+            position: p.position,
+          })),
+          customer_name: customerName || null,
+          currency: 'RD$',
+        }),
+      });
+
+      if (response.ok) {
+        const ticket = await response.json();
+        setLastTicket(ticket);
+        setShowTicketModal(true);
+        setPlays([]);
+        setCustomerName('');
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.detail || 'No se pudo crear el boleto');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Multi-Jugada</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView style={styles.content} contentContainerStyle={isDesktop && styles.contentDesktop}>
+          {/* Quick Add Buttons */}
+          <View style={styles.quickAddContainer}>
+            <Text style={styles.sectionTitle}>Agregar Jugada Rápida</Text>
+            <View style={styles.typeButtons}>
+              {LOTTERY_TYPES.map(type => (
+                <TouchableOpacity
+                  key={type.key}
+                  style={[styles.typeButton, selectedType.key === type.key && styles.typeButtonSelected]}
+                  onPress={() => {
+                    setSelectedType(type);
+                    setShowAddModal(true);
+                  }}
+                >
+                  <Text style={styles.typeButtonIcon}>{type.icon}</Text>
+                  <Text style={[styles.typeButtonText, selectedType.key === type.key && styles.typeButtonTextSelected]}>
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Plays List */}
+          <View style={styles.playsContainer}>
+            <View style={styles.playsHeader}>
+              <Text style={styles.sectionTitle}>Jugadas ({plays.length})</Text>
+              {plays.length > 0 && (
+                <TouchableOpacity onPress={() => setPlays([])}>
+                  <Text style={styles.clearText}>Limpiar todo</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {plays.length === 0 ? (
+              <View style={styles.emptyPlays}>
+                <Ionicons name="list-outline" size={48} color="#475569" />
+                <Text style={styles.emptyText}>No hay jugadas</Text>
+                <Text style={styles.emptySubtext}>Toca un tipo arriba para agregar</Text>
+              </View>
+            ) : (
+              plays.map((play, index) => (
+                <View key={play.id} style={styles.playCard}>
+                  <View style={styles.playInfo}>
+                    <View style={styles.playBadge}>
+                      <Text style={styles.playBadgeText}>{play.lottery_type_label}</Text>
+                    </View>
+                    <Text style={styles.playNumbers}>{formatNumbers(play.numbers)}</Text>
+                  </View>
+                  <View style={styles.playRight}>
+                    <Text style={styles.playAmount}>RD$ {play.amount}</Text>
+                    <TouchableOpacity onPress={() => removePlay(play.id)} style={styles.removeButton}>
+                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
+
+          {/* Customer Name */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Nombre del cliente (opcional)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={customerName}
+              onChangeText={setCustomerName}
+              placeholder="Nombre"
+              placeholderTextColor="#64748b"
+            />
+          </View>
+
+          {/* Total */}
+          {plays.length > 0 && (
+            <View style={styles.totalContainer}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total a jugar:</Text>
+                <Text style={styles.totalValue}>RD$ {getTotalAmount().toLocaleString()}</Text>
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Jugadas:</Text>
+                <Text style={styles.totalPlays}>{plays.length}</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={[styles.submitButton, (submitting || plays.length === 0) && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={submitting || plays.length === 0}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={24} color="#ffffff" />
+                <Text style={styles.submitButtonText}>Crear Boleto ({plays.length} jugadas)</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Add Play Modal */}
+      <Modal visible={showAddModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Agregar {selectedType.label}</Text>
+              <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <Text style={styles.modalHint}>
+                {selectedType.numbers === 1 ? 'Ingresa 1 número (ej: 25)' : 
+                 selectedType.numbers === 2 ? 'Ingresa 2 números (ej: 20-50 o 2050)' :
+                 'Ingresa 3 números (ej: 20-50-30 o 205030)'}
+              </Text>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Número(s)</Text>
+                <TextInput
+                  style={styles.numbersInput}
+                  value={numbersInput}
+                  onChangeText={setNumbersInput}
+                  placeholder={selectedType.numbers === 1 ? '25' : selectedType.numbers === 2 ? '20-50' : '20-50-30'}
+                  placeholderTextColor="#64748b"
+                  keyboardType="numeric"
+                  autoFocus
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Monto (RD$)</Text>
+                <TextInput
+                  style={styles.amountInput}
+                  value={amountInput}
+                  onChangeText={setAmountInput}
+                  placeholder="5"
+                  placeholderTextColor="#64748b"
+                  keyboardType="numeric"
+                />
+              </View>
+              
+              {/* Quick amount buttons */}
+              <View style={styles.quickAmounts}>
+                {[5, 10, 20, 50, 100].map(amt => (
+                  <TouchableOpacity
+                    key={amt}
+                    style={[styles.quickAmountBtn, amountInput === amt.toString() && styles.quickAmountBtnSelected]}
+                    onPress={() => setAmountInput(amt.toString())}
+                  >
+                    <Text style={[styles.quickAmountText, amountInput === amt.toString() && styles.quickAmountTextSelected]}>
+                      ${amt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <TouchableOpacity style={styles.addButton} onPress={addPlay}>
+                <Ionicons name="add-circle" size={22} color="#ffffff" />
+                <Text style={styles.addButtonText}>Agregar Jugada</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Ticket Created Modal */}
+      <Modal visible={showTicketModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.ticketModalContent, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.ticketModalHeader}>
+              <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+              <Text style={styles.ticketModalTitle}>¡Boleto Creado!</Text>
+            </View>
+            
+            {lastTicket && (
+              <View style={styles.ticketPreview}>
+                <Text style={styles.ticketNumber}>{lastTicket.ticket_number}</Text>
+                
+                <View style={styles.ticketPlays}>
+                  {lastTicket.plays.map((play, idx) => (
+                    <View key={idx} style={styles.ticketPlayRow}>
+                      <Text style={styles.ticketPlayType}>{play.lottery_type.toUpperCase()}</Text>
+                      <Text style={styles.ticketPlayNumbers}>
+                        {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
+                      </Text>
+                      <Text style={styles.ticketPlayAmount}>RD$ {play.amount}</Text>
+                    </View>
+                  ))}
+                </View>
+                
+                <View style={styles.ticketTotals}>
+                  <View style={styles.ticketTotalRow}>
+                    <Text style={styles.ticketTotalLabel}>Total:</Text>
+                    <Text style={styles.ticketTotalValue}>
+                      {lastTicket.currency} {lastTicket.total_amount.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.ticketTotalRow}>
+                    <Text style={styles.ticketTotalLabel}>Premio Potencial:</Text>
+                    <Text style={[styles.ticketTotalValue, styles.ticketPotentialWin]}>
+                      {lastTicket.currency} {lastTicket.total_potential_win.toLocaleString()}
+                    </Text>
+                  </View>
+                  {lastTicket.commission_earned && (
+                    <View style={styles.ticketTotalRow}>
+                      <Text style={styles.ticketTotalLabel}>Tu comisión:</Text>
+                      <Text style={[styles.ticketTotalValue, styles.ticketCommission]}>
+                        {lastTicket.currency} {lastTicket.commission_earned.toLocaleString()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            <View style={styles.ticketActions}>
+              <TouchableOpacity style={styles.ticketActionButton} onPress={handlePrintTicket}>
+                <Ionicons name="print" size={24} color="#ffffff" />
+                <Text style={styles.ticketActionText}>Imprimir</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.ticketActionButton, styles.whatsappButton]} onPress={handleShareWhatsApp}>
+                <Ionicons name="logo-whatsapp" size={24} color="#ffffff" />
+                <Text style={styles.ticketActionText}>WhatsApp</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.closeTicketButton}
+              onPress={() => setShowTicketModal(false)}
+            >
+              <Text style={styles.closeTicketButtonText}>Cerrar y Continuar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#1e293b',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 12,
+  },
+  quickAddContainer: {
+    marginBottom: 20,
+  },
+  typeButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  typeButton: {
+    flex: 1,
+    minWidth: isDesktop ? 120 : 80,
+    backgroundColor: '#1e293b',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  typeButtonSelected: {
+    borderColor: '#22c55e',
+    backgroundColor: '#14532d',
+  },
+  typeButtonIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  typeButtonText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  typeButtonTextSelected: {
+    color: '#ffffff',
+  },
+  playsContainer: {
+    marginBottom: 20,
+  },
+  playsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  clearText: {
+    color: '#ef4444',
+    fontSize: 13,
+  },
+  emptyPlays: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#64748b',
+    fontSize: 16,
+    marginTop: 12,
+  },
+  emptySubtext: {
+    color: '#475569',
+    fontSize: 13,
+    marginTop: 4,
+  },
+  playCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  playInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  playBadge: {
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  playBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  playNumbers: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  playRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  playAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#22c55e',
+    marginRight: 12,
+  },
+  removeButton: {
+    padding: 6,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  totalContainer: {
+    backgroundColor: '#14532d',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  totalLabel: {
+    fontSize: 14,
+    color: '#86efac',
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
+  totalPlays: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    backgroundColor: '#22c55e',
+    height: 56,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#475569',
+  },
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1e293b',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalContentDesktop: {
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
+    borderRadius: 20,
+    marginBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  modalHint: {
+    color: '#94a3b8',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  numbersInput: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 60,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    textAlign: 'center',
+    letterSpacing: 4,
+  },
+  amountInput: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
+    fontSize: 18,
+    color: '#ffffff',
+  },
+  quickAmounts: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  quickAmountBtn: {
+    backgroundColor: '#0f172a',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  quickAmountBtnSelected: {
+    borderColor: '#22c55e',
+    backgroundColor: '#14532d',
+  },
+  quickAmountText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  quickAmountTextSelected: {
+    color: '#22c55e',
+  },
+  addButton: {
+    flexDirection: 'row',
+    backgroundColor: '#22c55e',
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginLeft: 8,
+  },
+  ticketModalContent: {
+    backgroundColor: '#1e293b',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+  },
+  ticketModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  ticketModalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginTop: 12,
+  },
+  ticketPreview: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+  },
+  ticketNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#22c55e',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  ticketPlays: {
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    paddingTop: 12,
+  },
+  ticketPlayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  ticketPlayType: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#94a3b8',
+    width: 70,
+  },
+  ticketPlayNumbers: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    flex: 1,
+    textAlign: 'center',
+  },
+  ticketPlayAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#22c55e',
+  },
+  ticketTotals: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 2,
+    borderTopColor: '#334155',
+  },
+  ticketTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  ticketTotalLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+  },
+  ticketTotalValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  ticketPotentialWin: {
+    color: '#22c55e',
+  },
+  ticketCommission: {
+    color: '#f59e0b',
+  },
+  ticketActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  ticketActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  whatsappButton: {
+    backgroundColor: '#25D366',
+  },
+  ticketActionText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  closeTicketButton: {
+    backgroundColor: '#334155',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  closeTicketButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});
