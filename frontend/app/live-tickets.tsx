@@ -137,6 +137,7 @@ export default function LiveTickets() {
   }, [token, pulseAnim, alertAnim, highRiskConfig]);
 
   useEffect(() => {
+    fetchHighRiskConfig();
     fetchLiveTickets();
     
     // Auto-refresh every 5 seconds
