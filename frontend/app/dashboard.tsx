@@ -280,6 +280,32 @@ const styles = StyleSheet.create({
   logoutButton: {
     padding: 8,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  notificationButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   content: {
     flex: 1,
     padding: 16,
