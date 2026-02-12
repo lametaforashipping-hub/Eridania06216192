@@ -2066,67 +2066,6 @@ async def get_daily_chart_data(
     
     return {"chart_data": data, "country_filter": filter_country}
 
-# ==================== FAVORITES ====================
-class FavoritePlayItem(BaseModel):
-    lottery_type: str
-    lottery_id: Optional[str] = None
-    numbers: List[int]
-    amount: float
-
-class CreateFavoriteRequest(BaseModel):
-    name: str
-    plays: List[FavoritePlayItem]
-    currency: str = "RD"
-
-@api_router.get("/favorites")
-async def get_favorites(current_user: dict = Depends(get_current_user)):
-    """Get all favorites for the current user"""
-    favorites = await db.favorites.find({"user_id": current_user["id"]}).sort("use_count", -1).to_list(100)
-    return serialize_doc(favorites)
-
-@api_router.post("/favorites")
-async def create_favorite(data: CreateFavoriteRequest, current_user: dict = Depends(get_current_user)):
-    """Create a new favorite play combination"""
-    # Check if name already exists for this user
-    existing = await db.favorites.find_one({"user_id": current_user["id"], "name": data.name})
-    if existing:
-        raise HTTPException(status_code=400, detail="Ya existe un favorito con ese nombre")
-    
-    favorite = {
-        "id": str(uuid.uuid4()),
-        "user_id": current_user["id"],
-        "name": data.name,
-        "plays": [p.dict() for p in data.plays],
-        "currency": data.currency,
-        "use_count": 0,
-        "created_at": datetime.utcnow(),
-        "last_used": None
-    }
-    
-    await db.favorites.insert_one(favorite)
-    return serialize_doc(favorite)
-
-@api_router.post("/favorites/{favorite_id}/use")
-async def use_favorite(favorite_id: str, current_user: dict = Depends(get_current_user)):
-    """Increment use count when a favorite is used"""
-    favorite = await db.favorites.find_one({"id": favorite_id, "user_id": current_user["id"]})
-    if not favorite:
-        raise HTTPException(status_code=404, detail="Favorito no encontrado")
-    
-    await db.favorites.update_one(
-        {"id": favorite_id},
-        {"$inc": {"use_count": 1}, "$set": {"last_used": datetime.utcnow()}}
-    )
-    return {"message": "Favorito usado", "use_count": favorite["use_count"] + 1}
-
-@api_router.delete("/favorites/{favorite_id}")
-async def delete_favorite(favorite_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a favorite"""
-    result = await db.favorites.delete_one({"id": favorite_id, "user_id": current_user["id"]})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Favorito no encontrado")
-    return {"message": "Favorito eliminado"}
-
 # ==================== INITIALIZATION ====================
 @api_router.post("/init/super-admin")
 async def init_super_admin():
