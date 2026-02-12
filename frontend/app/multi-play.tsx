@@ -166,6 +166,9 @@ export default function MultiPlay() {
       </div>
     `).join('');
 
+    // Generate Code128 barcode pattern (simplified visual representation)
+    const barcodeData = ticket.ticket_number.replace(/-/g, '');
+
     // NOTE: Commission is NOT shown on the printed ticket - only in seller's view
     return `
       <!DOCTYPE html>
@@ -173,19 +176,34 @@ export default function MultiPlay() {
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap');
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Courier New', monospace; padding: 10px; max-width: 300px; margin: 0 auto; background: #fff; }
           .ticket { border: 2px solid #000; border-radius: 8px; overflow: hidden; }
           .header { 
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
             color: white; padding: 15px 10px; text-align: center;
           }
-          .logo { font-size: 28px; margin-bottom: 5px; }
-          .brand { font-size: 14px; font-weight: bold; letter-spacing: 2px; }
+          .company-logo { 
+            width: 60px; 
+            height: 60px; 
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+          }
+          .company-logo span { font-size: 30px; }
+          .brand { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
+          .company-info { font-size: 8px; color: #94a3b8; margin-top: 5px; line-height: 1.4; }
           .slogan { font-size: 9px; color: #86efac; margin-top: 5px; font-style: italic; }
           .ticket-info { background: #8b5cf6; color: white; padding: 8px; text-align: center; }
-          .ticket-number { font-size: 12px; font-weight: bold; }
+          .ticket-number { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+          .ticket-type { font-size: 10px; margin-top: 2px; opacity: 0.9; }
           .body { padding: 12px; }
-          .customer { background: #f0f9ff; border-radius: 5px; padding: 8px; margin-bottom: 10px; text-align: center; }
+          .customer { background: #f0f9ff; border-radius: 5px; padding: 8px; margin-bottom: 10px; text-align: center; font-size: 11px; }
           .plays { margin: 10px 0; }
           .plays-title { font-weight: bold; font-size: 12px; margin-bottom: 8px; color: #1e3a5f; border-bottom: 2px solid #1e3a5f; padding-bottom: 5px; }
           .play-row { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px dotted #e5e7eb; align-items: center; }
@@ -197,26 +215,57 @@ export default function MultiPlay() {
           .total-label { color: #166534; font-size: 11px; }
           .total-amount { font-size: 16px; font-weight: bold; color: #15803d; }
           .potential { background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px; }
-          .footer { background: #f8fafc; padding: 10px; text-align: center; border-top: 2px dashed #cbd5e1; }
+          .footer { background: #f8fafc; padding: 12px; text-align: center; border-top: 2px dashed #cbd5e1; }
+          .barcode-container { 
+            background: #fff; 
+            padding: 10px; 
+            margin: 8px 0; 
+            border-radius: 4px;
+          }
+          .barcode { 
+            font-family: 'Libre Barcode 128 Text', cursive; 
+            font-size: 48px; 
+            letter-spacing: 0; 
+            line-height: 1;
+          }
+          .barcode-number { font-size: 10px; color: #374151; letter-spacing: 2px; margin-top: 4px; }
           .footer-text { font-size: 9px; color: #64748b; margin: 2px 0; }
-          .barcode { font-size: 32px; letter-spacing: -2px; margin: 5px 0; }
           .promo { background: #1e3a5f; color: #fbbf24; padding: 8px; text-align: center; font-size: 10px; font-weight: bold; }
+          .qr-placeholder { 
+            width: 60px; 
+            height: 60px; 
+            background: #f3f4f6; 
+            margin: 8px auto; 
+            border: 1px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #6b7280;
+          }
         </style>
       </head>
       <body>
         <div class="ticket">
           <div class="header">
-            <div class="logo">🎰</div>
+            <div class="company-logo">
+              <span>🎰</span>
+            </div>
             <div class="brand">LOTERÍA NACIONAL</div>
+            <div class="company-info">
+              RNC: 000-00000-0 | Tel: (809) 555-0000<br>
+              Av. Principal #123, Santo Domingo, RD
+            </div>
             <div class="slogan">✨ Tu suerte está aquí ✨</div>
           </div>
           <div class="ticket-info">
-            <div class="ticket-number">BOLETO MULTI-JUGADA #${ticket.ticket_number}</div>
+            <div class="ticket-number">BOLETO MULTI-JUGADA</div>
+            <div class="ticket-type">#${ticket.ticket_number}</div>
           </div>
           <div class="body">
             <div class="customer">
               📅 ${date.toLocaleDateString('es-DO')} | 🕐 ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
-              ${ticket.customer_name ? `<br>👤 ${ticket.customer_name}` : ''}
+              ${ticket.customer_name ? `<br>👤 Cliente: ${ticket.customer_name}` : ''}
             </div>
             <div class="plays">
               <div class="plays-title">🎲 JUGADAS (${ticket.plays.length})</div>
@@ -234,9 +283,14 @@ export default function MultiPlay() {
             </div>
           </div>
           <div class="footer">
-            <div class="barcode">|||${ticket.ticket_number}|||</div>
-            <div class="footer-text">✓ Conserve este boleto</div>
-            <div class="footer-text">✓ Presente para cobrar premio</div>
+            <div class="barcode-container">
+              <div class="barcode">${barcodeData}</div>
+              <div class="barcode-number">${ticket.ticket_number}</div>
+            </div>
+            <div class="footer-text">━━━━━━━━━━━━━━━━━━━━━━━</div>
+            <div class="footer-text">✓ Conserve este boleto para cobrar</div>
+            <div class="footer-text">✓ Válido solo con original</div>
+            <div class="footer-text">✓ Verifique en: loteria.com/verificar</div>
           </div>
           <div class="promo">🍀 ¡BUENA SUERTE! - JUEGA RESPONSABLEMENTE 🍀</div>
         </div>
@@ -334,8 +388,14 @@ export default function MultiPlay() {
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView style={styles.content} contentContainerStyle={isDesktop && styles.contentDesktop}>
+        <ScrollView 
+          style={styles.content} 
+          contentContainerStyle={[isDesktop && styles.contentDesktop, { paddingBottom: 120 }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+        >
           {/* Quick Add Buttons */}
           <View style={styles.quickAddContainer}>
             <Text style={styles.sectionTitle}>Agregar Jugada Rápida</Text>
