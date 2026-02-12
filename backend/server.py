@@ -101,6 +101,7 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     cedula: Optional[str] = None  # ID number
+    terminal_id: Optional[str] = None  # Unique terminal identifier (e.g., "T001")
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -125,6 +126,7 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     cedula: Optional[str] = None
+    terminal_id: Optional[str] = None  # Unique terminal identifier
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -135,6 +137,7 @@ class UserUpdate(BaseModel):
     address: Optional[str] = None
     cedula: Optional[str] = None
     country: Optional[str] = None
+    terminal_id: Optional[str] = None  # Unique terminal identifier
 
 class PrizeRule(BaseModel):
     position: str  # primera, segunda, tercera, or "any"
