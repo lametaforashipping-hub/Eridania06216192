@@ -196,6 +196,9 @@ class LotteryCreate(BaseModel):
     active: bool = True
     prize_rules: Optional[List[Dict]] = None  # Position-based prizes
     allows_combined: bool = False  # For combined pale/tripleta
+    # New fields for daily open/close times
+    opening_time: Optional[str] = "08:00"  # Daily opening time (HH:MM)
+    closing_time: Optional[str] = "21:00"  # Daily closing time (HH:MM)
 
 class LotteryUpdate(BaseModel):
     name: Optional[str] = None
