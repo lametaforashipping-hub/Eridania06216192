@@ -198,6 +198,7 @@ class LotteryUpdate(BaseModel):
     weekly_hours: Optional[Dict[str, Dict[str, str]]] = None
     holidays: Optional[List[Dict]] = None
     ticket_limit_per_number: Optional[int] = None
+    prize_tiers: Optional[Dict[str, float]] = None  # Prize tiers configuration
 
 class TicketCreate(BaseModel):
     lottery_id: str
