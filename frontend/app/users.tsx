@@ -36,6 +36,7 @@ interface User {
   phone?: string;
   address?: string;
   cedula?: string;
+  terminal_id?: string;
 }
 
 export default function Users() {
@@ -60,6 +61,7 @@ export default function Users() {
   const [newAddress, setNewAddress] = useState('');
   const [newCedula, setNewCedula] = useState('');
   const [newCountry, setNewCountry] = useState('RD');
+  const [newTerminalId, setNewTerminalId] = useState('');
   const [depositAmount, setDepositAmount] = useState('');
 
   const fetchUsers = useCallback(async () => {
