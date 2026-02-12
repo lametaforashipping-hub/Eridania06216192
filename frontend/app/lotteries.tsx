@@ -645,6 +645,9 @@ const styles = StyleSheet.create({
   multiplierValue: {
     color: '#22c55e',
   },
+  limitValue: {
+    color: '#f59e0b',
+  },
   scheduleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
