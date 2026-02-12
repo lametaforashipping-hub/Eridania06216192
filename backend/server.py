@@ -181,6 +181,9 @@ class LotteryCreate(BaseModel):
     holidays: Optional[List[Dict]] = None
     # Ticket limit per number (global, regardless of date). None or 0 = unlimited
     ticket_limit_per_number: Optional[int] = None
+    # Prize tiers configuration (configurable by Super Admin)
+    # Format: {"first": 70, "second": 15, "third": 5} - multipliers for each tier
+    prize_tiers: Optional[Dict[str, float]] = None
 
 class LotteryUpdate(BaseModel):
     name: Optional[str] = None
