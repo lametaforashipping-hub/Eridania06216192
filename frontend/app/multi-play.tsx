@@ -426,23 +426,30 @@ export default function MultiPlay() {
 
     setSubmitting(true);
     try {
+      const requestBody: any = {
+        plays: plays.map(p => ({
+          lottery_type: p.lottery_type,
+          lottery_id: p.lottery_id,
+          numbers: p.numbers,
+          amount: p.amount,
+          position: p.position,
+        })),
+        customer_name: customerName || null,
+        currency: 'RD$',
+      };
+      
+      // Add impersonation parameter if in impersonate mode
+      if (isImpersonating && actAs) {
+        requestBody.act_as_user_id = actAs;
+      }
+      
       const response = await fetch(`${API_URL}/api/tickets/multi`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          plays: plays.map(p => ({
-            lottery_type: p.lottery_type,
-            lottery_id: p.lottery_id,
-            numbers: p.numbers,
-            amount: p.amount,
-            position: p.position,
-          })),
-          customer_name: customerName || null,
-          currency: 'RD$',
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
