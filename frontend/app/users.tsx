@@ -402,7 +402,10 @@ export default function Users() {
           style={styles.addButton}
           accessibilityLabel="Crear usuario"
         >
-          <Ionicons name="add-circle" size={28} color="#22c55e" />
+          <View style={styles.addButtonContent}>
+            <Ionicons name="add-circle" size={24} color="#22c55e" />
+            <Text style={styles.addButtonText}>Nuevo</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
