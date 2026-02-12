@@ -507,6 +507,31 @@ export default function Tickets() {
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Ionicons name="search" size={20} color="#64748b" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Buscar por # ticket (ej: 1234 o últimos 4 dígitos)"
+            placeholderTextColor="#64748b"
+            autoCapitalize="none"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={20} color="#64748b" />
+            </TouchableOpacity>
+          )}
+        </View>
+        {searchQuery.length > 0 && (
+          <Text style={styles.searchResultsText}>
+            {filteredTickets.length} resultado(s) encontrado(s)
+          </Text>
+        )}
+      </View>
+
       {/* Filters */}
       <View style={styles.filtersContainer}>
         <FlatList
@@ -532,7 +557,7 @@ export default function Tickets() {
         <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
       ) : (
         <FlatList
-          data={tickets}
+          data={filteredTickets}
           renderItem={renderTicket}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.listContent, isDesktop && styles.listContentDesktop]}
@@ -542,7 +567,9 @@ export default function Tickets() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="ticket-outline" size={64} color="#475569" />
-              <Text style={styles.emptyText}>No hay boletos</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery ? 'No se encontró el boleto' : 'No hay boletos'}
+              </Text>
             </View>
           }
           numColumns={isDesktop ? 2 : 1}
