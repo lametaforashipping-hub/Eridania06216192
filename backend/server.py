@@ -937,6 +937,7 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     
     # Check ticket limit per number (global)
     ticket_limit = lottery.get("ticket_limit_per_number")
+    limit_warnings = []  # Track numbers near limit
     if ticket_limit and ticket_limit > 0:
         for num in ticket.numbers:
             # Count how many non-cancelled tickets have been sold with this number for this lottery
@@ -950,6 +951,16 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
                     status_code=400, 
                     detail=f"Límite alcanzado: El número {num} ya tiene {sold_count} boletos vendidos (máximo: {ticket_limit})"
                 )
+            # Check if number is near limit (80% or more) - will be at this level after this sale
+            new_count = sold_count + 1
+            if new_count >= ticket_limit * 0.8:
+                remaining = ticket_limit - new_count
+                limit_warnings.append({
+                    "number": num,
+                    "sold": new_count,
+                    "limit": ticket_limit,
+                    "remaining": remaining
+                })
     
     # Check credit limit
     if current_user["role"] == UserRole.VENDEDOR.value:
