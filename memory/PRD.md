@@ -182,16 +182,16 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Tickets en tiempo real~~ - **COMPLETADO**
 - ~~Super Admin cancela cualquier ticket~~ - **COMPLETADO**
 - ~~Perfil del vendedor para Admin~~ - **COMPLETADO**
+- ~~Alertas de alto riesgo~~ - **COMPLETADO**
+- ~~Configuración de premios por lotería~~ - **COMPLETADO**
 
 ### P1 - Prioridad Alta
-- **Configuración de premios por Super Admin:**
-  - Porcentajes por tier (1ro, 2do, 3ro)
-  - Porcentajes diferentes por lotería
+- **UI para configurar premios:** Pantalla en sección Loterías para editar multiplicadores
+- **Notificaciones push** para alertas de alto riesgo (opcional)
 
 ### P2 - Prioridad Media
 - **Multi-Play con múltiples loterías** - Seleccionar varias loterías diferentes
 - **Perfil de empresa con logo personalizable** - Logo en recibos
-- Optimizar carga de página de Usuarios
 
 ## Archivos Clave
 - `/app/backend/server.py` - API completa con reporte detallado, favoritos, pagos, filtrado
