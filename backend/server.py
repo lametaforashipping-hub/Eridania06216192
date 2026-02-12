@@ -761,7 +761,7 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     if not lottery.get("active", True):
         raise HTTPException(status_code=400, detail="Lotería no activa")
     
-    is_open, next_draw, closed_message = check_lottery_open(lottery)
+    is_open, next_draw, closed_message, today_hours = check_lottery_open(lottery)
     if not is_open:
         error_msg = closed_message or f"La lotería está cerrada. Próximo sorteo: {next_draw}"
         raise HTTPException(status_code=400, detail=error_msg)
