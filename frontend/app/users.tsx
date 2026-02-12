@@ -54,6 +54,10 @@ export default function Users() {
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState('vendedor');
   const [newCreditLimit, setNewCreditLimit] = useState('10000');
+  const [newCommissionRate, setNewCommissionRate] = useState('10');
+  const [newPhone, setNewPhone] = useState('');
+  const [newAddress, setNewAddress] = useState('');
+  const [newCedula, setNewCedula] = useState('');
   const [depositAmount, setDepositAmount] = useState('');
 
   const fetchUsers = useCallback(async () => {
