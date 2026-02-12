@@ -164,6 +164,7 @@ export default function Lotteries() {
           active: true,
           opening_time: formOpeningTime,
           closing_time: formClosingTime,
+          weekly_hours: useWeeklySchedule ? formWeeklyHours : null,
         }),
       });
 
