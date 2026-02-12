@@ -2066,6 +2066,214 @@ async def get_daily_chart_data(
     
     return {"chart_data": data, "country_filter": filter_country}
 
+
+# ==================== DETAILED SELLER REPORT ====================
+@api_router.get("/accounting/detailed-seller-report")
+async def get_detailed_seller_report(
+    seller_id: Optional[str] = None,
+    period: str = "daily",  # daily, weekly, biweekly, monthly
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get detailed report for a specific seller or current user (if seller).
+    Period options: daily, weekly, biweekly, monthly
+    Returns summary + all tickets detail
+    """
+    # Determine which seller to report on
+    target_seller_id = None
+    
+    if current_user["role"] == UserRole.VENDEDOR.value:
+        # Seller can only see their own report
+        target_seller_id = current_user["id"]
+    elif seller_id:
+        # Admin/Super Admin viewing a specific seller
+        target_seller_id = seller_id
+    else:
+        # Admin/Super Admin without seller_id - return all sellers summary
+        pass
+    
+    # Calculate date ranges based on period
+    now = datetime.utcnow()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    if period == "daily":
+        start_date = today_start
+        period_label = f"Hoy ({now.strftime('%d/%m/%Y')})"
+    elif period == "weekly":
+        # Last 7 days
+        start_date = today_start - timedelta(days=7)
+        period_label = f"Última Semana ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m/%Y')})"
+    elif period == "biweekly":
+        # Last 15 days (quincenal)
+        start_date = today_start - timedelta(days=15)
+        period_label = f"Quincenal ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m/%Y')})"
+    elif period == "monthly":
+        # Last 30 days
+        start_date = today_start - timedelta(days=30)
+        period_label = f"Último Mes ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m/%Y')})"
+    else:
+        start_date = today_start
+        period_label = f"Hoy ({now.strftime('%d/%m/%Y')})"
+    
+    end_date = now
+    
+    # Build query for tickets
+    ticket_query = {"created_at": {"$gte": start_date, "$lte": end_date}}
+    
+    if target_seller_id:
+        ticket_query["seller_id"] = target_seller_id
+    elif current_user["role"] == UserRole.ADMIN.value:
+        # Admin sees their created sellers
+        vendedores = await db.users.find({"created_by": current_user["id"]}).to_list(1000)
+        vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
+        ticket_query["seller_id"] = {"$in": vendor_ids}
+    # Super admin sees all if no seller_id specified
+    
+    # Get all tickets
+    tickets = await db.tickets.find(ticket_query).sort("created_at", -1).to_list(10000)
+    
+    # Get seller info if specific seller
+    seller_info = None
+    if target_seller_id:
+        seller = await db.users.find_one({"id": target_seller_id})
+        if seller:
+            seller_info = {
+                "id": seller["id"],
+                "name": seller["name"],
+                "email": seller.get("email", ""),
+                "phone": seller.get("phone", ""),
+                "commission_rate": seller.get("commission_rate", 10.0),
+                "currency": seller.get("currency", "RD$"),
+                "country": seller.get("country", "RD")
+            }
+    
+    # Calculate summary
+    valid_tickets = [t for t in tickets if t.get("status") != TicketStatus.CANCELLED.value]
+    
+    # Handle both regular and multi-play tickets
+    def get_ticket_amount(t):
+        return t.get("amount", t.get("total_amount", 0))
+    
+    def get_ticket_potential_win(t):
+        return t.get("potential_win", t.get("total_potential_win", 0))
+    
+    total_sales = sum(get_ticket_amount(t) for t in valid_tickets)
+    total_wins = sum(get_ticket_potential_win(t) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    total_paid = sum(get_ticket_potential_win(t) for t in tickets if t.get("status") == TicketStatus.PAID.value)
+    
+    tickets_sold = len(valid_tickets)
+    tickets_won = len([t for t in tickets if t.get("status") == TicketStatus.WON.value])
+    tickets_paid = len([t for t in tickets if t.get("status") == TicketStatus.PAID.value])
+    tickets_pending = len([t for t in tickets if t.get("status") == TicketStatus.PENDING.value])
+    tickets_lost = len([t for t in tickets if t.get("status") == TicketStatus.LOST.value])
+    tickets_cancelled = len([t for t in tickets if t.get("status") == TicketStatus.CANCELLED.value])
+    
+    # Calculate commission
+    commission_rate = seller_info["commission_rate"] if seller_info else 10.0
+    total_commission = total_sales * (commission_rate / 100)
+    
+    # Get currency
+    currency = seller_info["currency"] if seller_info else current_user.get("currency", "RD$")
+    
+    # Prepare ticket details for response
+    ticket_details = []
+    for t in tickets[:500]:  # Limit to 500 most recent
+        lottery_name = t.get("lottery_name", "")
+        if not lottery_name and t.get("lottery_id"):
+            lottery = await db.lotteries.find_one({"id": t["lottery_id"]})
+            lottery_name = lottery["name"] if lottery else "N/A"
+        
+        # Handle multi-play tickets
+        if t.get("ticket_type") == "multi_play":
+            plays_summary = []
+            for play in t.get("plays", []):
+                plays_summary.append({
+                    "type": play.get("lottery_type", ""),
+                    "numbers": play.get("numbers", []),
+                    "amount": play.get("amount", 0)
+                })
+            ticket_details.append({
+                "id": t["id"],
+                "ticket_number": t["ticket_number"],
+                "is_multi_play": True,
+                "plays": plays_summary,
+                "plays_count": t.get("plays_count", len(plays_summary)),
+                "total_amount": t.get("total_amount", 0),
+                "total_potential_win": t.get("total_potential_win", 0),
+                "status": t["status"],
+                "created_at": t["created_at"].isoformat() if isinstance(t["created_at"], datetime) else t["created_at"],
+                "customer_name": t.get("customer_name", ""),
+                "currency": t.get("currency", currency)
+            })
+        else:
+            ticket_details.append({
+                "id": t["id"],
+                "ticket_number": t["ticket_number"],
+                "is_multi_play": False,
+                "lottery_name": lottery_name,
+                "numbers": t.get("numbers", []),
+                "amount": t.get("amount", 0),
+                "potential_win": t.get("potential_win", 0),
+                "status": t["status"],
+                "created_at": t["created_at"].isoformat() if isinstance(t["created_at"], datetime) else t["created_at"],
+                "customer_name": t.get("customer_name", ""),
+                "position": t.get("position"),
+                "currency": t.get("currency", currency)
+            })
+    
+    # Daily breakdown for period
+    daily_breakdown = []
+    if period != "daily":
+        current_day = start_date
+        while current_day <= end_date:
+            day_end = current_day + timedelta(days=1)
+            day_tickets = [t for t in valid_tickets if current_day <= t["created_at"] < day_end]
+            day_sales = sum(get_ticket_amount(t) for t in day_tickets)
+            day_wins = sum(get_ticket_potential_win(t) for t in day_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
+            
+            if day_sales > 0 or day_wins > 0:
+                daily_breakdown.append({
+                    "date": current_day.strftime("%Y-%m-%d"),
+                    "label": current_day.strftime("%d/%m"),
+                    "day_name": ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][current_day.weekday()],
+                    "sales": day_sales,
+                    "wins": day_wins,
+                    "profit": day_sales - day_wins,
+                    "tickets": len(day_tickets)
+                })
+            current_day = day_end
+    
+    return {
+        "period": period,
+        "period_label": period_label,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "seller": seller_info,
+        "summary": {
+            "total_sales": total_sales,
+            "total_wins": total_wins,
+            "total_paid": total_paid,
+            "total_pending_wins": total_wins - total_paid,
+            "total_commission": total_commission,
+            "commission_rate": commission_rate,
+            "net_profit": total_sales - total_wins,
+            "net_after_commission": total_sales - total_wins - total_commission,
+            "currency": currency
+        },
+        "ticket_counts": {
+            "total": tickets_sold,
+            "pending": tickets_pending,
+            "won": tickets_won,
+            "paid": tickets_paid,
+            "lost": tickets_lost,
+            "cancelled": tickets_cancelled
+        },
+        "daily_breakdown": daily_breakdown,
+        "tickets": ticket_details
+    }
+
+
+
 # ==================== INITIALIZATION ====================
 @api_router.post("/init/super-admin")
 async def init_super_admin():
