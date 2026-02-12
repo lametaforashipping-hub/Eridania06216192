@@ -126,6 +126,7 @@ export default function Dashboard() {
     { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: 'person-add-outline', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
     { icon: 'grid-outline', label: 'Loterías', route: '/lotteries', roles: ['super_admin'], color: '#a855f7' },
+    { icon: 'settings-outline', label: 'Configuración', route: '/system-settings', roles: ['super_admin'], color: '#64748b' },
   ];
 
   const visibleMenuItems = menuItems.filter(item => 
