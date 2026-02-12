@@ -120,6 +120,7 @@ export default function Dashboard() {
     { icon: 'speedometer-outline', label: 'Límites', route: '/number-limits', roles: ['super_admin', 'admin'], color: '#dc2626' },
     { icon: 'bar-chart-outline', label: 'Mi Reporte', route: '/user-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
     { icon: 'people-outline', label: 'Vendedores', route: '/sellers-report', roles: ['super_admin', 'admin'], color: '#06b6d4' },
+    { icon: 'hardware-chip-outline', label: 'Terminales', route: '/terminals', roles: ['super_admin', 'admin'], color: '#22c55e' },
     { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
     { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: 'person-add-outline', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
