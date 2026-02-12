@@ -386,6 +386,18 @@ export default function SellerProfile() {
               <Text style={[styles.actionBtnText, { color: '#8b5cf6' }]}>Reporte</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Impersonation Button */}
+          {user?.role === 'super_admin' && (
+            <TouchableOpacity
+              style={styles.impersonateButton}
+              onPress={() => router.push(`/impersonate?sellerId=${seller.id}&sellerName=${encodeURIComponent(seller.name)}&sellerCurrency=${seller.currency}`)}
+              data-testid="impersonate-button"
+            >
+              <Ionicons name="person-circle" size={22} color="#ffffff" />
+              <Text style={styles.impersonateButtonText}>Actuar como {seller.name}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Today's Stats */}
