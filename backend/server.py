@@ -237,8 +237,15 @@ class TicketResponse(BaseModel):
 
 class FavoriteNumbers(BaseModel):
     name: str
-    lottery_id: str
+    lottery_id: Optional[str] = None  # Optional, can use lottery_type instead
+    lottery_type: Optional[str] = None
     numbers: List[int]
+    amount: Optional[float] = 20.0
+
+class CreateFavoriteWithPlays(BaseModel):
+    name: str
+    plays: List[FavoriteNumbers]
+    currency: str = "RD"
 
 class DrawCreate(BaseModel):
     lottery_id: str
