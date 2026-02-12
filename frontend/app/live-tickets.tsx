@@ -584,6 +584,11 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#22c55e',
   },
+  ticketCardHighRisk: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#ef4444',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  },
   ticketHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -592,6 +597,22 @@ const styles = StyleSheet.create({
   },
   ticketLeft: {
     flex: 1,
+  },
+  highRiskBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  highRiskBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginLeft: 4,
   },
   newBadge: {
     backgroundColor: '#22c55e',
