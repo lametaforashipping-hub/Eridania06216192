@@ -25,15 +25,19 @@ const isDesktop = width > 768;
 interface Ticket {
   id: string;
   ticket_number: string;
-  lottery_name: string;
-  numbers: number[];
-  amount: number;
+  lottery_name?: string;
+  numbers?: number[];
+  amount?: number;
+  total_amount?: number;
   currency: string;
-  potential_win: number;
+  potential_win?: number;
+  total_potential_win?: number;
   status: 'pending' | 'won' | 'lost' | 'cancelled' | 'paid';
   customer_name?: string;
   created_at: string;
   seller_name: string;
+  ticket_type?: string;
+  plays?: any[];
 }
 
 export default function Tickets() {
