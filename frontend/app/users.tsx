@@ -117,6 +117,7 @@ export default function Users() {
           phone: newPhone || null,
           address: newAddress || null,
           cedula: newCedula || null,
+          terminal_id: newTerminalId || null,
         }),
       });
 
@@ -193,6 +194,7 @@ export default function Users() {
     setNewAddress('');
     setNewCedula('');
     setNewCountry('RD');
+    setNewTerminalId('');
   };
 
   const getCountryLabel = (country: string) => {
