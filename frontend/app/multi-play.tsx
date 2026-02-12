@@ -761,6 +761,60 @@ export default function MultiPlay() {
           </View>
         </View>
       </Modal>
+
+      {/* Lottery Selector Modal */}
+      <Modal visible={showLotterySelector} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.lotterySelectorModal, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Seleccionar Lotería</Text>
+              <TouchableOpacity onPress={() => setShowLotterySelector(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.lotteryList}>
+              {loadingLotteries ? (
+                <ActivityIndicator color="#22c55e" style={{ padding: 20 }} />
+              ) : (
+                getCompatibleLotteries().length > 0 ? (
+                  getCompatibleLotteries().map((lottery) => (
+                    <TouchableOpacity
+                      key={lottery.id}
+                      style={[
+                        styles.lotteryOption,
+                        selectedLottery?.id === lottery.id && styles.lotteryOptionSelected,
+                        !lottery.is_open && styles.lotteryOptionClosed
+                      ]}
+                      onPress={() => {
+                        setSelectedLottery(lottery);
+                        setShowLotterySelector(false);
+                      }}
+                    >
+                      <View style={styles.lotteryOptionContent}>
+                        <Text style={styles.lotteryOptionName}>{lottery.name}</Text>
+                        <Text style={styles.lotteryOptionType}>{lottery.lottery_type}</Text>
+                        {!lottery.is_open && (
+                          <Text style={styles.lotteryOptionClosedMsg}>
+                            {lottery.closed_message || 'Cerrada'}
+                          </Text>
+                        )}
+                      </View>
+                      {selectedLottery?.id === lottery.id && (
+                        <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+                      )}
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.noLotteriesText}>
+                    No hay loterías disponibles para {selectedType.label}
+                  </Text>
+                )
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
