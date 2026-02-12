@@ -444,6 +444,21 @@ export default function Lotteries() {
                 placeholderTextColor="#64748b"
               />
 
+              <Text style={styles.sectionHeader}>🎫 Límite de Ventas</Text>
+              
+              <Text style={styles.inputLabel}>Límite de boletos por número</Text>
+              <TextInput
+                style={styles.input}
+                value={formTicketLimit}
+                onChangeText={setFormTicketLimit}
+                keyboardType="numeric"
+                placeholder="Dejar vacío = Sin límite"
+                placeholderTextColor="#64748b"
+              />
+              <Text style={styles.infoText}>
+                📊 Máximo de boletos que se pueden vender para cada número (global)
+              </Text>
+
               <Text style={styles.sectionHeader}>⏰ Horario de Operación</Text>
               
               <View style={styles.switchRow}>
