@@ -30,9 +30,19 @@ interface WeeklyHours {
 }
 
 interface TodayHours {
-  open: string;
-  close: string;
+  open: string | null;
+  close: string | null;
   day: string;
+  holiday?: string | null;
+  closed?: boolean;
+}
+
+interface Holiday {
+  date: string;
+  name: string;
+  closed?: boolean;
+  open?: string;
+  close?: string;
 }
 
 interface Lottery {
@@ -51,10 +61,13 @@ interface Lottery {
   opening_time?: string;
   closing_time?: string;
   weekly_hours?: WeeklyHours;
+  holidays?: Holiday[];
   is_open?: boolean;
   next_draw_time?: string;
   closed_message?: string;
   today_hours?: TodayHours;
+  is_holiday?: boolean;
+  holiday_name?: string;
 }
 
 const DAYS_OF_WEEK = [
