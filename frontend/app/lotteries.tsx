@@ -72,6 +72,8 @@ export default function Lotteries() {
   const [formPrice, setFormPrice] = useState('20');
   const [formCurrency, setFormCurrency] = useState('RD$');
   const [formMultiplier, setFormMultiplier] = useState('70');
+  const [formOpeningTime, setFormOpeningTime] = useState('08:00');
+  const [formClosingTime, setFormClosingTime] = useState('21:00');
 
   const fetchLotteries = useCallback(async () => {
     try {
