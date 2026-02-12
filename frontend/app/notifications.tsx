@@ -155,6 +155,22 @@ export default function Notifications() {
           </>
         )}
 
+        {item.type === 'winner_alert' && (
+          <>
+            <Text style={styles.winnerTitle}>🎉 ¡BOLETO GANADOR!</Text>
+            <Text style={styles.title}>{item.message || `Boleto ${item.ticket_number} ganó`}</Text>
+            {item.prize_amount && (
+              <View style={styles.prizeContainer}>
+                <Text style={styles.prizeLabel}>Premio:</Text>
+                <Text style={styles.prizeAmount}>
+                  {item.currency || 'RD$'} {item.prize_amount.toLocaleString()}
+                </Text>
+              </View>
+            )}
+            <Text style={styles.subtext}>{item.lottery_name}</Text>
+          </>
+        )}
+
         {item.type === 'system' && (
           <Text style={styles.title}>Notificación del sistema</Text>
         )}
