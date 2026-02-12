@@ -546,8 +546,8 @@ export default function Sales() {
               </View>
             )}
 
-            {/* Number Grid */}
-            {renderNumberGrid()}
+            {/* Manual Number Input - Replaced Grid */}
+            {renderManualNumberInput()}
           </View>
 
           <View style={isDesktop ? styles.rightColumn : undefined}>
@@ -559,20 +559,21 @@ export default function Sales() {
               <View style={styles.selectedNumbers}>
                 {selectedNumbers.length > 0 ? (
                   selectedNumbers.map(num => (
-                    <View key={num} style={styles.selectedNumber}>
+                    <TouchableOpacity 
+                      key={num} 
+                      style={styles.selectedNumber}
+                      onPress={() => handleNumberSelect(num)}
+                    >
                       <Text style={styles.selectedNumberText}>
                         {num.toString().padStart(2, '0')}
                       </Text>
-                    </View>
+                      <Ionicons name="close-circle" size={16} color="#ef4444" style={styles.removeIcon} />
+                    </TouchableOpacity>
                   ))
                 ) : (
-                  <Text style={styles.noSelection}>Selecciona números</Text>
+                  <Text style={styles.noSelection}>Ingresa números arriba</Text>
                 )}
               </View>
-              <TouchableOpacity style={styles.quickPickButton} onPress={handleQuickPick}>
-                <Ionicons name="shuffle" size={18} color="#22c55e" />
-                <Text style={styles.quickPickText}>Selección Rápida</Text>
-              </TouchableOpacity>
             </View>
 
             {/* Amount Input */}
