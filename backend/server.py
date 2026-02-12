@@ -218,6 +218,7 @@ class TicketCreate(BaseModel):
 # Model for a single play within a multi-play ticket
 class PlayItem(BaseModel):
     lottery_type: str  # quiniela, pale, tripleta, etc.
+    lottery_id: Optional[str] = None  # Optional: specific lottery ID for multi-lotto support
     numbers: List[int]
     amount: float
     position: Optional[str] = None  # primera, segunda, tercera
