@@ -205,6 +205,15 @@ export default function Lotteries() {
         />
       </View>
 
+      {/* Status indicator */}
+      {item.is_open !== undefined && (
+        <View style={[styles.statusIndicator, item.is_open ? styles.statusOpen : styles.statusClosed]}>
+          <Text style={styles.statusText}>
+            {item.is_open ? '🟢 ABIERTA' : `🔴 ${item.closed_message || 'CERRADA'}`}
+          </Text>
+        </View>
+      )}
+
       <View style={styles.lotteryDetails}>
         <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>Rango</Text>
@@ -224,10 +233,18 @@ export default function Lotteries() {
         </View>
       </View>
 
+      {/* Operating Hours */}
+      <View style={styles.operatingHours}>
+        <Ionicons name="time-outline" size={16} color="#22c55e" />
+        <Text style={styles.operatingHoursText}>
+          Horario: {item.opening_time || '08:00'} - {item.closing_time || '21:00'}
+        </Text>
+      </View>
+
       <View style={styles.scheduleContainer}>
-        <Ionicons name="time-outline" size={16} color="#94a3b8" />
+        <Ionicons name="calendar-outline" size={16} color="#94a3b8" />
         <Text style={styles.scheduleText}>
-          Horarios: {item.schedule.join(', ')}
+          Sorteos: {item.schedule.join(', ')}
         </Text>
       </View>
     </View>
