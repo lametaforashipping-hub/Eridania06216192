@@ -83,6 +83,7 @@ export default function Dashboard() {
     { icon: 'cart-outline', label: 'Vender', route: '/sales', roles: ['super_admin', 'admin', 'vendedor'], color: '#22c55e' },
     { icon: 'layers-outline', label: 'Multi-Jugada', route: '/multi-play', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
     { icon: 'paw-outline', label: 'Animalitos', route: '/animalitos', roles: ['super_admin', 'admin', 'vendedor'], color: '#f97316' },
+    { icon: 'barcode-outline', label: 'Verificar', route: '/scanner', roles: ['super_admin', 'admin', 'vendedor'], color: '#06b6d4' },
     { icon: 'list-outline', label: 'Boletos', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'], color: '#3b82f6' },
     { icon: 'heart-outline', label: 'Favoritos', route: '/favorites', roles: ['super_admin', 'admin', 'vendedor'], color: '#ec4899' },
     { icon: 'notifications-outline', label: 'Resultados', route: '/notifications', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
