@@ -77,7 +77,9 @@ export default function SellersReport() {
   };
 
   const formatCurrency = (amount: number, currency: string = 'RD$') => {
-    return `${currency} ${amount.toLocaleString('es-DO', { minimumFractionDigits: 0 })}`;
+    const flag = currency === 'USD' || currency === '$' ? '🇺🇸' : '🇩🇴';
+    const symbol = currency === 'USD' || currency === '$' ? '$' : 'RD$';
+    return `${flag} ${symbol} ${amount.toLocaleString('es-DO', { minimumFractionDigits: 0 })}`;
   };
 
   const prepareChartData = () => {
