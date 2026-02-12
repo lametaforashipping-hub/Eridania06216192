@@ -213,6 +213,9 @@ class LotteryCreate(BaseModel):
     closing_time: Optional[str] = "21:00"
     # Weekly schedule (different hours per day)
     weekly_hours: Optional[Dict[str, Dict[str, str]]] = None  # {"monday": {"open": "08:00", "close": "21:00"}, ...}
+    # Holidays with special hours or closed
+    # Format: [{"date": "2026-12-25", "closed": true, "name": "Navidad"}, {"date": "2026-02-27", "open": "10:00", "close": "18:00", "name": "Independencia"}]
+    holidays: Optional[List[Dict]] = None
 
 class LotteryUpdate(BaseModel):
     name: Optional[str] = None
@@ -225,6 +228,7 @@ class LotteryUpdate(BaseModel):
     opening_time: Optional[str] = None
     closing_time: Optional[str] = None
     weekly_hours: Optional[Dict[str, Dict[str, str]]] = None
+    holidays: Optional[List[Dict]] = None
 
 class TicketCreate(BaseModel):
     lottery_id: str
