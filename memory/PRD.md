@@ -81,22 +81,35 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (12 Feb 2026)
 
-### Implementado Hoy - Sesión 2
-- ✅ **Gestión de Terminales Completada**
-  - Nuevo campo `terminal_id` en modelo de usuario (backend y frontend)
-  - Endpoint GET `/api/terminals` con búsqueda por terminal, nombre o email
-  - Endpoint GET `/api/terminals/next-id` para generar ID secuencial (T001, T002, etc.)
-  - Nueva pantalla `/terminals` con búsqueda y lista de terminales
-  - Campo "ID de Terminal" en formulario de creación de usuarios
-  - Menú "Terminales" agregado al dashboard
-- ✅ **Ticket HTML Rediseñado con Texto Bold**
-  - Fuente Arial Black con font-weight: 900
-  - Mejor contraste y legibilidad
-  - Soporte mejorado para boletos multi-play
-  - Diseño más compacto y profesional
-- ✅ **Testing Completado** - 100% tests pasados (iteration_12.json)
+### Implementado Sesión 3 - En Vivo y Gestión Vendedores
+- ✅ **Tickets en Tiempo Real (En Vivo)**
+  - Nueva pantalla `/live-tickets` con auto-refresh cada 5 segundos
+  - Stats bar: Total, Ventas, Pendientes, Ganadores, Cancelados
+  - Indicador "EN VIVO" con punto rojo pulsante
+  - Badge "NUEVO" en tickets recientes
+  - Botón pause/play para auto-refresh
+  - Endpoint `GET /api/monitoring/live-tickets`
+- ✅ **Super Admin Cancela Cualquier Ticket**
+  - Sin límite de tiempo de 5 minutos
+  - Puede cancelar tickets de cualquier vendedor
+  - Registra quién canceló (`cancelled_by`)
+- ✅ **Perfil del Vendedor para Admin**
+  - Nueva pantalla `/seller-profile` con estadísticas completas
+  - Botones: Depositar, Editar, Ver Reporte
+  - Lista de boletos recientes con opción de cancelar
+  - Historial de transacciones
+  - Endpoint `GET /api/admin/seller-profile/{seller_id}`
+- ✅ **Testing Completado** - 100% tests passed (iteration_13.json)
 
-### Implementado Sesión 1 (12 Feb 2026)
+### Implementado Sesión 2
+- ✅ **Gestión de Terminales Completada**
+  - Nuevo campo `terminal_id` en modelo de usuario
+  - Endpoint GET `/api/terminals` con búsqueda
+  - Nueva pantalla `/terminals` con búsqueda y lista
+  - Campo "ID de Terminal" en formulario de usuarios
+- ✅ **Ticket HTML Rediseñado con Texto Bold**
+
+### Implementado Sesión 1
 - ✅ **Reporte Detallado por Vendedor** - Nuevo endpoint y pantalla con períodos (diario/semanal/quincenal/mensual)
 - ✅ **Navegación a Reporte Detallado** - Click en vendedor abre su reporte detallado
 - ✅ **Mejora tickets.tsx** - Soporte completo para boletos multi-play y simples
