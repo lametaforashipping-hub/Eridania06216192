@@ -386,6 +386,9 @@ def check_lottery_open(lottery: dict) -> tuple:
     weekly_hours = lottery.get("weekly_hours")
     holidays = lottery.get("holidays", [])
     
+    # Save original/default opening time for tomorrow's message (in case today is holiday)
+    default_opening_time = lottery.get("opening_time", "08:00")
+    
     is_open = True
     next_draw = None
     message = None
