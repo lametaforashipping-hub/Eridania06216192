@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [summary, setSummary] = useState<AccountingSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchSummary = useCallback(async () => {
     if (!token) return;
@@ -49,14 +50,35 @@ export default function Dashboard() {
     }
   }, [token]);
 
+  const fetchUnreadCount = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/notifications/unread-count`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.unread_count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchSummary();
+    fetchUnreadCount();
     refreshUser();
-  }, [fetchSummary]);
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [fetchSummary, fetchUnreadCount]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchSummary();
+    await fetchUnreadCount();
     await refreshUser();
     setRefreshing(false);
   };
