@@ -659,6 +659,14 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerButton: {
+    padding: 4,
+  },
   periodSelector: {
     flexDirection: 'row',
     backgroundColor: '#1e293b',
