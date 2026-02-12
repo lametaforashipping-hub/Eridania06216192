@@ -1216,9 +1216,26 @@ async def get_tickets(
     status: Optional[TicketStatus] = None,
     lottery_id: Optional[str] = None,
     seller_id: Optional[str] = None,
+    country: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     query = {}
+    
+    # Country filter - super_admin can see all, others only their country
+    user_country = current_user.get("country", "RD")
+    if current_user["role"] == UserRole.SUPER_ADMIN.value:
+        if country:
+            # Get lotteries for the specified country
+            country_lotteries = await db.lotteries.find({"country": country}).to_list(1000)
+            lottery_ids = [l["id"] for l in country_lotteries]
+            if lottery_ids:
+                query["lottery_id"] = {"$in": lottery_ids}
+    else:
+        # Non-super_admin users only see tickets from their country's lotteries
+        country_lotteries = await db.lotteries.find({"country": user_country}).to_list(1000)
+        lottery_ids = [l["id"] for l in country_lotteries]
+        if lottery_ids:
+            query["lottery_id"] = {"$in": lottery_ids}
     
     if current_user["role"] == UserRole.VENDEDOR.value:
         query["seller_id"] = current_user["id"]
