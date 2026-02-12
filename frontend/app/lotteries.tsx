@@ -68,6 +68,7 @@ interface Lottery {
   today_hours?: TodayHours;
   is_holiday?: boolean;
   holiday_name?: string;
+  ticket_limit_per_number?: number | null;
 }
 
 const DAYS_OF_WEEK = [
