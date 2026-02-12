@@ -116,45 +116,198 @@ export default function Sales() {
 
   const generateTicketHTML = (ticket: TicketResponse) => {
     const date = new Date(ticket.created_at);
+    const drawTime = ticket.next_draw_time || 'Próximo sorteo';
     return `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'Courier New', monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-          .title { font-size: 18px; font-weight: bold; }
-          .subtitle { font-size: 12px; color: #666; }
-          .ticket-number { font-size: 14px; font-weight: bold; margin: 10px 0; }
-          .numbers { font-size: 24px; font-weight: bold; text-align: center; padding: 15px; background: #f0f0f0; border-radius: 8px; margin: 10px 0; }
-          .details { font-size: 12px; }
-          .row { display: flex; justify-content: space-between; padding: 4px 0; }
-          .amount { font-size: 16px; font-weight: bold; color: #22c55e; }
-          .footer { text-align: center; border-top: 2px dashed #000; padding-top: 10px; margin-top: 10px; font-size: 10px; }
-          .qr-placeholder { text-align: center; padding: 20px; background: #eee; margin: 10px 0; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: 'Courier New', monospace; 
+            padding: 10px; 
+            max-width: 280px; 
+            margin: 0 auto;
+            background: #fff;
+          }
+          .ticket {
+            border: 2px solid #000;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+          .header { 
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+          }
+          .logo { font-size: 28px; margin-bottom: 5px; }
+          .brand { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
+          .slogan { font-size: 9px; color: #86efac; margin-top: 5px; font-style: italic; }
+          .ticket-info {
+            background: #22c55e;
+            color: white;
+            padding: 8px;
+            text-align: center;
+          }
+          .ticket-number { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+          .ticket-type { font-size: 10px; margin-top: 2px; }
+          .body { padding: 12px; }
+          .lottery-name {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 10px;
+          }
+          .lottery-name span { font-weight: bold; color: #0369a1; font-size: 13px; }
+          .numbers-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin: 10px 0;
+          }
+          .numbers-label { font-size: 10px; color: #92400e; margin-bottom: 5px; }
+          .numbers { font-size: 32px; font-weight: bold; color: #1e3a5f; letter-spacing: 3px; }
+          .details { font-size: 11px; margin: 10px 0; }
+          .row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 4px 0;
+            border-bottom: 1px dotted #e5e7eb;
+          }
+          .row:last-child { border-bottom: none; }
+          .row span:first-child { color: #6b7280; }
+          .row span:last-child { font-weight: 600; color: #1f2937; }
+          .amounts {
+            background: #f0fdf4;
+            border: 1px solid #22c55e;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+          }
+          .amount-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+          }
+          .amount-label { font-size: 11px; color: #166534; }
+          .amount-value { font-size: 14px; font-weight: bold; color: #15803d; }
+          .potential-win { 
+            background: #22c55e; 
+            color: white; 
+            padding: 3px 8px; 
+            border-radius: 4px;
+            font-size: 13px;
+          }
+          .draw-time {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            margin: 10px 0;
+          }
+          .draw-label { font-size: 9px; color: #991b1b; }
+          .draw-value { font-size: 12px; font-weight: bold; color: #dc2626; }
+          .footer { 
+            background: #f8fafc;
+            padding: 10px;
+            text-align: center;
+            border-top: 2px dashed #cbd5e1;
+          }
+          .footer-text { font-size: 9px; color: #64748b; margin-bottom: 3px; }
+          .barcode {
+            font-family: 'Libre Barcode 39', monospace;
+            font-size: 40px;
+            letter-spacing: -2px;
+            margin: 8px 0;
+          }
+          .serial { font-size: 8px; color: #94a3b8; letter-spacing: 1px; }
+          .promo {
+            background: #1e3a5f;
+            color: #fbbf24;
+            padding: 8px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+          }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">SISTEMA DE LOTERIA</div>
-          <div class="subtitle">RD & USA</div>
-        </div>
-        <div class="ticket-number">BOLETO: ${ticket.ticket_number}</div>
-        <div class="details">
-          <div class="row"><span>Loter\u00eda:</span><span>${ticket.lottery_name}</span></div>
-          <div class="row"><span>Fecha:</span><span>${date.toLocaleDateString('es-DO')}</span></div>
-          <div class="row"><span>Hora:</span><span>${date.toLocaleTimeString('es-DO')}</span></div>
-          ${ticket.customer_name ? `<div class="row"><span>Cliente:</span><span>${ticket.customer_name}</span></div>` : ''}
-        </div>
-        <div class="numbers">${ticket.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}</div>
-        <div class="details">
-          <div class="row"><span>Monto:</span><span class="amount">${ticket.currency} ${ticket.amount.toLocaleString()}</span></div>
-          <div class="row"><span>Premio Potencial:</span><span>${ticket.currency} ${ticket.potential_win.toLocaleString()}</span></div>
-        </div>
-        <div class="footer">
-          <p>Conserve este boleto</p>
-          <p>Válido solo con boleto original</p>
+        <div class="ticket">
+          <div class="header">
+            <div class="logo">🎰</div>
+            <div class="brand">LOTERÍA NACIONAL</div>
+            <div class="slogan">✨ Tu suerte está aquí ✨</div>
+          </div>
+          
+          <div class="ticket-info">
+            <div class="ticket-number">BOLETO #${ticket.ticket_number}</div>
+            <div class="ticket-type">${ticket.lottery_type ? ticket.lottery_type.toUpperCase() : 'QUINIELA'}</div>
+          </div>
+          
+          <div class="body">
+            <div class="lottery-name">
+              <span>🏆 ${ticket.lottery_name}</span>
+            </div>
+            
+            <div class="numbers-section">
+              <div class="numbers-label">🔢 NÚMEROS JUGADOS</div>
+              <div class="numbers">${ticket.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}</div>
+            </div>
+            
+            <div class="details">
+              <div class="row">
+                <span>📅 Fecha:</span>
+                <span>${date.toLocaleDateString('es-DO')}</span>
+              </div>
+              <div class="row">
+                <span>🕐 Hora:</span>
+                <span>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}</span>
+              </div>
+              ${ticket.customer_name ? `
+              <div class="row">
+                <span>👤 Cliente:</span>
+                <span>${ticket.customer_name}</span>
+              </div>` : ''}
+              <div class="row">
+                <span>🏪 Vendedor:</span>
+                <span>${ticket.seller_name || 'Sistema'}</span>
+              </div>
+            </div>
+            
+            <div class="amounts">
+              <div class="amount-row">
+                <span class="amount-label">💵 Monto Jugado:</span>
+                <span class="amount-value">${ticket.currency} ${ticket.amount.toLocaleString()}</span>
+              </div>
+              <div class="amount-row">
+                <span class="amount-label">🏆 Premio Potencial:</span>
+                <span class="potential-win">${ticket.currency} ${ticket.potential_win.toLocaleString()}</span>
+              </div>
+            </div>
+            
+            <div class="draw-time">
+              <div class="draw-label">⏰ PRÓXIMO SORTEO</div>
+              <div class="draw-value">${drawTime}</div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <div class="footer-text">━━━━━━━━━━━━━━━━━━━━━━━</div>
+            <div class="barcode">|||${ticket.ticket_number}|||</div>
+            <div class="serial">${ticket.ticket_number}</div>
+            <div class="footer-text">✓ Conserve este boleto</div>
+            <div class="footer-text">✓ Válido solo con original</div>
+            <div class="footer-text">✓ Presente para cobrar premio</div>
+          </div>
+          
+          <div class="promo">🍀 ¡BUENA SUERTE! - JUEGA RESPONSABLEMENTE 🍀</div>
         </div>
       </body>
       </html>
