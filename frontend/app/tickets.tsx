@@ -261,53 +261,79 @@ export default function Tickets() {
     }
   };
 
-  const renderTicket = ({ item }: { item: Ticket }) => (
-    <TouchableOpacity
-      style={[styles.ticketCard, item.status === 'cancelled' && styles.ticketCancelled]}
-      onPress={() => {
-        setSelectedTicket(item);
-        setShowActionModal(true);
-      }}
-    >
-      <View style={styles.ticketHeader}>
-        <View>
-          <Text style={styles.ticketNumber}>{item.ticket_number}</Text>
-          <Text style={styles.lotteryName}>{item.lottery_name}</Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.numbersContainer}>
-        {(item.numbers || []).map((num, index) => (
-          <View key={index} style={[styles.numberBall, item.status === 'won' && styles.winnerBall]}>
-            <Text style={styles.numberBallText}>{num?.toString().padStart(2, '0') || '--'}</Text>
+  const renderTicket = ({ item }: { item: Ticket }) => {
+    const amount = item.amount || item.total_amount || 0;
+    const potentialWin = item.potential_win || item.total_potential_win || 0;
+    const isMultiPlay = item.ticket_type === 'multi_play';
+    const displayNumbers = item.numbers || [];
+    const lotteryName = isMultiPlay 
+      ? `Multi-jugada (${item.plays?.length || 0} jugadas)` 
+      : (item.lottery_name || 'N/A');
+    
+    return (
+      <TouchableOpacity
+        style={[styles.ticketCard, item.status === 'cancelled' && styles.ticketCancelled]}
+        onPress={() => {
+          setSelectedTicket(item);
+          setShowActionModal(true);
+        }}
+      >
+        <View style={styles.ticketHeader}>
+          <View>
+            <Text style={styles.ticketNumber}>{item.ticket_number}</Text>
+            <Text style={styles.lotteryName}>{lotteryName}</Text>
           </View>
-        ))}
-      </View>
-
-      <View style={styles.ticketDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Monto:</Text>
-          <Text style={styles.detailValue}>{item.currency} {item.amount.toLocaleString()}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+          </View>
         </View>
-        {(item.status === 'won' || item.status === 'paid') && (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Premio:</Text>
-            <Text style={[styles.detailValue, styles.prizeValue]}>
-              {item.currency} {item.potential_win.toLocaleString()}
-            </Text>
+
+        {!isMultiPlay && displayNumbers.length > 0 && (
+          <View style={styles.numbersContainer}>
+            {displayNumbers.map((num, index) => (
+              <View key={index} style={[styles.numberBall, item.status === 'won' && styles.winnerBall]}>
+                <Text style={styles.numberBallText}>{num?.toString().padStart(2, '0') || '--'}</Text>
+              </View>
+            ))}
           </View>
         )}
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Fecha:</Text>
-          <Text style={styles.detailValue}>
-            {new Date(item.created_at).toLocaleString('es-DO')}
-          </Text>
+
+        {isMultiPlay && item.plays && (
+          <View style={styles.playsContainer}>
+            {item.plays.slice(0, 3).map((play: any, idx: number) => (
+              <Text key={idx} style={styles.playText}>
+                {play.lottery_type || play.lottery_name}: {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
+              </Text>
+            ))}
+            {item.plays.length > 3 && (
+              <Text style={styles.playText}>+{item.plays.length - 3} más...</Text>
+            )}
+          </View>
+        )}
+
+        <View style={styles.ticketDetails}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Monto:</Text>
+            <Text style={styles.detailValue}>{item.currency} {amount.toLocaleString()}</Text>
+          </View>
+          {(item.status === 'won' || item.status === 'paid') && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Premio:</Text>
+              <Text style={[styles.detailValue, styles.prizeValue]}>
+                {item.currency} {potentialWin.toLocaleString()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Fecha:</Text>
+            <Text style={styles.detailValue}>
+              {new Date(item.created_at).toLocaleString('es-DO')}
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
   );
 
   const filters = [
