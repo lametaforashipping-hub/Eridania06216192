@@ -117,17 +117,20 @@ export default function Sales() {
   const generateTicketHTML = (ticket: TicketResponse) => {
     const date = new Date(ticket.created_at);
     const drawTime = ticket.next_draw_time || 'Próximo sorteo';
+    const barcodeData = ticket.ticket_number.replace(/-/g, '');
+    
     return `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
         <style>
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
             font-family: 'Courier New', monospace; 
             padding: 10px; 
-            max-width: 280px; 
+            max-width: 300px; 
             margin: 0 auto;
             background: #fff;
           }
@@ -142,8 +145,20 @@ export default function Sales() {
             padding: 15px 10px;
             text-align: center;
           }
-          .logo { font-size: 28px; margin-bottom: 5px; }
+          .company-logo { 
+            width: 60px; 
+            height: 60px; 
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+          }
+          .company-logo span { font-size: 30px; }
           .brand { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
+          .company-info { font-size: 8px; color: #94a3b8; margin-top: 5px; line-height: 1.4; }
           .slogan { font-size: 9px; color: #86efac; margin-top: 5px; font-style: italic; }
           .ticket-info {
             background: #22c55e;
@@ -152,7 +167,7 @@ export default function Sales() {
             text-align: center;
           }
           .ticket-number { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
-          .ticket-type { font-size: 10px; margin-top: 2px; }
+          .ticket-type { font-size: 10px; margin-top: 2px; opacity: 0.9; }
           .body { padding: 12px; }
           .lottery-name {
             background: #f0f9ff;
@@ -216,18 +231,24 @@ export default function Sales() {
           .draw-value { font-size: 12px; font-weight: bold; color: #dc2626; }
           .footer { 
             background: #f8fafc;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             border-top: 2px dashed #cbd5e1;
           }
-          .footer-text { font-size: 9px; color: #64748b; margin-bottom: 3px; }
-          .barcode {
-            font-family: 'Libre Barcode 39', monospace;
-            font-size: 40px;
-            letter-spacing: -2px;
-            margin: 8px 0;
+          .barcode-container { 
+            background: #fff; 
+            padding: 10px; 
+            margin: 8px 0; 
+            border-radius: 4px;
           }
-          .serial { font-size: 8px; color: #94a3b8; letter-spacing: 1px; }
+          .barcode { 
+            font-family: 'Libre Barcode 128 Text', cursive; 
+            font-size: 48px; 
+            letter-spacing: 0; 
+            line-height: 1;
+          }
+          .barcode-number { font-size: 10px; color: #374151; letter-spacing: 2px; margin-top: 4px; }
+          .footer-text { font-size: 9px; color: #64748b; margin: 2px 0; }
           .promo {
             background: #1e3a5f;
             color: #fbbf24;
@@ -241,14 +262,20 @@ export default function Sales() {
       <body>
         <div class="ticket">
           <div class="header">
-            <div class="logo">🎰</div>
+            <div class="company-logo">
+              <span>🎰</span>
+            </div>
             <div class="brand">LOTERÍA NACIONAL</div>
+            <div class="company-info">
+              RNC: 000-00000-0 | Tel: (809) 555-0000<br>
+              Av. Principal #123, Santo Domingo, RD
+            </div>
             <div class="slogan">✨ Tu suerte está aquí ✨</div>
           </div>
           
           <div class="ticket-info">
-            <div class="ticket-number">BOLETO #${ticket.ticket_number}</div>
-            <div class="ticket-type">${ticket.lottery_type ? ticket.lottery_type.toUpperCase() : 'QUINIELA'}</div>
+            <div class="ticket-number">BOLETO INDIVIDUAL</div>
+            <div class="ticket-type">#${ticket.ticket_number}</div>
           </div>
           
           <div class="body">
@@ -275,10 +302,6 @@ export default function Sales() {
                 <span>👤 Cliente:</span>
                 <span>${ticket.customer_name}</span>
               </div>` : ''}
-              <div class="row">
-                <span>🏪 Vendedor:</span>
-                <span>${ticket.seller_name || 'Sistema'}</span>
-              </div>
             </div>
             
             <div class="amounts">
@@ -299,12 +322,14 @@ export default function Sales() {
           </div>
           
           <div class="footer">
+            <div class="barcode-container">
+              <div class="barcode">${barcodeData}</div>
+              <div class="barcode-number">${ticket.ticket_number}</div>
+            </div>
             <div class="footer-text">━━━━━━━━━━━━━━━━━━━━━━━</div>
-            <div class="barcode">|||${ticket.ticket_number}|||</div>
-            <div class="serial">${ticket.ticket_number}</div>
-            <div class="footer-text">✓ Conserve este boleto</div>
+            <div class="footer-text">✓ Conserve este boleto para cobrar</div>
             <div class="footer-text">✓ Válido solo con original</div>
-            <div class="footer-text">✓ Presente para cobrar premio</div>
+            <div class="footer-text">✓ Verifique en: loteria.com/verificar</div>
           </div>
           
           <div class="promo">🍀 ¡BUENA SUERTE! - JUEGA RESPONSABLEMENTE 🍀</div>
