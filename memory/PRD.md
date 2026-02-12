@@ -150,7 +150,7 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 
 ## Actualizaciones Recientes
 
-### Feb 2026 - Sesión Actual (Límite por Número)
+### Feb 2026 - Sesión Actual (Límite por Número + Alertas)
 1. **Nueva Funcionalidad - Límite de Boletos por Número:**
    - Campo `ticket_limit_per_number` en modelo de lotería (GLOBAL, sin importar fecha)
    - Validación en `POST /api/tickets` que bloquea ventas cuando se alcanza el límite
@@ -161,6 +161,12 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
    - UI actualizada en pantalla de loterías mostrando el límite configurado
    - Campo de entrada para límite en formulario de crear lotería
    - Tests: 11/11 pasados (`/app/backend/tests/test_ticket_limit_per_number.py`)
+
+2. **Alertas Automáticas de Límite (80%):**
+   - Cuando un número alcanza el 80% del límite, el sistema muestra una alerta
+   - Campos nuevos en respuesta de tickets: `limit_warnings` y `limit_warning_message`
+   - Frontend muestra Alert con mensaje: "Número 77: quedan 1 de 5" o "LÍMITE ALCANZADO (5/5)"
+   - Funciona en ambas pantallas: Venta Individual y Multi-Jugada
 
 ### Feb 2026 - Sesión Anterior (Horarios)
 1. **Bug Fix:** KeyboardAvoidingView en Multi-Jugada para evitar que el teclado tape el botón
