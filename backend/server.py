@@ -1185,6 +1185,24 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     if not ticket_data.plays or len(ticket_data.plays) == 0:
         raise HTTPException(status_code=400, detail="Debe incluir al menos una jugada")
     
+    # Handle impersonation - Super Admin can create tickets on behalf of another user
+    effective_user = current_user
+    impersonated_by = None
+    
+    if ticket_data.act_as_user_id:
+        # Only super_admin can impersonate
+        if current_user.get("role") != "super_admin":
+            raise HTTPException(status_code=403, detail="Solo el Super Admin puede crear tickets en nombre de otro usuario")
+        
+        # Get the target user
+        target_user = await db.users.find_one({"id": ticket_data.act_as_user_id})
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Usuario objetivo no encontrado")
+        
+        # Use target user as effective user
+        effective_user = target_user
+        impersonated_by = current_user.get("id")
+    
     # Get all active lotteries to match play types
     all_lotteries = await db.lotteries.find({"active": True}).to_list(100)
     lottery_map = {l["lottery_type"]: l for l in all_lotteries}
