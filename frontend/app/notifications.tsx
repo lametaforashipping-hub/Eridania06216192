@@ -28,6 +28,11 @@ interface Notification {
   total_winners?: number;
   created_at: string;
   is_read: boolean;
+  // Winner alert specific fields
+  ticket_number?: string;
+  prize_amount?: number;
+  currency?: string;
+  message?: string;
 }
 
 export default function Notifications() {
