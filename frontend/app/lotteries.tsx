@@ -917,6 +917,22 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginLeft: 6,
   },
+  editLotteryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3b82f6',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  editLotteryButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 14,
+  },
   statusIndicator: {
     paddingVertical: 6,
     paddingHorizontal: 12,
