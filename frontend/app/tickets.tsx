@@ -608,6 +608,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
   },
+  playsContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  playText: {
+    fontSize: 11,
+    color: '#94a3b8',
+    marginBottom: 4,
+  },
   ticketDetails: {
     borderTopWidth: 1,
     borderTopColor: '#334155',
