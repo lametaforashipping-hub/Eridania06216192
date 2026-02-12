@@ -190,8 +190,8 @@ class TestAccountingReport:
         
         data = response.json()
         # Verify response structure
-        assert "lottery_reports" in data, "Missing 'lottery_reports' in response"
-        assert "totals" in data, "Missing 'totals' in response"
+        assert "total_sales" in data, "Missing 'total_sales' in response"
+        assert "total_wins" in data, "Missing 'total_wins' in response"
         assert "country_filter" in data, "Missing 'country_filter' in response"
         
         print(f"Accounting report - country_filter: {data.get('country_filter')}")
