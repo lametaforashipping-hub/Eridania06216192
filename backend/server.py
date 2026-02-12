@@ -139,6 +139,10 @@ class UserCreate(BaseModel):
     credit_limit: float = 10000.0
     commission_rate: float = 10.0
     currency: Currency = Currency.RD
+    # New fields
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    cedula: Optional[str] = None  # ID number
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -158,12 +162,19 @@ class UserResponse(BaseModel):
     active: bool = True
     total_sales: float = 0.0
     total_commission: float = 0.0
+    # New fields
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    cedula: Optional[str] = None
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     credit_limit: Optional[float] = None
     commission_rate: Optional[float] = None
     active: Optional[bool] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    cedula: Optional[str] = None
 
 class PrizeRule(BaseModel):
     position: str  # primera, segunda, tercera, or "any"
