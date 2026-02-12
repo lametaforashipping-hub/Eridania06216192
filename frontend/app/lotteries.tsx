@@ -288,6 +288,12 @@ export default function Lotteries() {
           <Text style={styles.detailLabel}>Multiplicador</Text>
           <Text style={[styles.detailValue, styles.multiplierValue]}>x{item.prize_multiplier}</Text>
         </View>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Límite por número</Text>
+          <Text style={[styles.detailValue, item.ticket_limit_per_number ? styles.limitValue : null]}>
+            {item.ticket_limit_per_number ? `${item.ticket_limit_per_number} boletos` : 'Sin límite'}
+          </Text>
+        </View>
       </View>
 
       {/* Operating Hours */}
