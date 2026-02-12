@@ -536,6 +536,9 @@ async def register(user_data: UserCreate, current_user: dict = Depends(get_curre
     if existing:
         raise HTTPException(status_code=400, detail="Email ya registrado")
     
+    # Determine currency based on country
+    currency = Currency.USD.value if user_data.country == "US" else Currency.RD.value
+    
     user = {
         "id": str(uuid.uuid4()),
         "email": user_data.email,
@@ -545,7 +548,8 @@ async def register(user_data: UserCreate, current_user: dict = Depends(get_curre
         "credit_limit": user_data.credit_limit,
         "balance": 0.0,
         "commission_rate": user_data.commission_rate,
-        "currency": user_data.currency.value,
+        "currency": currency,
+        "country": user_data.country,
         "created_by": current_user["id"],
         "created_at": datetime.utcnow(),
         "active": True,
@@ -582,7 +586,8 @@ async def login(credentials: UserLogin):
             "credit_limit": user["credit_limit"],
             "balance": user["balance"],
             "commission_rate": user.get("commission_rate", 10.0),
-            "currency": user["currency"]
+            "currency": user["currency"],
+            "country": user.get("country", "RD")
         }
     }
 
