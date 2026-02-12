@@ -204,6 +204,19 @@ class TicketCreate(BaseModel):
     position: Optional[str] = None  # For position-based bets: primera, segunda, tercera
     is_combined: bool = False  # For combined pale across draws
 
+# Model for a single play within a multi-play ticket
+class PlayItem(BaseModel):
+    lottery_type: str  # quiniela, pale, tripleta, etc.
+    numbers: List[int]
+    amount: float
+    position: Optional[str] = None  # primera, segunda, tercera
+
+# Model for creating a multi-play ticket
+class MultiPlayTicketCreate(BaseModel):
+    plays: List[PlayItem]
+    customer_name: Optional[str] = None
+    currency: Currency = Currency.RD
+
 class TicketResponse(BaseModel):
     id: str
     ticket_number: str
