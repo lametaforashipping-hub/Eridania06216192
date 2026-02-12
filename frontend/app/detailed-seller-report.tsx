@@ -462,9 +462,14 @@ export default function DetailedSellerReport() {
         <Text style={styles.headerTitle}>
           {sellerName || report?.seller?.name || 'Reporte Detallado'}
         </Text>
-        <TouchableOpacity onPress={onRefresh}>
-          <Ionicons name="refresh" size={24} color="#22c55e" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={generatePDF} style={styles.headerButton}>
+            <Ionicons name="document-text" size={22} color="#22c55e" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onRefresh} style={styles.headerButton}>
+            <Ionicons name="refresh" size={22} color="#22c55e" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Period Selector */}
