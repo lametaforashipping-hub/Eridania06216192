@@ -364,6 +364,17 @@ export default function MultiPlay() {
         setShowTicketModal(true);
         setPlays([]);
         setCustomerName('');
+        
+        // Show limit warning if any numbers are near their limit
+        if (ticket.limit_warning_message) {
+          setTimeout(() => {
+            Alert.alert(
+              '⚠️ Alerta de Límite',
+              ticket.limit_warning_message,
+              [{ text: 'Entendido', style: 'default' }]
+            );
+          }, 500);
+        }
       } else {
         const error = await response.json();
         Alert.alert('Error', error.detail || 'No se pudo crear el boleto');
