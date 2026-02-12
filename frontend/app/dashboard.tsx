@@ -94,7 +94,9 @@ export default function Dashboard() {
   };
 
   const formatCurrency = (amount: number, currency: string) => {
-    return `${currency} ${amount.toLocaleString('es-DO', { minimumFractionDigits: 2 })}`;
+    const flag = currency === 'USD' || currency === '$' ? '🇺🇸' : '🇩🇴';
+    const symbol = currency === 'USD' || currency === '$' ? '$' : 'RD$';
+    return `${flag} ${symbol} ${amount.toLocaleString('es-DO', { minimumFractionDigits: 2 })}`;
   };
 
   const getRoleLabel = (role: string) => {
