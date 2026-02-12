@@ -48,6 +48,7 @@ export default function Tickets() {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'won' | 'lost' | 'cancelled' | 'paid'>('all');
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [processing, setProcessing] = useState(false);
 
