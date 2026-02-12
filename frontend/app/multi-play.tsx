@@ -417,11 +417,11 @@ export default function MultiPlay() {
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 20}
       >
         <ScrollView 
           style={styles.content} 
-          contentContainerStyle={[isDesktop && styles.contentDesktop, { paddingBottom: 120 }]}
+          contentContainerStyle={[isDesktop && styles.contentDesktop, { paddingBottom: 200 }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={true}
         >
