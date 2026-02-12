@@ -772,6 +772,52 @@ async def update_lottery(lottery_id: str, update: LotteryUpdate, current_user: d
         await db.lotteries.update_one({"id": lottery_id}, {"$set": update_data})
     return {"message": "Lotería actualizada"}
 
+# Holidays management endpoints
+@api_router.post("/lotteries/{lottery_id}/holidays")
+async def add_holiday(lottery_id: str, holiday: dict, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
+    """Add a holiday to a lottery. Holiday format: {"date": "2026-12-25", "name": "Navidad", "closed": true} or {"date": "2026-02-27", "name": "Independencia", "open": "10:00", "close": "18:00"}"""
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    # Validate holiday format
+    if "date" not in holiday or "name" not in holiday:
+        raise HTTPException(status_code=400, detail="El festivo debe tener 'date' (YYYY-MM-DD) y 'name'")
+    
+    holidays = lottery.get("holidays", [])
+    # Check if holiday already exists for this date
+    for h in holidays:
+        if h["date"] == holiday["date"]:
+            raise HTTPException(status_code=400, detail=f"Ya existe un festivo para la fecha {holiday['date']}")
+    
+    holidays.append(holiday)
+    await db.lotteries.update_one({"id": lottery_id}, {"$set": {"holidays": holidays}})
+    return {"message": f"Festivo '{holiday['name']}' agregado", "holidays": holidays}
+
+@api_router.delete("/lotteries/{lottery_id}/holidays/{date}")
+async def remove_holiday(lottery_id: str, date: str, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
+    """Remove a holiday from a lottery by date (format: YYYY-MM-DD)"""
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    holidays = lottery.get("holidays", [])
+    new_holidays = [h for h in holidays if h["date"] != date]
+    
+    if len(new_holidays) == len(holidays):
+        raise HTTPException(status_code=404, detail=f"No se encontró festivo para la fecha {date}")
+    
+    await db.lotteries.update_one({"id": lottery_id}, {"$set": {"holidays": new_holidays}})
+    return {"message": f"Festivo eliminado para {date}", "holidays": new_holidays}
+
+@api_router.get("/lotteries/{lottery_id}/holidays")
+async def get_holidays(lottery_id: str):
+    """Get all holidays for a lottery"""
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    return lottery.get("holidays", [])
+
 # ==================== ANIMALITOS ====================
 @api_router.get("/animalitos")
 async def get_animalitos():
