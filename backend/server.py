@@ -464,7 +464,8 @@ def check_lottery_open(lottery: dict) -> tuple:
                 if weekly_hours and tomorrow_day in weekly_hours:
                     tomorrow_open = weekly_hours[tomorrow_day].get("open", "08:00")
                 else:
-                    tomorrow_open = opening_time
+                    # Use default opening time, not today's (which might be holiday's special hours)
+                    tomorrow_open = default_opening_time
                 message = f"Cerrada. Abre mañana ({tomorrow_day[:3]}) a las {tomorrow_open}"
     
     # Check draw-specific closing (if still open)
