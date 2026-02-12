@@ -190,6 +190,11 @@ export default function Users() {
     setNewPhone('');
     setNewAddress('');
     setNewCedula('');
+    setNewCountry('RD');
+  };
+
+  const getCountryLabel = (country: string) => {
+    return country === 'US' ? 'Estados Unidos (USD)' : 'Rep. Dominicana (RD$)';
   };
 
   const getRoleLabel = (role: string) => {
