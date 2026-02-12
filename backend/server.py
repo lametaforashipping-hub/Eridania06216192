@@ -139,6 +139,12 @@ class UserUpdate(BaseModel):
     country: Optional[str] = None
     terminal_id: Optional[str] = None  # Unique terminal identifier
 
+# System configuration for alerts and settings
+class SystemConfig(BaseModel):
+    high_risk_threshold_rd: float = 10000.0  # RD$ - Alert threshold for high risk tickets
+    high_risk_threshold_usd: float = 200.0   # USD - Alert threshold for high risk tickets
+    auto_refresh_interval: int = 5           # Seconds for live tickets refresh
+
 class PrizeRule(BaseModel):
     position: str  # primera, segunda, tercera, or "any"
     matches: int
