@@ -633,6 +633,169 @@ export default function Lotteries() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Edit Lottery Modal */}
+      <Modal visible={showEditModal} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Editar Lotería</Text>
+              <TouchableOpacity onPress={() => { setShowEditModal(false); setEditingLottery(null); resetForm(); }}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.inputLabel}>Nombre</Text>
+              <TextInput
+                style={styles.input}
+                value={formName}
+                onChangeText={setFormName}
+                placeholder="Nombre de la lotería"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.sectionHeader}>💰 Configuración de Precios</Text>
+              
+              <View style={styles.rowInputs}>
+                <View style={styles.halfInput}>
+                  <Text style={styles.inputLabel}>Precio ({formCurrency})</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formPrice}
+                    onChangeText={setFormPrice}
+                    keyboardType="numeric"
+                    placeholderTextColor="#64748b"
+                  />
+                </View>
+                <View style={styles.halfInput}>
+                  <Text style={styles.inputLabel}>Multiplicador</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formMultiplier}
+                    onChangeText={setFormMultiplier}
+                    keyboardType="numeric"
+                    placeholderTextColor="#64748b"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.sectionHeader}>🎫 Límite de Ventas</Text>
+              
+              <Text style={styles.inputLabel}>Límite de boletos por número</Text>
+              <TextInput
+                style={styles.input}
+                value={formTicketLimit}
+                onChangeText={setFormTicketLimit}
+                keyboardType="numeric"
+                placeholder="Dejar vacío = Sin límite"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.sectionHeader}>🎰 Horarios de Sorteo</Text>
+              
+              <Text style={styles.inputLabel}>Horarios (separados por coma)</Text>
+              <TextInput
+                style={styles.input}
+                value={formSchedule}
+                onChangeText={setFormSchedule}
+                placeholder="12:00,15:00,21:00"
+                placeholderTextColor="#64748b"
+              />
+              <Text style={styles.infoText}>
+                💡 Ejemplo: 12:00,15:00,21:00
+              </Text>
+
+              <Text style={styles.sectionHeader}>⏰ Horario de Operación</Text>
+              
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>Usar horarios diferentes por día</Text>
+                <Switch
+                  value={useWeeklySchedule}
+                  onValueChange={setUseWeeklySchedule}
+                  trackColor={{ false: '#334155', true: '#14532d' }}
+                  thumbColor={useWeeklySchedule ? '#22c55e' : '#94a3b8'}
+                />
+              </View>
+
+              {!useWeeklySchedule ? (
+                <>
+                  <View style={styles.rowInputs}>
+                    <View style={styles.halfInput}>
+                      <Text style={styles.inputLabel}>Hora de Apertura</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={formOpeningTime}
+                        onChangeText={setFormOpeningTime}
+                        placeholder="08:00"
+                        placeholderTextColor="#64748b"
+                      />
+                    </View>
+                    <View style={styles.halfInput}>
+                      <Text style={styles.inputLabel}>Hora de Cierre</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={formClosingTime}
+                        onChangeText={setFormClosingTime}
+                        placeholder="21:00"
+                        placeholderTextColor="#64748b"
+                      />
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.weeklyInfoText}>
+                    📅 Configura horarios diferentes para cada día
+                  </Text>
+                  {DAYS_OF_WEEK.map((day) => (
+                    <View key={day.key} style={styles.dayRow}>
+                      <Text style={styles.dayLabel}>{day.fullLabel}</Text>
+                      <View style={styles.dayInputs}>
+                        <TextInput
+                          style={styles.timeInput}
+                          value={formWeeklyHours[day.key]?.open || '08:00'}
+                          onChangeText={(text) => setFormWeeklyHours(prev => ({
+                            ...prev,
+                            [day.key]: { ...prev[day.key], open: text }
+                          }))}
+                          placeholder="08:00"
+                          placeholderTextColor="#64748b"
+                        />
+                        <Text style={styles.toText}>a</Text>
+                        <TextInput
+                          style={styles.timeInput}
+                          value={formWeeklyHours[day.key]?.close || '21:00'}
+                          onChangeText={(text) => setFormWeeklyHours(prev => ({
+                            ...prev,
+                            [day.key]: { ...prev[day.key], close: text }
+                          }))}
+                          placeholder="21:00"
+                          placeholderTextColor="#64748b"
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </>
+              )}
+
+              <TouchableOpacity
+                style={[styles.submitButton, saving && styles.submitButtonDisabled]}
+                onPress={handleUpdateLottery}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Guardar Cambios</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
