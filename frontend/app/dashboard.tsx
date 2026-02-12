@@ -32,11 +32,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   const fetchSummary = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${API_URL}/api/accounting/summary`, {
+      let url = `${API_URL}/api/accounting/summary`;
+      if (selectedCountry) {
+        url += `?country=${selectedCountry}`;
+      }
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -48,7 +53,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, selectedCountry]);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!token) return;
