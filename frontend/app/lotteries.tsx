@@ -847,12 +847,12 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
   editButton: {
     padding: 6,
     backgroundColor: '#1e3a5f',
     borderRadius: 8,
+    marginRight: 12,
   },
   countryFlag: {
     fontSize: 32,
