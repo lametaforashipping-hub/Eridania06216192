@@ -149,10 +149,11 @@ export default function Tickets() {
 
   const handlePay = async () => {
     if (!selectedTicket) return;
+    const winAmount = selectedTicket.potential_win || selectedTicket.total_potential_win || 0;
     
     Alert.alert(
       'Pagar Premio',
-      `¿Confirmar pago de ${selectedTicket.currency} ${selectedTicket.potential_win.toLocaleString()} al boleto ${selectedTicket.ticket_number}?`,
+      `¿Confirmar pago de ${selectedTicket.currency} ${winAmount.toLocaleString()} al boleto ${selectedTicket.ticket_number}?`,
       [
         { text: 'No', style: 'cancel' },
         {
@@ -468,7 +469,7 @@ export default function Tickets() {
                       <>
                         <Ionicons name="cash" size={22} color="#ffffff" />
                         <Text style={styles.payButtonText}>
-                          Pagar Premio ({selectedTicket.currency} {selectedTicket.potential_win.toLocaleString()})
+                          Pagar Premio ({selectedTicket.currency} {(selectedTicket.potential_win || selectedTicket.total_potential_win || 0).toLocaleString()})
                         </Text>
                       </>
                     )}
@@ -805,5 +806,15 @@ const styles = StyleSheet.create({
     color: '#f59e0b',
     fontSize: 12,
     marginTop: 8,
+  },
+  playsPreview: {
+    marginTop: 12,
+    paddingHorizontal: 8,
+  },
+  playPreviewText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginBottom: 4,
+    textAlign: 'center',
   },
 });
