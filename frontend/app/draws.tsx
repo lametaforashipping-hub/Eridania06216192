@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -34,6 +35,10 @@ interface Lottery {
   id: string;
   name: string;
   country: string;
+  lottery_type: string;
+  min_number: number;
+  max_number: number;
+  numbers_to_pick: number;
 }
 
 export default function Draws() {
@@ -45,6 +50,9 @@ export default function Draws() {
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [showLotteryModal, setShowLotteryModal] = useState(false);
+  const [showManualDrawModal, setShowManualDrawModal] = useState(false);
+  const [selectedLottery, setSelectedLottery] = useState<Lottery | null>(null);
+  const [manualNumbers, setManualNumbers] = useState<string[]>([]);
 
   const fetchDraws = useCallback(async () => {
     try {
