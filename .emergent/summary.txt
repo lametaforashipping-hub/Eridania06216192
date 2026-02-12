@@ -1,154 +1,159 @@
 <analysis>**original_problem_statement:**
-El usuario solicitó las siguientes funcionalidades:
-1.  Al crear un usuario, poder asignarle un porcentaje de ganancia. Esta acción solo puede ser realizada por un superadministrador.
-2.  Añadir más campos de información al crear un usuario (cédula, teléfono, dirección).
-3.  Los usuarios con rol vendedor solo deben tener permisos para vender y no deben poder realizar ningún otro cambio o acceder a secciones de administración.
-4.  En la pantalla de múltiple jugada, permitir la selección de varias loterías a la vez.
-5.  Después de que se cree una jugada, el formulario debe reiniciarse automáticamente para poder ingresar una nueva jugada u otro tique.
-6.  Implementar un sistema de notificaciones para alertar a los vendedores cuando uno de sus clientes gana un premio.
+The user requested the following features and bug fixes for their lottery application:
 
-**User's preferred language**: Spanish
+**PRODUCT REQUIREMENTS:**
+1.  **Bug Fix (Mobile):** In the multi-play screen of the mobile app, the keyboard covers the create play button, preventing users from submitting.
+2.  **Ticket/Receipt Enhancement:** The sales ticket is missing key information and needs to be better organized. It should include:
+    *   A barcode.
+    *   Company information.
+    *   Company logo.
+3.  **Lottery Schedules (Core Feature):** Implement a system to manage lottery operating hours.
+    *   **Phase 1:** Add daily opening and closing times. Sales should be automatically blocked when a lottery is closed. (Completed)
+    *   **Phase 2:** Allow for different opening/closing times for each day of the week. (Completed)
+    *   **Phase 3:** Add the ability to manage holidays, allowing lotteries to be closed all day or have special hours on specific dates. (Completed)
+4.  **Sales Limits (New Request):** Implement a limit on the quantity of tickets that can be sold for a specific number within a given lottery.
+
+**User's preferred language**: Spanish. The next agent MUST respond in Spanish.
 
 **what currently exists?**
-La aplicación es un sistema de lotería con un frontend en React Native (Expo) y un backend en FastAPI. Las funcionalidades implementadas en esta sesión son:
--   **Gestión de Usuarios Avanzada**: El formulario de creación de usuarios ahora incluye campos para Cédula/ID, Teléfono, Dirección y un porcentaje de comisión individual. La tarjeta de usuario muestra esta comisión. Los roles están restringidos, y los vendedores solo pueden acceder a las funciones de venta.
--   **Mejoras en la Venta**: El formulario de Multi-Jugada se resetea automáticamente después de añadir una jugada. La comisión del vendedor no se muestra en el recibo impreso del cliente.
--   **Verificación de Boletos**: Se ha creado una pantalla Verificar Boleto que permite escanear o introducir un número de boleto para comprobar su estado (pendiente, ganador, perdedor).
--   **Sistema de Notificaciones**: Se implementó un sistema que envía notificaciones específicas a cada vendedor cuando un boleto vendido por ellos resulta ganador. Un icono de campana (🔔) con un contador aparece en el encabezado del dashboard para alertar sobre nuevas notificaciones.
--   **Seguridad**: Se corrigió una vulnerabilidad que exponía las contraseñas y los  de los usuarios en las respuestas de la API.
+The project is a full-stack lottery application.
+-   **Frontend:** A React Native (Expo) mobile application.
+-   **Backend:** A Python Flask API.
+-   **Database:** PostgreSQL.
+-   **Infrastructure:** The entire stack is containerized using Docker and managed via .
+
+The agent has successfully implemented a comprehensive lottery scheduling system, including daily hours, weekly variations, and holiday management. The backend logic validates the lottery status before creating a ticket, and the frontend has been updated to display the status and manage these new settings. The sales ticket has been updated to include a barcode and placeholders for company information.
 
 **Last working item**:
--   Last item agent was working: Implementación de un sistema de notificaciones para alertar a los vendedores cuando un cliente gana. Esto incluyó la creación de un nuevo tipo de notificación (), la actualización del backend para generar estas notificaciones, y la modificación del frontend para mostrar un ícono con contador en el header y renderizar las nuevas notificaciones en su pantalla dedicada.
--   Status: USER VERIFICATION PENDING
--   Agent Testing Done: Y (Visual verification via screenshot tool confirmed the UI elements appeared correctly after a cache-clearing restart.)
--   Which testing method agent to use? backend testing agent (To verify the notification generation logic when winners are checked) and frontend testing agent (To verify the UI flow of receiving and viewing a notification).
--   User Testing Done: N
+The agent was about to begin work on a new feature requested by the user.
+
+-   **Last item agent was working:** Implementing a limit on the number of tickets that can be sold per number for each lottery.
+-   **Status:** NOT STARTED
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** backend testing agent
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Los usuarios existentes en la base de datos no tienen el campo . (PRIORITY: P2 - LOW)
+-   **Issue 1:** Implement ticket sales limit per number (P0)
 
 **Issues Detail:**
--   Issue 1:
-    -   **Description**: El testing agent detectó que los usuarios creados antes de esta sesión no tendrán el campo  en la base de datos, lo que podría causar errores si el código espera que este campo siempre exista.
-    -   **Attempted fixes**: Ninguno. El agente lo identificó como un problema de baja prioridad y procedió con otras tareas.
-    -   **Next debug checklist**:
-        1.  Crear un script de migración de datos en el backend.
-        2.  El script debe iterar sobre todos los usuarios que no tengan el campo .
-        3.  Asignar un valor por defecto (ej. 0) a este campo para todos esos usuarios.
-        4.  Ejecutar el script una vez para actualizar la base de datos.
-    -   **Why fix this issue and what will be achieved with the fix?**: Para garantizar la integridad de los datos y prevenir posibles errores  o  en el frontend o backend al acceder a las propiedades de un usuario antiguo.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: backend
-    -   **Blocked on other issue**: None
+-   **Issue 1:** Implement a limit on the number of tickets sold per number per lottery.
+    -   **Attempted fixes:** None. This is a new feature request.
+    -   **Next debug checklist:**
+        1.  **DB Schema:** Modify the  model in  to add a field for the ticket limit per number (e.g., ).
+        2.  **Backend Logic:** Update the ticket creation endpoint ( in ). Before creating a new play, add logic to query the  table and count how many tickets have already been sold for that number in the specific lottery draw.
+        3.  **Validation:** If the count has reached the limit, return an error message to the user.
+        4.  **Frontend:** Update the lottery creation/edit form in  to include an input field for this new limit.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical business rule for managing sales risk and ensuring fair play.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None
 
 **In progress Task List**:
-No hay tareas en progreso.
+There are no tasks currently in progress.
 
 **Upcoming and Future Tasks**
-Todas las tareas solicitadas por el usuario en esta sesión han sido implementadas. No hay tareas futuras pendientes según el historial de la conversación. El siguiente paso sería esperar el feedback del usuario sobre las funcionalidades entregadas.
+**Upcoming Tasks:**
+-   **P0:** Implement the ticket limit per number feature as described in the Pending Issue List.
+
+**Future Tasks:**
+-   **P1:** Add the final company logo and information to the sales ticket in . Currently, these are placeholders.
+-   **P2:** Fix the keyboard overlapping bug on the multi-play screen as described in Earlier issues found/mentioned but not fixed.
 
 **Completed work in this session**
--   **Mejora del sistema de usuarios (DONE)**:
-    -   Se añadieron los campos , , ,  al modelo  en .
-    -   Se actualizó el endpoint de registro en  para manejar los nuevos campos.
-    -   Se actualizó el formulario de creación de usuario en  y  para incluir los nuevos campos.
--   **Reset automático en Multi-Jugada (DONE)**:
-    -   Se modificó la función  en  para limpiar los campos del formulario tras añadir una jugada.
--   **Verificador de boletos (DONE)**:
-    -   Se creó el endpoint  en .
-    -   Se creó la pantalla del escáner en .
-    -   Se añadió el enlace a la nueva pantalla en el menú del dashboard en .
--   **Corrección de seguridad en API (DONE)**:
-    -   Se crearon modelos de respuesta Pydantic () para excluir campos sensibles como  en .
-    -   Se actualizaron los endpoints en  y  para usar estos modelos de respuesta.
--   **Sistema de Notificaciones para Ganadores (DONE)**:
-    -   Se actualizó la lógica de  en  para crear notificaciones  por vendedor.
-    -   Se añadió el componente  en .
-    -   Se integró el badge en .
-    -   Se actualizó la pantalla  para mostrar los detalles de los boletos ganadores.
+-   **Lottery Scheduling System:**
+    -   Implemented daily opening/closing times (, ).
+    -   Added support for different schedules per day of the week ( JSONB field).
+    -   Implemented a holiday management system to close lotteries or set special hours ( JSONB field and a new endpoint ).
+-   **Ticket Redesign:**
+    -   Integrated  to add a barcode to the ticket view in .
+    -   Added placeholder sections for company logo and info on the ticket.
+-   **Frontend UI for Lottery Management:**
+    -   Overhauled  with modals and forms to create and edit lotteries, including their daily, weekly, and holiday schedules.
+-   **Bug Fix:**
+    -   Corrected the logic in  that generated the opens tomorrow message to correctly use the default opening time.
 
 **Earlier issues found/mentioned but not fixed**
-No hay problemas mencionados anteriormente que no se hayan solucionado, aparte del de la migración de datos que ya está en la lista de pendientes.
+-   **Issue 1:** The mobile app keyboard covers the create play button in the multi-play screen.
+    -   **Debug checklist:**
+        -   Inspect the layout of the multi-play screen, likely located in .
+        -   Wrap the main view or form component with React Native's . Adjust the  (e.g., padding, height) and  props as needed to ensure the input fields and the submit button remain visible when the keyboard is open.
+    -   **Why to solve this issue and what will be achieved with this?** This is a critical UI bug that blocks users from completing a core action in the application. Fixing it will restore essential functionality.
+    -   **Should Test frontend/backend/both after fix:** frontend
+    -   **Is recurring issue?** N
 
 **Known issue recurrence from previous fork**
-No aplica, ya que la sesión no comenzó desde un fork anterior con problemas recurrentes.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend**: React Native, Expo (SDK 49), TypeScript, File-based routing.
--   **Backend**: Python, FastAPI, Pydantic (para validación de datos y modelos de respuesta).
--   **Database**: MongoDB (utilizado a través de la librería ).
--   **State Management**: React Context API ().
+-   **Frontend:** React Native (with Expo)
+-   **Backend:** Python (Flask)
+-   **Database:** PostgreSQL
+-   **API Style:** RESTful API
+-   **Architecture:** Microservices-like architecture containerized with Docker.
 
 **key DB schema**
--   : 
--   : 
+-   **lotteries:** 
+    -   : Stores opening/closing times for each day of the week.
+    -   : Stores specific dates that are holidays, with options to be closed or have special hours.
 
 **changes in tech stack**
-Ninguno.
+-   None.
 
 **All files of reference**
--   : Se añadieron campos al modelo de usuario y se creó un modelo de respuesta para seguridad.
--   , : Se actualizaron para manejar los nuevos campos de usuario y usar el modelo de respuesta seguro.
--   : Se añadió el nuevo endpoint de verificación de boletos.
--   : Se modificó para generar notificaciones personalizadas para los ganadores.
--   : Se actualizó para incluir detalles del ganador.
--   : Se actualizó la UI para mostrar la comisión y el formulario modal.
--   : Se añadieron los nuevos campos de entrada al formulario.
--   : Se implementó el reseteo automático del formulario.
--   : **(Nuevo archivo)** Pantalla para verificar boletos.
--   : Se añadió el enlace Verificar al menú.
--   : **(Nuevo archivo)** Componente para el contador de notificaciones.
--   : Se integró el badge de notificaciones.
--   : Se actualizó para mostrar las nuevas alertas de ganadores.
--   : Se añadieron los estilos para los nuevos componentes y modificaciones.
+-   : Modified to add new endpoints for holidays and to update lottery creation/retrieval logic to handle new scheduling fields.
+-   : The  model was significantly updated to include fields for daily, weekly, and holiday schedules.
+-   : Contains the critical  function, which centralizes all business logic for determining if a lottery is available for sales.
+-   : Major UI/UX changes to add forms and modals for managing the complex lottery schedules.
+-   : Updated to display lottery status messages (e.g., Closed) and to include the redesigned ticket with a barcode.
+-   : Added new styles to support the UI changes in the lottery management screen.
+-   : Updated to reflect the completion of the scheduling features.
 
-**Areas that need refactoring**:
--   La lógica de la base de datos necesita un script de migración para añadir  a los usuarios antiguos y evitar errores.
+**Areas that need refactoring**
+-   The function  in  has grown complex. It returns a tuple of 5 values. This could be refactored to return a Pydantic model or a dictionary to improve code readability and make it less error-prone when its signature changes.
 
 **key api endpoints**
--   : Crea un nuevo usuario con campos extendidos.
--   : Obtiene la lista de usuarios (ahora con respuesta segura).
--   : Verifica el estado de un boleto por su número.
--   : Obtiene las notificaciones para el usuario autenticado.
--   : Marca una notificación como leída.
+-   : Retrieves all lotteries, including their calculated current status (open/closed).
+-   : Creates a new lottery with its schedule.
+-   : Creates a new sales ticket, internally calling  for validation.
+-   : Manages holidays for a specific lottery.
 
 **Critical Info for New Agent**
--   El agente identificó correctamente que la estructura del proyecto (Expo/FastAPI) no coincidía con un resumen anterior, lo que fue clave para empezar a trabajar.
--   Los problemas de la interfaz de usuario que no se actualizaba (ej. la columna de comisión o el icono de notificación) se resolvieron reiniciando el servidor de desarrollo de Expo. Esto indica un posible problema de caché con Hot Module Replacement (HMR) y el agente debe tenerlo en cuenta si los cambios visuales no se aplican de inmediato.
--   Se utilizó el  para encontrar problemas y se actuó sobre el informe, corrigiendo un problema de seguridad de prioridad media. El problema de migración de datos de baja prioridad fue pospuesto.
+-   The user's next request is to implement a limit on the number of tickets sold per number in a lottery. This is the top priority.
+-   **Respond in Spanish.** All communication with the user must be in Spanish.
+-   The core logic for sales availability is in  -> . Any new sales validation will likely interact with this function or the  endpoint.
+-   A user-reported bug about a keyboard covering a button on the mobile app was acknowledged but never fixed. This should be addressed after the current task.
 
 **documents and test reports created in this job**
 -   
--   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  : Confirmación para proceder con las tareas.
-2.  : Confirmación para proceder con el sistema de notificaciones.
-3.  : Confirmación para proceder con el plan.
-4.  : Respuesta a una pregunta del agente, confirmando que todos los barrios son relevantes.
-5.  : Mensaje inicial con la lista de requisitos.
-(El resto son mensajes de si confirmando planes). Todos los mensajes del usuario han sido atendidos.
+1.   (Message 178): User confirmed they want the agent to implement a limit on the number of tickets sold per number. **This is the pending task.**
+2.   (Message 125): User confirmed they want the agent to work on the holiday feature. (Completed)
+3.   (Message 64): User confirmed they want the agent to work on different lottery hours per day of the week. (Completed)
+4.   (Message 7): User confirmed the initial plan and added details about what's missing on the ticket. (Partially Completed)
+5.   (Message 4): The initial problem statement from the user. (Partially addressed)
 
 **Project Health Check:**
--   **Broken**: Nada parece estar roto.
--   **Mocked**: No se está utilizando data mockeada; la aplicación se conecta a una base de datos real.
+-   **Broken:** The multi-play screen in the mobile app is functionally broken due to the keyboard overlap bug.
+-   **Mocked:** The company logo and business information on the sales ticket are placeholders and not real data.
 
 **3rd Party Integrations**
--   : Utilizado para la funcionalidad de escaneo de códigos de barras.
--   : Utilizado para procesar los datos del escáner de la cámara.
+-   : Used in the frontend to generate a barcode image for the ticket.
+-   No LLM integrations are present.
 
 **Testing status**
--   Testing agent used after significant changes: YES
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None
--   Known regressions: None
+-   **Testing agent used after significant changes:** YES. The testing agent was used successfully after the implementation of daily hours, weekly hours, and holiday features.
+-   **Troubleshoot agent used after agent stuck in loop:** NO.
+-   **Test files created:** The testing agent created temporary test files during its runs, but they were not persisted.
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
-Las credenciales por defecto deberían funcionar. Si no, el agente deberá crear un superadministrador para poder acceder a todas las funcionalidades y crear otros usuarios.
+No credentials are required for local testing.
 
 **What agent forgot to execute**
--   El agente identificó la necesidad de una migración de datos para añadir el campo  a los usuarios existentes (basado en el informe del testing agent) pero pospuso su implementación por considerarla de baja prioridad. Esta es la única tarea pendiente identificada.</analysis>
+The agent failed to address the very first bug reported by the user: chequear la app movil que cuando se esta en miltiple jugana el teclado tapa la opcion de crear jugada (In the mobile app, on the multi-play screen, the keyboard covers the 'create play' option). This was included in the agent's initial plan but was never implemented.</analysis>
