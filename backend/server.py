@@ -2304,8 +2304,9 @@ async def get_sellers_report(
         
         tickets = await db.tickets.find(ticket_query).to_list(10000)
         
-        total_sales = sum(t["amount"] for t in tickets if t["status"] != TicketStatus.CANCELLED.value)
-        total_wins = sum(t["potential_win"] for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+        # Handle both 'amount' (single tickets) and 'total_amount' (multi-play tickets)
+        total_sales = sum(t.get("amount", t.get("total_amount", 0)) for t in tickets if t["status"] != TicketStatus.CANCELLED.value)
+        total_wins = sum(t.get("potential_win", t.get("total_potential_win", 0)) for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
         tickets_sold = len([t for t in tickets if t["status"] != TicketStatus.CANCELLED.value])
         tickets_won = len([t for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value]])
         
