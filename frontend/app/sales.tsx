@@ -103,10 +103,31 @@ export default function Sales() {
   const [lastTicket, setLastTicket] = useState<MultiPlayTicketResponse | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [lotteryTypeFilter, setLotteryTypeFilter] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
+  const [showSaveFavoriteModal, setShowSaveFavoriteModal] = useState(false);
+  const [favoriteName, setFavoriteName] = useState('');
+  const [savingFavorite, setSavingFavorite] = useState(false);
 
   useEffect(() => {
     fetchLotteries();
+    fetchFavorites();
   }, []);
+
+  const fetchFavorites = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/favorites`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFavorites(data);
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  };
 
   const fetchLotteries = async () => {
     try {
