@@ -186,5 +186,7 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - `/app/test_reports/iteration_1.json` - Tests de sesión anterior
 - `/app/test_reports/iteration_2.json` - Tests de horarios de lotería (13 tests pasados)
 - `/app/test_reports/iteration_3.json` - Tests de horarios semanales (11 tests pasados)
+- `/app/test_reports/iteration_4.json` - Tests de días festivos (17 tests pasados)
 - `/app/backend/tests/test_lottery_opening_hours.py` - Tests de horarios
 - `/app/backend/tests/test_weekly_hours.py` - Tests de horarios semanales
+- `/app/backend/tests/test_holiday_feature.py` - Tests de días festivos
