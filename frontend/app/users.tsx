@@ -580,6 +580,27 @@ const styles = StyleSheet.create({
   balanceValue: {
     color: '#22c55e',
   },
+  commissionValue: {
+    color: '#f59e0b',
+  },
+  userPhone: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  extraInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+  },
+  extraInfoText: {
+    fontSize: 12,
+    color: '#64748b',
+    marginLeft: 6,
+  },
   userActions: {
     flexDirection: 'row',
     marginTop: 12,
