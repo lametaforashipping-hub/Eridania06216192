@@ -115,6 +115,7 @@ class UserResponse(BaseModel):
     balance: float
     commission_rate: float
     currency: Currency
+    country: str = "RD"
     created_by: Optional[str] = None
     created_at: datetime
     active: bool = True
@@ -133,6 +134,7 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     cedula: Optional[str] = None
+    country: Optional[str] = None
 
 class PrizeRule(BaseModel):
     position: str  # primera, segunda, tercera, or "any"
