@@ -31,6 +31,10 @@ interface User {
   currency: string;
   active: boolean;
   created_at: string;
+  commission_rate?: number;
+  phone?: string;
+  address?: string;
+  cedula?: string;
 }
 
 export default function Users() {
