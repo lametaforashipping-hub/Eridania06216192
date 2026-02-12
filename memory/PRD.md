@@ -60,9 +60,32 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Monitoreo en tiempo real
 - Panel de límites
 
+### 📊 Reporte Detallado por Vendedor (NUEVO - 12 Feb 2026)
+- **Períodos de tiempo:** Diario, Semanal, Quincenal, Mensual
+- **Resumen completo:**
+  - Total de ventas
+  - Total de premios
+  - Comisión calculada (%)
+  - Ganancia neta
+- **Conteo de boletos:** Total, Pendientes, Ganadores, Pagados, Perdidos, Cancelados
+- **Desglose diario:** Gráfico de barras con ventas por día (para períodos semanal+)
+- **Detalle de boletos:** Lista expandible con todos los tickets del período
+- **Acceso:** Click en vendedor desde "Reporte por Vendedores"
+
+### 🎫 Lista de Boletos Mejorada (NUEVO - 12 Feb 2026)
+- **Soporte Multi-jugada:** Muestra "Multi-jugada (X jugadas)" con detalle de plays
+- **Soporte boletos simples:** Muestra nombre de lotería y números jugados
+- **Filtros:** Todos, Pendientes, Ganadores, Pagados, Perdidos, Cancelados
+
 ## Cambios Recientes (12 Feb 2026)
 
 ### Implementado Hoy
+- ✅ **Reporte Detallado por Vendedor** - Nuevo endpoint y pantalla con períodos (diario/semanal/quincenal/mensual)
+- ✅ **Navegación a Reporte Detallado** - Click en vendedor abre su reporte detallado
+- ✅ **Mejora tickets.tsx** - Soporte completo para boletos multi-play y simples
+- ✅ **Ticket HTML Rediseñado** - Más compacto, letra más negrita, números más pequeños
+
+### Implementado Anteriormente
 - ✅ **Jugadas Favoritas** - Guardar, usar y eliminar combinaciones frecuentes
 - ✅ **Sistema de Carrito en Ventas** - Selección múltiple de loterías
 - ✅ **Banderas de País en Reportes** - 🇩🇴 RD$ y 🇺🇸 $ en Dashboard
@@ -103,25 +126,29 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - GET /api/accounting/summary?country={RD|US}
 - GET /api/accounting/sellers-report?country={RD|US}
 - GET /api/accounting/daily-chart?country={RD|US}
+- **GET /api/accounting/detailed-seller-report?period={daily|weekly|biweekly|monthly}&seller_id={id}** (NUEVO)
 
 ## Tareas Pendientes
 
 ### P1 - Prioridad Alta
-- Investigar error de "boleto" en móvil (usuario reportó problema, sin detalles)
+- Ninguna pendiente
 
 ### P2 - Prioridad Media
+- Investigar error de "boleto" en móvil (usuario reportó problema, sin detalles)
 - Optimizar carga de página de Usuarios
 - Chequeo general del sistema móvil y web
 
 ## Archivos Clave
-- `/app/backend/server.py` - API completa con favoritos, pagos, filtrado
+- `/app/backend/server.py` - API completa con reporte detallado, favoritos, pagos, filtrado
 - `/app/frontend/app/sales.tsx` - Sistema de carrito con favoritos
 - `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
-- `/app/frontend/app/tickets.tsx` - Lista y pago de tickets
-- `/app/frontend/app/sellers-report.tsx` - Reporte con banderas
+- `/app/frontend/app/tickets.tsx` - Lista de tickets con soporte multi-play
+- `/app/frontend/app/sellers-report.tsx` - Reporte con banderas y navegación a detallado
+- `/app/frontend/app/detailed-seller-report.tsx` - Nuevo reporte detallado por vendedor (NUEVO)
 
 ## Test Reports
+- `/app/test_reports/iteration_10.json` - Pruebas de reporte detallado y tickets (100% passed)
 - `/app/test_reports/iteration_9.json` - Pruebas de favoritos y pagos (100% passed)
 - `/app/test_reports/iteration_8.json` - Pruebas de carrito y banderas (100% passed)
 - `/app/test_reports/iteration_7.json` - Pruebas de filtrado por país (100% passed)
-- `/app/backend/tests/test_favorites.py` - Tests de favoritos CRUD
+- `/app/backend/tests/test_detailed_seller_report.py` - Tests del nuevo reporte (NUEVO)
