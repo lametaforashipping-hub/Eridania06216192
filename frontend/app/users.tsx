@@ -312,7 +312,7 @@ export default function Users() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>Nombre</Text>
+              <Text style={styles.inputLabel}>Nombre *</Text>
               <TextInput
                 style={styles.input}
                 value={newName}
@@ -321,7 +321,7 @@ export default function Users() {
                 placeholderTextColor="#64748b"
               />
 
-              <Text style={styles.inputLabel}>Email</Text>
+              <Text style={styles.inputLabel}>Email *</Text>
               <TextInput
                 style={styles.input}
                 value={newEmail}
@@ -332,7 +332,7 @@ export default function Users() {
                 autoCapitalize="none"
               />
 
-              <Text style={styles.inputLabel}>Contraseña</Text>
+              <Text style={styles.inputLabel}>Contraseña *</Text>
               <TextInput
                 style={styles.input}
                 value={newPassword}
@@ -340,6 +340,34 @@ export default function Users() {
                 placeholder="Contraseña"
                 placeholderTextColor="#64748b"
                 secureTextEntry
+              />
+
+              <Text style={styles.inputLabel}>Cédula / Identificación</Text>
+              <TextInput
+                style={styles.input}
+                value={newCedula}
+                onChangeText={setNewCedula}
+                placeholder="000-0000000-0"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>Teléfono</Text>
+              <TextInput
+                style={styles.input}
+                value={newPhone}
+                onChangeText={setNewPhone}
+                placeholder="809-000-0000"
+                placeholderTextColor="#64748b"
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.inputLabel}>Dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={newAddress}
+                onChangeText={setNewAddress}
+                placeholder="Dirección completa"
+                placeholderTextColor="#64748b"
               />
 
               <Text style={styles.inputLabel}>Rol</Text>
@@ -356,6 +384,16 @@ export default function Users() {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              <Text style={styles.inputLabel}>Porcentaje de Comisión (%)</Text>
+              <TextInput
+                style={styles.input}
+                value={newCommissionRate}
+                onChangeText={setNewCommissionRate}
+                placeholder="10"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
 
               <Text style={styles.inputLabel}>Límite de Crédito (RD$)</Text>
               <TextInput
