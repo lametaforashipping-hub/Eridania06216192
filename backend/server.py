@@ -826,6 +826,51 @@ async def get_holidays(lottery_id: str):
         raise HTTPException(status_code=404, detail="Lotería no encontrada")
     return lottery.get("holidays", [])
 
+@api_router.get("/lotteries/{lottery_id}/number-stats")
+async def get_lottery_number_stats(lottery_id: str, current_user: dict = Depends(get_current_user)):
+    """Get statistics of how many tickets have been sold per number for a lottery (for limit tracking)"""
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    ticket_limit = lottery.get("ticket_limit_per_number")
+    
+    # Aggregate to count tickets per number
+    pipeline = [
+        {"$match": {"lottery_id": lottery_id, "status": {"$ne": TicketStatus.CANCELLED.value}}},
+        {"$unwind": "$numbers"},
+        {"$group": {"_id": "$numbers", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    
+    number_counts = await db.tickets.aggregate(pipeline).to_list(200)
+    
+    # Format response
+    stats = []
+    blocked_numbers = []
+    for item in number_counts:
+        num = item["_id"]
+        count = item["count"]
+        is_blocked = ticket_limit and ticket_limit > 0 and count >= ticket_limit
+        stats.append({
+            "number": num,
+            "sold_count": count,
+            "limit": ticket_limit,
+            "remaining": (ticket_limit - count) if ticket_limit else None,
+            "is_blocked": is_blocked
+        })
+        if is_blocked:
+            blocked_numbers.append(num)
+    
+    return {
+        "lottery_id": lottery_id,
+        "lottery_name": lottery["name"],
+        "ticket_limit_per_number": ticket_limit,
+        "number_stats": stats,
+        "blocked_numbers": blocked_numbers,
+        "total_numbers_with_sales": len(stats)
+    }
+
 # ==================== ANIMALITOS ====================
 @api_router.get("/animalitos")
 async def get_animalitos():
