@@ -88,11 +88,17 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Endpoint `GET /api/admin/config` para obtener configuración
   - Endpoint `PUT /api/admin/config` para actualizar configuración
   - Badge "ALTO RIESGO" en pantalla En Vivo (color rojo pulsante)
-  - Tickets de alto riesgo tienen borde rojo y fondo destacado
 - ✅ **Configuración de Premios por Lotería**
   - Campo `prize_tiers` agregado a modelo de lotería
   - Endpoint `PUT /api/lotteries/{lottery_id}/prize-tiers` para Super Admin
   - Permite configurar multiplicadores: {"first": 70, "second": 15, "third": 5}
+- ✅ **Pantalla de Configuración del Sistema**
+  - Nueva pantalla `/system-settings` solo para Super Admin
+  - Editar umbrales de alto riesgo (RD$ y USD)
+  - Editar intervalo de auto-refresh
+  - Lista de loterías con multiplicadores actuales
+  - Modal para editar multiplicadores por lotería (1ro, 2do, 3ro lugar)
+  - Menú "Configuración" agregado al dashboard
 
 ### Implementado Sesión 3 - En Vivo y Gestión Vendedores
 - ✅ **Tickets en Tiempo Real (En Vivo)**
