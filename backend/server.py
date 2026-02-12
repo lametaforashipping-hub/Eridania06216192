@@ -1220,6 +1220,7 @@ async def get_live_monitoring(current_user: dict = Depends(require_role([UserRol
         users = await db.users.find({"created_by": current_user["id"]}).to_list(1000)
     
     monitoring_data = []
+    total_commission = 0
     
     for user in users:
         tickets = await db.tickets.find({
@@ -1227,9 +1228,24 @@ async def get_live_monitoring(current_user: dict = Depends(require_role([UserRol
             "created_at": {"$gte": today_start}
         }).to_list(10000)
         
-        today_sales = sum(t["amount"] for t in tickets if t["status"] != TicketStatus.CANCELLED.value)
-        today_wins = sum(t["potential_win"] for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+        # Calculate detailed stats
+        valid_tickets = [t for t in tickets if t["status"] != TicketStatus.CANCELLED.value]
+        today_sales = sum(t.get("amount", 0) for t in valid_tickets)
+        today_wins = sum(t.get("potential_win", 0) for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value])
+        
+        total_tickets = len(valid_tickets)
         pending_tickets = len([t for t in tickets if t["status"] == TicketStatus.PENDING.value])
+        winning_tickets = len([t for t in tickets if t["status"] == TicketStatus.WON.value])
+        paid_tickets = len([t for t in tickets if t["status"] == TicketStatus.PAID.value])
+        
+        # Calculate commission earned today
+        commission_rate = user.get("commission_rate", 10.0)
+        commission_earned = today_sales * (commission_rate / 100)
+        total_commission += commission_earned
+        
+        # Calculate credit usage
+        credit_limit = user.get("credit_limit", 999999999)
+        credit_used = today_sales  # Simplified: credit used = today's sales
         
         monitoring_data.append({
             "user_id": user["id"],
@@ -1238,28 +1254,34 @@ async def get_live_monitoring(current_user: dict = Depends(require_role([UserRol
             "today_sales": today_sales,
             "today_wins": today_wins,
             "today_profit": today_sales - today_wins,
+            "total_tickets": total_tickets,
             "pending_tickets": pending_tickets,
+            "winning_tickets": winning_tickets,
+            "paid_tickets": paid_tickets,
             "active": user.get("active", True),
             "last_activity": user.get("last_activity"),
-            "commission_rate": user.get("commission_rate", 10.0),
-            "credit_limit": user.get("credit_limit", 0),
-            "balance": user.get("balance", 0)
+            "commission_rate": commission_rate,
+            "commission_earned": commission_earned,
+            "credit_limit": credit_limit,
+            "credit_used": credit_used
         })
     
     monitoring_data.sort(key=lambda x: x["today_sales"], reverse=True)
     
+    # Global stats
     total_sales = sum(m["today_sales"] for m in monitoring_data)
     total_wins = sum(m["today_wins"] for m in monitoring_data)
-    total_pending = sum(m["pending_tickets"] for m in monitoring_data)
+    total_tickets = sum(m["total_tickets"] for m in monitoring_data)
     
     return {
         "users": monitoring_data,
-        "summary": {
+        "global_stats": {
             "total_sales": total_sales,
             "total_wins": total_wins,
             "total_profit": total_sales - total_wins,
-            "total_pending_tickets": total_pending,
-            "active_sellers": len([m for m in monitoring_data if m["active"]])
+            "total_tickets": total_tickets,
+            "active_users": len([m for m in monitoring_data if m["active"]]),
+            "total_commission": total_commission
         }
     }
 
