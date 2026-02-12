@@ -1187,6 +1187,24 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     all_lotteries = await db.lotteries.find({"active": True}).to_list(100)
     lottery_map = {l["lottery_type"]: l for l in all_lotteries}
     
+    # Check if any lottery is open for multi-play
+    # We need at least one open lottery to create multi-play tickets
+    any_lottery_open = False
+    closed_lotteries = []
+    
+    for lottery in all_lotteries:
+        is_open, next_draw, closed_message, today_hours, holiday_info = check_lottery_open(lottery)
+        if is_open:
+            any_lottery_open = True
+        else:
+            closed_lotteries.append(lottery["name"])
+    
+    if not any_lottery_open:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Todas las loterías están cerradas. No se pueden crear jugadas en este momento."
+        )
+    
     # Validate and calculate each play
     plays_data = []
     total_amount = 0
