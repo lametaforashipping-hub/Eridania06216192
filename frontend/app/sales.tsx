@@ -63,6 +63,7 @@ export default function Sales() {
   const [lotteries, setLotteries] = useState<Lottery[]>([]);
   const [selectedLottery, setSelectedLottery] = useState<Lottery | null>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  const [numberInput, setNumberInput] = useState('');
   const [amount, setAmount] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [loading, setLoading] = useState(true);
