@@ -1193,6 +1193,23 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
     }
     await db.notifications.insert_one(notification)
     
+    # Create individual notifications for each winning seller
+    for winner in winner_notifications:
+        seller_notification = {
+            "id": str(uuid.uuid4()),
+            "type": "winner_alert",
+            "user_id": winner["user_id"],  # Specific to this seller
+            "lottery_id": lottery["id"],
+            "lottery_name": lottery["name"],
+            "ticket_number": winner["ticket_number"],
+            "prize_amount": winner["prize"],
+            "currency": lottery.get("currency", "RD$"),
+            "message": f"🎉 ¡GANADOR! Boleto {winner['ticket_number']} ganó {lottery.get('currency', 'RD$')} {winner['prize']:,.2f}",
+            "created_at": datetime.utcnow(),
+            "read": False
+        }
+        await db.notifications.insert_one(seller_notification)
+    
     return serialize_doc(draw)
 
 @api_router.get("/draws")
