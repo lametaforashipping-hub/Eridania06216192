@@ -111,6 +111,7 @@ export default function Dashboard() {
     { icon: 'notifications-outline', label: 'Resultados', route: '/notifications', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
     { icon: 'trophy-outline', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'], color: '#eab308' },
     { icon: 'eye-outline', label: 'Monitoreo', route: '/monitoring', roles: ['super_admin', 'admin'], color: '#ef4444' },
+    { icon: 'speedometer-outline', label: 'Límites', route: '/number-limits', roles: ['super_admin', 'admin'], color: '#dc2626' },
     { icon: 'bar-chart-outline', label: 'Mi Reporte', route: '/user-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
     { icon: 'people-outline', label: 'Vendedores', route: '/sellers-report', roles: ['super_admin', 'admin'], color: '#06b6d4' },
     { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
