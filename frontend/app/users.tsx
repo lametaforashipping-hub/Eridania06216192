@@ -759,6 +759,20 @@ const styles = StyleSheet.create({
   addButton: {
     padding: 8,
   },
+  addButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#14532d',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#22c55e',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
   loader: {
     flex: 1,
     justifyContent: 'center',
