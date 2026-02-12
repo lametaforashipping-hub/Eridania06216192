@@ -181,6 +181,18 @@ class PrizeRule(BaseModel):
     matches: int
     multiplier: float
 
+# Schedule structure for weekly hours
+# Example: {"monday": {"open": "08:00", "close": "22:00"}, "sunday": {"open": "10:00", "close": "20:00"}}
+DEFAULT_WEEKLY_SCHEDULE = {
+    "monday": {"open": "08:00", "close": "21:00"},
+    "tuesday": {"open": "08:00", "close": "21:00"},
+    "wednesday": {"open": "08:00", "close": "21:00"},
+    "thursday": {"open": "08:00", "close": "21:00"},
+    "friday": {"open": "08:00", "close": "21:00"},
+    "saturday": {"open": "08:00", "close": "22:00"},
+    "sunday": {"open": "10:00", "close": "20:00"},
+}
+
 class LotteryCreate(BaseModel):
     name: str
     country: str
@@ -196,9 +208,11 @@ class LotteryCreate(BaseModel):
     active: bool = True
     prize_rules: Optional[List[Dict]] = None  # Position-based prizes
     allows_combined: bool = False  # For combined pale/tripleta
-    # New fields for daily open/close times
-    opening_time: Optional[str] = "08:00"  # Daily opening time (HH:MM)
-    closing_time: Optional[str] = "21:00"  # Daily closing time (HH:MM)
+    # Simple daily hours (backward compatible)
+    opening_time: Optional[str] = "08:00"
+    closing_time: Optional[str] = "21:00"
+    # Weekly schedule (different hours per day)
+    weekly_hours: Optional[Dict[str, Dict[str, str]]] = None  # {"monday": {"open": "08:00", "close": "21:00"}, ...}
 
 class LotteryUpdate(BaseModel):
     name: Optional[str] = None
