@@ -570,7 +570,8 @@ async def register(user_data: UserCreate, current_user: dict = Depends(get_curre
         # New fields
         "phone": user_data.phone,
         "address": user_data.address,
-        "cedula": user_data.cedula
+        "cedula": user_data.cedula,
+        "terminal_id": user_data.terminal_id
     }
     await db.users.insert_one(user)
     return {"message": "Usuario creado exitosamente", "user_id": user["id"]}
