@@ -91,6 +91,75 @@ export default function Draws() {
     setRefreshing(false);
   };
 
+  const openManualDrawModal = (lottery: Lottery) => {
+    setSelectedLottery(lottery);
+    // Initialize empty inputs based on numbers_to_pick
+    setManualNumbers(Array(lottery.numbers_to_pick).fill(''));
+    setShowLotteryModal(false);
+    setShowManualDrawModal(true);
+  };
+
+  const executeManualDraw = async () => {
+    if (!selectedLottery) return;
+
+    // Validate numbers
+    const numbers = manualNumbers.map(n => parseInt(n.trim()));
+    if (numbers.some(isNaN)) {
+      Alert.alert('Error', 'Todos los números deben ser válidos');
+      return;
+    }
+    if (numbers.some(n => n < selectedLottery.min_number || n > selectedLottery.max_number)) {
+      Alert.alert('Error', `Números deben estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    Alert.alert(
+      'Confirmar Sorteo',
+      `¿Ejecutar sorteo de ${selectedLottery.name} con números: ${numbers.join(', ')}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Ejecutar',
+          onPress: async () => {
+            setCreating(true);
+            setShowManualDrawModal(false);
+            try {
+              const response = await fetch(`${API_URL}/api/draws`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ 
+                  lottery_id: selectedLottery.id,
+                  winning_numbers: numbers
+                }),
+              });
+
+              if (response.ok) {
+                const draw = await response.json();
+                Alert.alert(
+                  '¡Sorteo Ejecutado!',
+                  `Números ganadores: ${draw.winning_numbers.join(', ')}\nBoletos: ${draw.total_tickets}\nGanadores: ${draw.total_winners}\nPremios: ${draw.currency} ${draw.total_paid.toLocaleString()}`
+                );
+                fetchDraws();
+                setSelectedLottery(null);
+                setManualNumbers([]);
+              } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || 'No se pudo ejecutar el sorteo');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setCreating(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const executeDraw = async (lotteryId: string, lotteryName: string) => {
     Alert.alert(
       'Confirmar Sorteo',
