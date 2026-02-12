@@ -482,6 +482,16 @@ export default function MultiPlay() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Impersonation Warning Banner */}
+      {isImpersonating && (
+        <View style={styles.impersonationBanner}>
+          <Ionicons name="warning" size={18} color="#ffffff" />
+          <Text style={styles.impersonationText}>
+            Creando ticket como: {actAsName || 'Vendedor'}
+          </Text>
+        </View>
+      )}
+      
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
