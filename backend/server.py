@@ -1419,10 +1419,26 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
     if not lottery:
         raise HTTPException(status_code=404, detail="Lotería no encontrada")
     
-    winning_numbers = random.sample(
-        range(lottery["min_number"], lottery["max_number"] + 1),
-        lottery["numbers_to_pick"]
-    )
+    # Use manual winning numbers if provided, otherwise generate randomly
+    if draw_data.winning_numbers and len(draw_data.winning_numbers) > 0:
+        winning_numbers = draw_data.winning_numbers
+        # Validate manual numbers
+        if len(winning_numbers) != lottery["numbers_to_pick"]:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Debe ingresar exactamente {lottery['numbers_to_pick']} número(s)"
+            )
+        for num in winning_numbers:
+            if num < lottery["min_number"] or num > lottery["max_number"]:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Número {num} fuera de rango ({lottery['min_number']}-{lottery['max_number']})"
+                )
+    else:
+        winning_numbers = random.sample(
+            range(lottery["min_number"], lottery["max_number"] + 1),
+            lottery["numbers_to_pick"]
+        )
     winning_numbers.sort()
     
     draw = {
@@ -1435,7 +1451,8 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
         "total_tickets": 0,
         "total_winners": 0,
         "total_paid": 0.0,
-        "currency": lottery["currency"]
+        "currency": lottery["currency"],
+        "is_manual": draw_data.winning_numbers is not None  # Flag if manual entry
     }
     
     # Find pending tickets
