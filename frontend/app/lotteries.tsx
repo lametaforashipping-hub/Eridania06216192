@@ -238,6 +238,67 @@ export default function Lotteries() {
     setFormWeeklyHours(DEFAULT_WEEKLY_HOURS);
     setUseWeeklySchedule(false);
     setFormTicketLimit('');
+    setFormSchedule('12:00,15:00,21:00');
+  };
+
+  const openEditModal = (lottery: Lottery) => {
+    setEditingLottery(lottery);
+    setFormName(lottery.name);
+    setFormCountry(lottery.country);
+    setFormType(lottery.lottery_type);
+    setFormMinNumber(lottery.min_number.toString());
+    setFormMaxNumber(lottery.max_number.toString());
+    setFormNumbersToPick(lottery.numbers_to_pick.toString());
+    setFormPrice(lottery.price.toString());
+    setFormCurrency(lottery.currency);
+    setFormMultiplier(lottery.prize_multiplier.toString());
+    setFormOpeningTime(lottery.opening_time || '08:00');
+    setFormClosingTime(lottery.closing_time || '21:00');
+    setFormWeeklyHours(lottery.weekly_hours || DEFAULT_WEEKLY_HOURS);
+    setUseWeeklySchedule(!!lottery.weekly_hours);
+    setFormTicketLimit(lottery.ticket_limit_per_number?.toString() || '');
+    setFormSchedule(lottery.schedule?.join(',') || '12:00,15:00,21:00');
+    setShowEditModal(true);
+  };
+
+  const handleUpdateLottery = async () => {
+    if (!editingLottery) return;
+    
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/lotteries/${editingLottery.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: formName,
+          price: parseFloat(formPrice),
+          prize_multiplier: parseFloat(formMultiplier),
+          schedule: formSchedule.split(',').map(s => s.trim()),
+          opening_time: formOpeningTime,
+          closing_time: formClosingTime,
+          weekly_hours: useWeeklySchedule ? formWeeklyHours : null,
+          ticket_limit_per_number: formTicketLimit ? parseInt(formTicketLimit) : null,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Éxito', 'Lotería actualizada correctamente');
+        setShowEditModal(false);
+        setEditingLottery(null);
+        resetForm();
+        fetchLotteries();
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.detail || 'No se pudo actualizar la lotería');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getTypeLabel = (type: string) => {
