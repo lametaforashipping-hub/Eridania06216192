@@ -165,6 +165,7 @@ export default function MultiPlay() {
       </div>
     `).join('');
 
+    // NOTE: Commission is NOT shown on the printed ticket - only in seller's view
     return `
       <!DOCTYPE html>
       <html>
