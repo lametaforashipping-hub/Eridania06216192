@@ -298,21 +298,91 @@ export default function Draws() {
                 <Ionicons name="close" size={24} color="#ffffff" />
               </TouchableOpacity>
             </View>
+            <Text style={styles.modalSubtitle}>Seleccione una lotería para ingresar los números ganadores</Text>
             <ScrollView>
               {lotteries.map((lottery) => (
                 <TouchableOpacity
                   key={lottery.id}
                   style={styles.lotteryOption}
-                  onPress={() => executeDraw(lottery.id, lottery.name)}
+                  onPress={() => openManualDrawModal(lottery)}
                 >
-                  <View>
+                  <View style={styles.lotteryOptionInfo}>
                     <Text style={styles.lotteryOptionName}>{lottery.name}</Text>
-                    <Text style={styles.lotteryOptionCountry}>{lottery.country}</Text>
+                    <Text style={styles.lotteryOptionCountry}>{lottery.country} • {lottery.lottery_type}</Text>
+                    <Text style={styles.lotteryOptionNumbers}>
+                      Rango: {lottery.min_number}-{lottery.max_number} • {lottery.numbers_to_pick} número(s)
+                    </Text>
                   </View>
-                  <Ionicons name="play-circle" size={32} color="#22c55e" />
+                  <Ionicons name="chevron-forward" size={24} color="#22c55e" />
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Manual Draw Modal */}
+      <Modal visible={showManualDrawModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Ingresar Números Ganadores</Text>
+              <TouchableOpacity onPress={() => { setShowManualDrawModal(false); setSelectedLottery(null); }}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            {selectedLottery && (
+              <ScrollView style={styles.modalBody}>
+                <View style={styles.selectedLotteryInfo}>
+                  <Text style={styles.selectedLotteryName}>{selectedLottery.name}</Text>
+                  <Text style={styles.selectedLotteryDetails}>
+                    Rango: {selectedLottery.min_number} - {selectedLottery.max_number}
+                  </Text>
+                </View>
+
+                <Text style={styles.inputLabel}>Números Ganadores ({selectedLottery.numbers_to_pick})</Text>
+                
+                <View style={styles.numbersInputContainer}>
+                  {manualNumbers.map((num, index) => (
+                    <View key={index} style={styles.numberInputWrapper}>
+                      <Text style={styles.numberInputLabel}>#{index + 1}</Text>
+                      <TextInput
+                        style={styles.numberInput}
+                        value={num}
+                        onChangeText={(text) => {
+                          const newNumbers = [...manualNumbers];
+                          newNumbers[index] = text;
+                          setManualNumbers(newNumbers);
+                        }}
+                        keyboardType="numeric"
+                        placeholder="00"
+                        placeholderTextColor="#64748b"
+                        maxLength={3}
+                      />
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.infoText}>
+                  Ingrese los números ganadores del sorteo oficial
+                </Text>
+
+                <TouchableOpacity
+                  style={[styles.executeButton, creating && styles.executeButtonDisabled]}
+                  onPress={executeManualDraw}
+                  disabled={creating}
+                >
+                  {creating ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <>
+                      <Ionicons name="trophy" size={24} color="#ffffff" />
+                      <Text style={styles.executeButtonText}>Ejecutar Sorteo</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
