@@ -57,9 +57,14 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 ### Control de Horarios de Lotería (NUEVO Feb 2026)
 - [x] **Hora de apertura diaria** (configurable por lotería)
 - [x] **Hora de cierre diaria** (configurable por lotería)
+- [x] **Horarios diferentes por día de la semana** (weekly_hours)
+  - Sábados: horario extendido (08:00-22:00 por defecto)
+  - Domingos: horario reducido (10:00-20:00 por defecto)
+  - Configurable para cada día individualmente
 - [x] **Bloqueo automático de ventas** fuera del horario
-- [x] **Mensaje descriptivo** cuando la lotería está cerrada
+- [x] **Mensaje descriptivo** cuando la lotería está cerrada (incluye día siguiente)
 - [x] Indicador visual de estado (abierta/cerrada) en la lista de loterías
+- [x] Muestra horario del día actual en la tarjeta de lotería
 
 ### Sistema de Notificaciones
 - [x] Campana de notificaciones en dashboard
