@@ -89,7 +89,7 @@ export default function Users() {
 
   const handleCreateUser = async () => {
     if (!newEmail || !newPassword || !newName) {
-      Alert.alert('Error', 'Completa todos los campos');
+      Alert.alert('Error', 'Completa todos los campos obligatorios');
       return;
     }
 
@@ -107,7 +107,11 @@ export default function Users() {
           name: newName,
           role: newRole,
           credit_limit: parseFloat(newCreditLimit),
+          commission_rate: parseFloat(newCommissionRate),
           currency: 'RD$',
+          phone: newPhone || null,
+          address: newAddress || null,
+          cedula: newCedula || null,
         }),
       });
 
