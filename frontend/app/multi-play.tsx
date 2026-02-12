@@ -166,8 +166,9 @@ export default function MultiPlay() {
       </div>
     `).join('');
 
-    // Generate Code128 barcode pattern (simplified visual representation)
-    const barcodeData = ticket.ticket_number.replace(/-/g, '');
+    // Generate QR code URL
+    const qrData = encodeURIComponent(`TICKET:${ticket.ticket_number}|TYPE:MULTI|DATE:${date.toISOString()}`);
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}`;
 
     // NOTE: Commission is NOT shown on the printed ticket - only in seller's view
     return `
@@ -176,73 +177,93 @@ export default function MultiPlay() {
       <head>
         <meta charset="utf-8">
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Courier New', monospace; padding: 10px; max-width: 300px; margin: 0 auto; background: #fff; }
-          .ticket { border: 2px solid #000; border-radius: 8px; overflow: hidden; }
+          body { font-family: 'Arial', sans-serif; padding: 8px; max-width: 320px; margin: 0 auto; background: #fff; }
+          .ticket { border: 3px solid #1e3a5f; border-radius: 12px; overflow: hidden; }
           .header { 
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-            color: white; padding: 15px 10px; text-align: center;
+            color: white; padding: 16px 12px; text-align: center;
           }
           .company-logo { 
-            width: 60px; 
-            height: 60px; 
+            width: 50px; 
+            height: 50px; 
             background: linear-gradient(135deg, #22c55e, #16a34a);
             border-radius: 50%;
             margin: 0 auto 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid #fff;
+            border: 2px solid #fff;
           }
-          .company-logo span { font-size: 30px; }
-          .brand { font-size: 16px; font-weight: bold; letter-spacing: 2px; }
-          .company-info { font-size: 8px; color: #94a3b8; margin-top: 5px; line-height: 1.4; }
-          .slogan { font-size: 9px; color: #86efac; margin-top: 5px; font-style: italic; }
-          .ticket-info { background: #8b5cf6; color: white; padding: 8px; text-align: center; }
-          .ticket-number { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
-          .ticket-type { font-size: 10px; margin-top: 2px; opacity: 0.9; }
-          .body { padding: 12px; }
-          .customer { background: #f0f9ff; border-radius: 5px; padding: 8px; margin-bottom: 10px; text-align: center; font-size: 11px; }
-          .plays { margin: 10px 0; }
-          .plays-title { font-weight: bold; font-size: 12px; margin-bottom: 8px; color: #1e3a5f; border-bottom: 2px solid #1e3a5f; padding-bottom: 5px; }
-          .play-row { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px dotted #e5e7eb; align-items: center; }
-          .play-type { background: #22c55e; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-          .play-numbers { font-weight: bold; font-size: 16px; color: #1e3a5f; letter-spacing: 2px; }
-          .play-amount { color: #22c55e; font-weight: bold; font-size: 12px; }
-          .totals { background: #f0fdf4; border: 1px solid #22c55e; border-radius: 5px; padding: 10px; margin: 10px 0; }
-          .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
-          .total-label { color: #166534; font-size: 11px; }
-          .total-amount { font-size: 16px; font-weight: bold; color: #15803d; }
-          .potential { background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px; }
-          .footer { background: #f8fafc; padding: 12px; text-align: center; border-top: 2px dashed #cbd5e1; }
-          .barcode-container { 
+          .company-logo span { font-size: 26px; }
+          .brand { font-size: 20px; font-weight: bold; letter-spacing: 2px; }
+          .company-info { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.5; }
+          
+          .ticket-number-section { background: #8b5cf6; color: white; padding: 10px; text-align: center; }
+          .ticket-label { font-size: 12px; opacity: 0.9; }
+          .ticket-number { font-size: 16px; font-weight: bold; letter-spacing: 1px; margin-top: 4px; }
+          
+          .body { padding: 14px; }
+          .customer { 
+            background: #f1f5f9; 
+            border-radius: 8px; 
+            padding: 10px; 
+            margin-bottom: 12px; 
+            text-align: center; 
+            font-size: 14px;
+            color: #334155;
+          }
+          .plays { margin: 12px 0; }
+          .plays-title { 
+            font-weight: bold; 
+            font-size: 16px; 
+            margin-bottom: 10px; 
+            color: #1e3a5f; 
+            border-bottom: 2px solid #1e3a5f; 
+            padding-bottom: 6px; 
+          }
+          .play-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 6px; 
+            border-bottom: 1px solid #e2e8f0; 
+            align-items: center; 
+          }
+          .play-type { 
+            background: #22c55e; 
+            color: white; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            font-size: 12px; 
+            font-weight: bold; 
+          }
+          .play-numbers { font-weight: bold; font-size: 20px; color: #1e3a5f; letter-spacing: 3px; }
+          .play-amount { color: #22c55e; font-weight: bold; font-size: 14px; }
+          
+          .totals { 
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
+            border-radius: 10px; 
+            padding: 14px; 
+            margin: 14px 0;
+            text-align: center;
+          }
+          .total-label { color: rgba(255,255,255,0.9); font-size: 13px; }
+          .total-amount { font-size: 28px; font-weight: bold; color: #fff; margin-top: 4px; }
+          
+          .footer { background: #f1f5f9; padding: 14px; text-align: center; border-top: 2px dashed #94a3b8; }
+          .qr-container { 
             background: #fff; 
             padding: 10px; 
-            margin: 8px 0; 
-            border-radius: 4px;
+            margin: 0 auto 10px; 
+            border-radius: 8px;
+            display: inline-block;
+            border: 2px solid #e2e8f0;
           }
-          .barcode { 
-            font-family: 'Libre Barcode 128 Text', cursive; 
-            font-size: 48px; 
-            letter-spacing: 0; 
-            line-height: 1;
-          }
-          .barcode-number { font-size: 10px; color: #374151; letter-spacing: 2px; margin-top: 4px; }
-          .footer-text { font-size: 9px; color: #64748b; margin: 2px 0; }
-          .promo { background: #1e3a5f; color: #fbbf24; padding: 8px; text-align: center; font-size: 10px; font-weight: bold; }
-          .qr-placeholder { 
-            width: 60px; 
-            height: 60px; 
-            background: #f3f4f6; 
-            margin: 8px auto; 
-            border: 1px solid #d1d5db;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            color: #6b7280;
-          }
+          .qr-code { width: 120px; height: 120px; }
+          .qr-label { font-size: 11px; color: #64748b; margin-top: 6px; }
+          .footer-text { font-size: 12px; color: #475569; margin: 4px 0; font-weight: 500; }
+          
+          .promo { background: #1e3a5f; color: #fbbf24; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; }
         </style>
       </head>
       <body>
@@ -256,43 +277,40 @@ export default function MultiPlay() {
               RNC: 000-00000-0 | Tel: (809) 555-0000<br>
               Av. Principal #123, Santo Domingo, RD
             </div>
-            <div class="slogan">✨ Tu suerte está aquí ✨</div>
           </div>
-          <div class="ticket-info">
-            <div class="ticket-number">BOLETO MULTI-JUGADA</div>
-            <div class="ticket-type">#${ticket.ticket_number}</div>
+          
+          <div class="ticket-number-section">
+            <div class="ticket-label">MULTI-JUGADA #</div>
+            <div class="ticket-number">${ticket.ticket_number}</div>
           </div>
+          
           <div class="body">
             <div class="customer">
-              📅 ${date.toLocaleDateString('es-DO')} | 🕐 ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
-              ${ticket.customer_name ? `<br>👤 Cliente: ${ticket.customer_name}` : ''}
+              ${date.toLocaleDateString('es-DO')} | ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
+              ${ticket.customer_name ? `<br>Cliente: ${ticket.customer_name}` : ''}
             </div>
+            
             <div class="plays">
-              <div class="plays-title">🎲 JUGADAS (${ticket.plays.length})</div>
+              <div class="plays-title">JUGADAS (${ticket.plays.length})</div>
               ${playsHTML}
             </div>
+            
             <div class="totals">
-              <div class="total-row">
-                <span class="total-label">💵 Total Jugado:</span>
-                <span class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</span>
-              </div>
-              <div class="total-row">
-                <span class="total-label">🏆 Premio Potencial:</span>
-                <span class="potential">${ticket.currency} ${ticket.total_potential_win.toLocaleString()}</span>
-              </div>
+              <div class="total-label">TOTAL JUGADO</div>
+              <div class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</div>
             </div>
           </div>
+          
           <div class="footer">
-            <div class="barcode-container">
-              <div class="barcode">${barcodeData}</div>
-              <div class="barcode-number">${ticket.ticket_number}</div>
+            <div class="qr-container">
+              <img class="qr-code" src="${qrCodeUrl}" alt="QR Code" />
+              <div class="qr-label">Escanear para verificar</div>
             </div>
-            <div class="footer-text">━━━━━━━━━━━━━━━━━━━━━━━</div>
             <div class="footer-text">✓ Conserve este boleto para cobrar</div>
-            <div class="footer-text">✓ Válido solo con original</div>
-            <div class="footer-text">✓ Verifique en: loteria.com/verificar</div>
+            <div class="footer-text">✓ Válido solo con boleto original</div>
           </div>
-          <div class="promo">🍀 ¡BUENA SUERTE! - JUEGA RESPONSABLEMENTE 🍀</div>
+          
+          <div class="promo">🍀 ¡BUENA SUERTE! 🍀</div>
         </div>
       </body>
       </html>
