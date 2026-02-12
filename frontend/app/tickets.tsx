@@ -44,6 +44,7 @@ export default function Tickets() {
   const { token, user } = useAuth();
   const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'won' | 'lost' | 'cancelled' | 'paid'>('all');
@@ -51,6 +52,7 @@ export default function Tickets() {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchTickets = useCallback(async () => {
     try {
@@ -71,6 +73,21 @@ export default function Tickets() {
       setLoading(false);
     }
   }, [token, filter]);
+
+  // Filter tickets based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredTickets(tickets);
+    } else {
+      const query = searchQuery.trim().toLowerCase();
+      const filtered = tickets.filter(ticket => {
+        // Search by full ticket number or last 4 digits
+        const ticketNum = ticket.ticket_number.toLowerCase();
+        return ticketNum.includes(query) || ticketNum.endsWith(query);
+      });
+      setFilteredTickets(filtered);
+    }
+  }, [tickets, searchQuery]);
 
   useEffect(() => {
     fetchTickets();
