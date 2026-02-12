@@ -890,6 +890,22 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     if len(ticket.numbers) != lottery["numbers_to_pick"]:
         raise HTTPException(status_code=400, detail=f"Debe seleccionar {lottery['numbers_to_pick']} números")
     
+    # Check ticket limit per number (global)
+    ticket_limit = lottery.get("ticket_limit_per_number")
+    if ticket_limit and ticket_limit > 0:
+        for num in ticket.numbers:
+            # Count how many non-cancelled tickets have been sold with this number for this lottery
+            sold_count = await db.tickets.count_documents({
+                "lottery_id": ticket.lottery_id,
+                "numbers": num,
+                "status": {"$ne": TicketStatus.CANCELLED.value}
+            })
+            if sold_count >= ticket_limit:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Límite alcanzado: El número {num} ya tiene {sold_count} boletos vendidos (máximo: {ticket_limit})"
+                )
+    
     # Check credit limit
     if current_user["role"] == UserRole.VENDEDOR.value:
         today_sales = await db.tickets.aggregate([
