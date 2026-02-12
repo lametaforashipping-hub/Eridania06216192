@@ -39,6 +39,9 @@ interface Lottery {
   is_open: boolean;
   next_draw_time: string | null;
   closing_minutes_before: number;
+  opening_time?: string;
+  closing_time?: string;
+  closed_message?: string;
 }
 
 interface TicketResponse {
