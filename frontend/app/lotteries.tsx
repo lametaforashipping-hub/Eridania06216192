@@ -384,6 +384,15 @@ export default function Lotteries() {
           Sorteos: {item.schedule.join(', ')}
         </Text>
       </View>
+
+      {/* Edit Button */}
+      <TouchableOpacity 
+        style={styles.editLotteryButton}
+        onPress={() => openEditModal(item)}
+      >
+        <Ionicons name="create-outline" size={18} color="#ffffff" />
+        <Text style={styles.editLotteryButtonText}>Editar Lotería</Text>
+      </TouchableOpacity>
     </View>
   );
 
