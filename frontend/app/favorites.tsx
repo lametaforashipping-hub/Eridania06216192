@@ -192,50 +192,83 @@ export default function Favorites() {
     });
   };
 
-  const getLotteryName = (lotteryId: string) => {
+  const getLotteryName = (lotteryId?: string) => {
+    if (!lotteryId) return 'Multi-Lotería';
     const lottery = lotteries.find(l => l.id === lotteryId);
     return lottery?.name || 'Desconocida';
   };
 
-  const renderFavorite = ({ item }: { item: Favorite }) => (
-    <View style={styles.favoriteCard}>
-      <View style={styles.favoriteHeader}>
-        <View>
-          <Text style={styles.favoriteName}>{item.name}</Text>
-          <Text style={styles.favoriteLottery}>{getLotteryName(item.lottery_id)}</Text>
-        </View>
-        <View style={styles.useCountBadge}>
-          <Ionicons name="repeat" size={14} color="#94a3b8" />
-          <Text style={styles.useCountText}>{item.use_count}</Text>
-        </View>
-      </View>
+  // Helper to get all numbers from either old format (item.numbers) or new format (item.plays)
+  const getAllNumbers = (item: Favorite): number[] => {
+    // New format with plays array
+    if (item.plays && item.plays.length > 0) {
+      const allNumbers: number[] = [];
+      item.plays.forEach(play => {
+        if (play.numbers) {
+          allNumbers.push(...play.numbers);
+        }
+      });
+      return allNumbers;
+    }
+    // Old format with direct numbers array
+    return item.numbers || [];
+  };
 
-      <View style={styles.numbersContainer}>
-        {item.numbers.map((num, index) => (
-          <View key={index} style={styles.numberBall}>
-            <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
+  const getPlaysSummary = (item: Favorite): string => {
+    if (item.plays && item.plays.length > 0) {
+      return `${item.plays.length} jugada(s)`;
+    }
+    return getLotteryName(item.lottery_id);
+  };
+
+  const renderFavorite = ({ item }: { item: Favorite }) => {
+    const numbers = getAllNumbers(item);
+    
+    return (
+      <View style={styles.favoriteCard}>
+        <View style={styles.favoriteHeader}>
+          <View>
+            <Text style={styles.favoriteName}>{item.name}</Text>
+            <Text style={styles.favoriteLottery}>{getPlaysSummary(item)}</Text>
           </View>
-        ))}
-      </View>
+          <View style={styles.useCountBadge}>
+            <Ionicons name="repeat" size={14} color="#94a3b8" />
+            <Text style={styles.useCountText}>{item.use_count}</Text>
+          </View>
+        </View>
 
-      <View style={styles.favoriteActions}>
-        <TouchableOpacity
-          style={styles.useButton}
-          onPress={() => handleUseFavorite(item)}
-        >
-          <Ionicons name="play" size={18} color="#ffffff" />
-          <Text style={styles.useButtonText}>Usar</Text>
-        </TouchableOpacity>
+        <View style={styles.numbersContainer}>
+          {numbers.slice(0, 10).map((num, index) => (
+            <View key={index} style={styles.numberBall}>
+              <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
+            </View>
+          ))}
+          {numbers.length > 10 && (
+            <View style={[styles.numberBall, { backgroundColor: '#475569' }]}>
+              <Text style={styles.numberBallText}>+{numbers.length - 10}</Text>
+            </View>
+          )}
+        </View>
 
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteFavorite(item.id)}
-        >
-          <Ionicons name="trash" size={18} color="#ef4444" />
-        </TouchableOpacity>
+        <View style={styles.favoriteActions}>
+          <TouchableOpacity
+            style={styles.useButton}
+            onPress={() => handleUseFavorite(item)}
+          >
+            <Ionicons name="play" size={18} color="#ffffff" />
+            <Text style={styles.useButtonText}>Usar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDeleteFavorite(item.id)}
+          >
+            <Ionicons name="trash" size={18} color="#ef4444" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
