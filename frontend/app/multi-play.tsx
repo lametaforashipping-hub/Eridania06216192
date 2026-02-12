@@ -87,6 +87,50 @@ export default function MultiPlay() {
   const [numbersInput, setNumbersInput] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  
+  // Lottery selection state
+  const [lotteries, setLotteries] = useState<Lottery[]>([]);
+  const [selectedLottery, setSelectedLottery] = useState<Lottery | null>(null);
+  const [loadingLotteries, setLoadingLotteries] = useState(true);
+  const [showLotterySelector, setShowLotterySelector] = useState(false);
+
+  // Fetch available lotteries on mount
+  useEffect(() => {
+    fetchLotteries();
+  }, []);
+
+  const fetchLotteries = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/lotteries`);
+      if (response.ok) {
+        const data = await response.json();
+        setLotteries(data);
+        // Set default lottery to first open one
+        const openLottery = data.find((l: Lottery) => l.is_open);
+        if (openLottery) {
+          setSelectedLottery(openLottery);
+        } else if (data.length > 0) {
+          setSelectedLottery(data[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching lotteries:', error);
+    } finally {
+      setLoadingLotteries(false);
+    }
+  };
+
+  // Filter lotteries by compatible type
+  const getCompatibleLotteries = () => {
+    const typeMapping: { [key: string]: string[] } = {
+      'quiniela': ['quiniela', 'quinieloto'],
+      'pale': ['pale', 'super_pale'],
+      'tripleta': ['tripleta'],
+      'super_pale': ['super_pale', 'pale'],
+    };
+    const compatibleTypes = typeMapping[selectedType.key] || [selectedType.key];
+    return lotteries.filter(l => compatibleTypes.includes(l.lottery_type));
+  };
 
   const parseNumbers = (input: string): number[] => {
     // Parse input like "20-50" or "20,50" or "20 50" or "2050"
