@@ -224,11 +224,18 @@ export default function Users() {
       <View style={styles.userHeader}>
         <View style={styles.userAvatar}>
           <Text style={styles.userAvatarText}>
-            {item.name.charAt(0).toUpperCase()}
+            {item.terminal_id ? item.terminal_id.slice(0, 2) : item.name.charAt(0).toUpperCase()}
           </Text>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.userName}>{item.name}</Text>
+            {item.terminal_id && (
+              <View style={styles.terminalBadge}>
+                <Text style={styles.terminalText}>{item.terminal_id}</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.userEmail}>{item.email}</Text>
           {item.phone && <Text style={styles.userPhone}>{item.phone}</Text>}
           <View style={[styles.roleBadge, { backgroundColor: getRoleColor(item.role) + '30' }]}>
@@ -266,10 +273,20 @@ export default function Users() {
         </View>
       </View>
 
-      {item.cedula && (
-        <View style={styles.extraInfo}>
-          <Ionicons name="card-outline" size={14} color="#64748b" />
-          <Text style={styles.extraInfoText}>Cédula: {item.cedula}</Text>
+      {(item.cedula || item.terminal_id) && (
+        <View style={styles.extraInfoRow}>
+          {item.terminal_id && (
+            <View style={styles.extraInfo}>
+              <Ionicons name="hardware-chip-outline" size={14} color="#22c55e" />
+              <Text style={[styles.extraInfoText, { color: '#22c55e' }]}>Terminal: {item.terminal_id}</Text>
+            </View>
+          )}
+          {item.cedula && (
+            <View style={styles.extraInfo}>
+              <Ionicons name="card-outline" size={14} color="#64748b" />
+              <Text style={styles.extraInfoText}>Cédula: {item.cedula}</Text>
+            </View>
+          )}
         </View>
       )}
 
