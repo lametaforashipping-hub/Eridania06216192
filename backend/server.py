@@ -1997,8 +1997,27 @@ async def get_sellers_report(
     }
 
 @api_router.get("/accounting/daily-chart")
-async def get_daily_chart_data(days: int = 7, current_user: dict = Depends(get_current_user)):
+async def get_daily_chart_data(
+    days: int = 7,
+    country: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     data = []
+    
+    # Determine country filter based on user role
+    user_country = current_user.get("country", "RD")
+    filter_country = None
+    
+    if current_user["role"] == UserRole.SUPER_ADMIN.value:
+        filter_country = country  # Can be None to see all
+    else:
+        filter_country = user_country
+    
+    # Get lottery IDs for the country filter if applicable
+    country_lottery_ids = None
+    if filter_country:
+        country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
+        country_lottery_ids = [l["id"] for l in country_lotteries]
     
     user_filter = {}
     if current_user["role"] == UserRole.VENDEDOR.value:
@@ -2007,6 +2026,10 @@ async def get_daily_chart_data(days: int = 7, current_user: dict = Depends(get_c
         vendedores = await db.users.find({"created_by": current_user["id"]}).to_list(1000)
         vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
         user_filter["seller_id"] = {"$in": vendor_ids}
+    
+    # Add country lottery filter
+    if country_lottery_ids is not None:
+        user_filter["lottery_id"] = {"$in": country_lottery_ids}
     
     for i in range(days - 1, -1, -1):
         day_start = (datetime.utcnow() - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -2028,7 +2051,7 @@ async def get_daily_chart_data(days: int = 7, current_user: dict = Depends(get_c
             "profit": sales - wins
         })
     
-    return data
+    return {"chart_data": data, "country_filter": filter_country}
 
 # ==================== INITIALIZATION ====================
 @api_router.post("/init/super-admin")
