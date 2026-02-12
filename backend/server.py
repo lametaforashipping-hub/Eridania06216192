@@ -96,6 +96,7 @@ class UserCreate(BaseModel):
     credit_limit: float = 10000.0
     commission_rate: float = 10.0
     currency: Currency = Currency.RD
+    country: str = "RD"  # "RD" = República Dominicana, "US" = Estados Unidos
     # New fields
     phone: Optional[str] = None
     address: Optional[str] = None
