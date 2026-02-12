@@ -23,15 +23,20 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Feriados con horarios especiales
 - Límite de boletos por número
 
-### Ventas - NUEVO Sistema de Carrito
-- **Selección Múltiple de Loterías:** Poder seleccionar varias loterías del mismo tipo (ej: Quiniela Nacional + Quiniela Provincial) 
+### Ventas - Sistema de Carrito con Favoritos
+- **Selección Múltiple de Loterías:** Seleccionar varias loterías del mismo tipo
 - **Sistema de Carrito:** Agregar múltiples jugadas antes de crear el ticket
 - **Flujo de 4 Pasos:**
   1. Seleccionar Loterías (con filtro por tipo)
   2. Ingresar Números (manual o aleatorio)
   3. Monto y Agregar al Carrito
   4. Ver Carrito y Crear Ticket
-- **Un solo recibo:** Todas las jugadas se combinan en un único ticket
+- **⭐ Jugadas Favoritas:**
+  - Guardar combinaciones frecuentes
+  - Usar favoritos con un clic para agregar al carrito
+  - Contador de uso (los más usados primero)
+  - Eliminar favoritos no usados
+- **Un solo recibo:** Todas las jugadas en un único ticket
 - Validación de límites por número
 - QR code en recibos
 
@@ -40,10 +45,12 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Sorteos manuales (ingreso manual de números ganadores)
 - Procesamiento automático de tickets ganadores/perdedores
 
-### Pagos
-- Pago de tickets ganadores
-- Registro de transacciones
-- Contabilidad de premios pagados
+### Pagos de Tickets Ganadores
+- **Vendedores pueden pagar tickets ganadores**
+- Botón "Pagar Premio" en pantalla de tickets
+- Validación de status (solo tickets "won" pueden pagarse)
+- Registro de transacción de pago
+- Estado actualizado a "paid" con timestamp
 
 ### Reportes con Filtro de País
 - **Filtro de País:** Botones "Todos", "RD", "USA" para super_admin
@@ -51,26 +58,16 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Reportes por vendedor con país del vendedor
 - Estadísticas de números
 - Monitoreo en tiempo real
-- Panel de límites (números bloqueados/cerca del límite)
+- Panel de límites
 
 ## Cambios Recientes (12 Feb 2026)
 
 ### Implementado Hoy
-- ✅ **Sistema de Carrito en Ventas** - Nueva pantalla con selección múltiple de loterías
-- ✅ **Banderas de País en Reportes** - 🇩🇴 RD$ y 🇺🇸 $ en Dashboard y Sellers Report
+- ✅ **Jugadas Favoritas** - Guardar, usar y eliminar combinaciones frecuentes
+- ✅ **Sistema de Carrito en Ventas** - Selección múltiple de loterías
+- ✅ **Banderas de País en Reportes** - 🇩🇴 RD$ y 🇺🇸 $ en Dashboard
 - ✅ **Filtrado de reportes por país** - Endpoints de accounting filtran por país
-- ✅ **Selector de país en UI** - Dashboard y Sellers Report con filtro para super_admin
-
-### Flujo del Nuevo Sistema de Ventas
-1. Usuario selecciona una o varias loterías (ej: Quiniela 24H + Test Alerta 80%)
-2. Ingresa el número (ej: 25) - se valida rango según lotería
-3. Define monto (ej: RD$ 20) y hace clic en "Agregar al Carrito"
-4. Se agregan 2 jugadas al carrito (mismos números, diferentes loterías)
-5. Puede seguir agregando más jugadas con diferentes números/loterías
-6. Al final hace clic en "Crear Ticket" para generar un solo recibo con todas las jugadas
-
-### Eliminado
-- ❌ Animalitos - Eliminada funcionalidad completa
+- ✅ **Pago de tickets ganadores** - Verificado funcionamiento para vendedores
 
 ## Credenciales de Prueba
 - **Super Admin:** admin@loteria.com / admin123
@@ -79,49 +76,52 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ### Autenticación
 - POST /api/auth/login
-- POST /api/auth/register (requiere autenticación)
+- POST /api/auth/register
 - GET /api/auth/me
 
 ### Loterías
 - GET /api/lotteries?country={RD|US}
 - POST /api/lotteries
 - PUT /api/lotteries/{id}
-- GET /api/lotteries/{id}/number-stats
 
 ### Tickets
 - GET /api/tickets?country={RD|US}
-- POST /api/tickets (ticket simple)
+- POST /api/tickets
 - **POST /api/tickets/multi** (ticket múltiple con carrito)
-- POST /api/tickets/{id}/pay
+- **POST /api/tickets/{id}/pay** (pagar ticket ganador)
 - POST /api/tickets/{id}/cancel
 - GET /api/tickets/verify/{ticket_number}
+
+### Favoritos ⭐
+- **GET /api/favorites** - Lista favoritos del usuario (ordenados por uso)
+- **POST /api/favorites** - Crear favorito con múltiples plays
+- **POST /api/favorites/{id}/use** - Incrementar contador de uso
+- **DELETE /api/favorites/{id}** - Eliminar favorito
 
 ### Reportes (con filtro de país)
 - GET /api/accounting/report?country={RD|US}
 - GET /api/accounting/summary?country={RD|US}
 - GET /api/accounting/sellers-report?country={RD|US}
 - GET /api/accounting/daily-chart?country={RD|US}
-- GET /api/monitoring/tickets
 
 ## Tareas Pendientes
 
 ### P1 - Prioridad Alta
-- Investigar error de "boleto" en móvil (usuario reportó problema, no hay detalles)
+- Investigar error de "boleto" en móvil (usuario reportó problema, sin detalles)
 
 ### P2 - Prioridad Media
-- Optimizar carga de página de Usuarios (detectada lentitud)
+- Optimizar carga de página de Usuarios
 - Chequeo general del sistema móvil y web
 
 ## Archivos Clave
-- `/app/backend/server.py` - API completa con filtrado por país y /api/tickets/multi
-- `/app/frontend/app/sales.tsx` - **NUEVO** Sistema de carrito de ventas
-- `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país y banderas
-- `/app/frontend/app/sellers-report.tsx` - Reporte con filtro de país y banderas
-- `/app/frontend/app/users.tsx` - Creación de usuarios con país
+- `/app/backend/server.py` - API completa con favoritos, pagos, filtrado
+- `/app/frontend/app/sales.tsx` - Sistema de carrito con favoritos
+- `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
 - `/app/frontend/app/tickets.tsx` - Lista y pago de tickets
+- `/app/frontend/app/sellers-report.tsx` - Reporte con banderas
 
 ## Test Reports
-- `/app/test_reports/iteration_8.json` - Pruebas de sistema de carrito y banderas (100% passed)
+- `/app/test_reports/iteration_9.json` - Pruebas de favoritos y pagos (100% passed)
+- `/app/test_reports/iteration_8.json` - Pruebas de carrito y banderas (100% passed)
 - `/app/test_reports/iteration_7.json` - Pruebas de filtrado por país (100% passed)
-- `/app/backend/tests/test_multi_play_and_sales.py` - Tests de backend para multi-play
-- `/app/backend/tests/test_country_filter.py` - Tests de backend para filtrado
+- `/app/backend/tests/test_favorites.py` - Tests de favoritos CRUD
