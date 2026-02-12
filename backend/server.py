@@ -236,7 +236,7 @@ class TicketResponse(BaseModel):
     cancelled_at: Optional[datetime] = None
 
 class FavoriteNumbers(BaseModel):
-    name: str
+    name: Optional[str] = None  # Optional for plays, required for single-play favorites
     lottery_id: Optional[str] = None  # Optional, can use lottery_type instead
     lottery_type: Optional[str] = None
     numbers: List[int]
