@@ -48,11 +48,18 @@ interface LiveStats {
   cancelled: number;
 }
 
+interface HighRiskConfig {
+  threshold_rd: number;
+  threshold_usd: number;
+}
+
 export default function LiveTickets() {
   const { token, user } = useAuth();
   const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState<LiveStats | null>(null);
+  const [highRiskConfig, setHighRiskConfig] = useState<HighRiskConfig>({ threshold_rd: 10000, threshold_usd: 200 });
+  const [highRiskCount, setHighRiskCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -61,7 +68,33 @@ export default function LiveTickets() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const alertAnim = useRef(new Animated.Value(1)).current;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isHighRisk = (ticket: Ticket) => {
+    const potentialWin = ticket.potential_win || ticket.total_potential_win || 0;
+    const threshold = ticket.currency === 'USD' ? highRiskConfig.threshold_usd : highRiskConfig.threshold_rd;
+    return potentialWin >= threshold && ticket.status === 'pending';
+  };
+
+  const fetchHighRiskConfig = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/admin/high-risk-tickets`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setHighRiskConfig({
+          threshold_rd: data.threshold_rd || 10000,
+          threshold_usd: data.threshold_usd || 200
+        });
+        setHighRiskCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching high risk config:', error);
+    }
+  }, [token]);
 
   const fetchLiveTickets = useCallback(async () => {
     if (!token) return;
@@ -75,11 +108,25 @@ export default function LiveTickets() {
         setStats(data.stats || null);
         setLastUpdate(new Date());
         
+        // Count high risk tickets
+        const hrCount = (data.tickets || []).filter((t: Ticket) => isHighRisk(t)).length;
+        setHighRiskCount(hrCount);
+        
         // Pulse animation when new data arrives
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
           Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
         ]).start();
+        
+        // Alert animation for high risk
+        if (hrCount > 0) {
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(alertAnim, { toValue: 1.3, duration: 500, useNativeDriver: true }),
+              Animated.timing(alertAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+            ])
+          ).start();
+        }
       }
     } catch (error) {
       console.error('Error fetching live tickets:', error);
@@ -87,7 +134,7 @@ export default function LiveTickets() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, pulseAnim]);
+  }, [token, pulseAnim, alertAnim, highRiskConfig]);
 
   useEffect(() => {
     fetchLiveTickets();
