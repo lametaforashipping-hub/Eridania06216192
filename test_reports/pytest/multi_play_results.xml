@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="16" time="4.326" timestamp="2026-02-12T05:17:34.263640+00:00" hostname="agent-env-396ed171-47b5-43b8-84a6-95b02151d75c"><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_login_success" time="0.596" /><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_endpoint_exists" time="0.300"><failure message="AssertionError: Expected 400 for empty plays, got 422&#10;assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:55: in test_multi_play_endpoint_exists
+    assert response.status_code == 400, f"Expected 400 for empty plays, got {response.status_code}"
+E   AssertionError: Expected 400 for empty plays, got 422
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_requires_at_least_one_play" time="0.294"><failure message="assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:69: in test_multi_play_requires_at_least_one_play
+    assert response.status_code == 400
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_validates_lottery_type" time="0.289"><failure message="assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:88: in test_multi_play_validates_lottery_type
+    assert response.status_code == 400
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_validates_quiniela_numbers" time="0.288"><failure message="assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:108: in test_multi_play_validates_quiniela_numbers
+    assert response.status_code == 400
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_validates_pale_numbers" time="0.285"><failure message="assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:126: in test_multi_play_validates_pale_numbers
+    assert response.status_code == 400
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_validates_tripleta_numbers" time="0.294"><failure message="assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:144: in test_multi_play_validates_tripleta_numbers
+    assert response.status_code == 400
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestMultiPlayEndpoint" name="test_multi_play_validates_number_range" time="0.285"><failure message="assert 422 == 400&#10; +  where 422 = &lt;Response [422]&gt;.status_code">tests/test_multi_play_and_sales.py:162: in test_multi_play_validates_number_range
+    assert response.status_code == 400
+E   assert 422 == 400
+E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestLotteriesAPI" name="test_get_lotteries_returns_country" time="0.035"><failure message="AssertionError: Invalid country: USA&#10;assert 'USA' in ['RD', 'US']">tests/test_multi_play_and_sales.py:182: in test_get_lotteries_returns_country
+    assert lottery["country"] in ["RD", "US"], f"Invalid country: {lottery.get('country')}"
+E   AssertionError: Invalid country: USA
+E   assert 'USA' in ['RD', 'US']</failure></testcase><testcase classname="tests.test_multi_play_and_sales.TestLotteriesAPI" name="test_get_lotteries_with_country_filter" time="0.064" /><testcase classname="tests.test_multi_play_and_sales.TestLotteriesAPI" name="test_lottery_has_required_fields_for_cart" time="0.033" /><testcase classname="tests.test_multi_play_and_sales.TestDashboardAPI" name="test_accounting_summary_returns_currency" time="0.299" /><testcase classname="tests.test_multi_play_and_sales.TestDashboardAPI" name="test_accounting_summary_country_filter_rd" time="0.286" /><testcase classname="tests.test_multi_play_and_sales.TestDashboardAPI" name="test_accounting_summary_country_filter_us" time="0.285" /><testcase classname="tests.test_multi_play_and_sales.TestSellersReportAPI" name="test_sellers_report_returns_currency" time="0.295" /><testcase classname="tests.test_multi_play_and_sales.TestSellersReportAPI" name="test_sellers_report_country_filter" time="0.285" /></testsuite></testsuites>
