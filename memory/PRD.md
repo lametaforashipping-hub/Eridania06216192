@@ -153,10 +153,12 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
    - URL de verificación en el footer
 3. **Nueva Funcionalidad - Horarios de Lotería:**
    - Campos opening_time y closing_time en modelo de lotería
-   - Función check_lottery_open actualizada para verificar horarios diarios
+   - **Horarios diferentes por día de la semana (weekly_hours)**
+   - Función check_lottery_open actualizada para verificar horarios según día
    - Bloqueo automático de ventas fuera del horario
-   - Mensajes descriptivos de cierre
-   - UI actualizada para mostrar estado y horarios
+   - Mensajes descriptivos de cierre (incluye día siguiente)
+   - UI actualizada para mostrar estado, horarios y configurar horarios semanales
+   - Sábados 08:00-22:00 y Domingos 10:00-20:00 por defecto
 
 ### Feb 2026 - Sesión Anterior
 1. Sistema de usuarios mejorado con campos adicionales
