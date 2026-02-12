@@ -532,8 +532,13 @@ export default function MultiPlay() {
               plays.map((play, index) => (
                 <View key={play.id} style={styles.playCard}>
                   <View style={styles.playInfo}>
-                    <View style={styles.playBadge}>
-                      <Text style={styles.playBadgeText}>{play.lottery_type_label}</Text>
+                    <View>
+                      <View style={styles.playBadge}>
+                        <Text style={styles.playBadgeText}>{play.lottery_type_label}</Text>
+                      </View>
+                      {play.lottery_name && play.lottery_name !== play.lottery_type_label && (
+                        <Text style={styles.playLotteryName}>{play.lottery_name}</Text>
+                      )}
                     </View>
                     <Text style={styles.playNumbers}>{formatNumbers(play.numbers)}</Text>
                   </View>
