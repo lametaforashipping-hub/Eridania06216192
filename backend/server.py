@@ -406,7 +406,11 @@ async def register(user_data: UserCreate, current_user: dict = Depends(get_curre
         "total_sales": 0.0,
         "total_commission": 0.0,
         "last_activity": datetime.utcnow(),
-        "notification_token": None
+        "notification_token": None,
+        # New fields
+        "phone": user_data.phone,
+        "address": user_data.address,
+        "cedula": user_data.cedula
     }
     await db.users.insert_one(user)
     return {"message": "Usuario creado exitosamente", "user_id": user["id"]}
