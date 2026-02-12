@@ -338,24 +338,59 @@ def require_role(allowed_roles: List[UserRole]):
     return role_checker
 
 def check_lottery_open(lottery: dict) -> tuple:
-    now = datetime.utcnow()
+    """
+    Check if lottery is currently open for sales.
+    Returns: (is_open, next_draw, message)
+    
+    A lottery is CLOSED if:
+    1. Current time is before opening_time
+    2. Current time is after closing_time
+    3. Current time is within closing_minutes_before a draw
+    """
+    from datetime import timezone
+    now = datetime.now(timezone.utc)
+    # Convert to local time (assuming DR timezone UTC-4)
+    local_now = now.replace(tzinfo=None) - timedelta(hours=4)
+    
     closing_minutes = lottery.get("closing_minutes_before", 15)
     schedule = lottery.get("schedule", [])
+    opening_time = lottery.get("opening_time", "08:00")
+    closing_time_daily = lottery.get("closing_time", "21:00")
+    
     is_open = True
     next_draw = None
+    message = None
     
-    for draw_time in sorted(schedule):
-        draw_hour, draw_minute = map(int, draw_time.split(":"))
-        draw_datetime = now.replace(hour=draw_hour, minute=draw_minute, second=0, microsecond=0)
-        closing_datetime = draw_datetime - timedelta(minutes=closing_minutes)
-        
-        if now < draw_datetime:
-            next_draw = draw_time
-            if now >= closing_datetime:
-                is_open = False
-            break
+    # Check daily opening/closing time
+    if opening_time:
+        open_hour, open_minute = map(int, opening_time.split(":"))
+        opening_datetime = local_now.replace(hour=open_hour, minute=open_minute, second=0, microsecond=0)
+        if local_now < opening_datetime:
+            is_open = False
+            message = f"Abre a las {opening_time}"
     
-    return is_open, next_draw
+    if closing_time_daily and is_open:
+        close_hour, close_minute = map(int, closing_time_daily.split(":"))
+        closing_datetime = local_now.replace(hour=close_hour, minute=close_minute, second=0, microsecond=0)
+        if local_now > closing_datetime:
+            is_open = False
+            message = f"Cerrada. Abre mañana a las {opening_time}"
+    
+    # Check draw-specific closing (if still open)
+    if is_open and schedule:
+        for draw_time in sorted(schedule):
+            draw_hour, draw_minute = map(int, draw_time.split(":"))
+            draw_datetime = local_now.replace(hour=draw_hour, minute=draw_minute, second=0, microsecond=0)
+            closing_datetime = draw_datetime - timedelta(minutes=closing_minutes)
+            
+            if local_now < draw_datetime:
+                next_draw = draw_time
+                if local_now >= closing_datetime:
+                    is_open = False
+                    message = f"Cerrada para sorteo {draw_time}. Reabre después del sorteo."
+                break
+    
+    return is_open, next_draw, message
 
 def calculate_prize(ticket: dict, lottery: dict, winning_numbers: List[int], position: str = None) -> float:
     """Calculate prize based on lottery rules and position"""
