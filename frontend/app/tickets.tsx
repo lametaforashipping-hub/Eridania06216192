@@ -578,6 +578,11 @@ export default function Tickets() {
                 </View>
 
                 <View style={styles.actionButtons}>
+                  <TouchableOpacity style={styles.actionButton} onPress={() => setShowReceiptModal(true)}>
+                    <Ionicons name="eye" size={22} color="#ffffff" />
+                    <Text style={styles.actionButtonText}>Ver</Text>
+                  </TouchableOpacity>
+
                   <TouchableOpacity style={styles.actionButton} onPress={handlePrint}>
                     <Ionicons name="print" size={22} color="#ffffff" />
                     <Text style={styles.actionButtonText}>Imprimir</Text>
