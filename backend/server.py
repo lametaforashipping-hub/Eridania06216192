@@ -1037,6 +1037,45 @@ async def pay_winning_ticket(ticket_id: str, current_user: dict = Depends(requir
         "currency": ticket["currency"]
     }
 
+# Endpoint for ticket scanner - verify ticket status
+@api_router.get("/tickets/verify/{ticket_number}")
+async def verify_ticket(ticket_number: str):
+    """Public endpoint to verify ticket status by ticket number"""
+    ticket = await db.tickets.find_one({"ticket_number": ticket_number})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Boleto no encontrado")
+    
+    # Get lottery info
+    lottery = await db.lotteries.find_one({"id": ticket.get("lottery_id")})
+    lottery_name = lottery["name"] if lottery else ticket.get("lottery_name", "N/A")
+    
+    # Return ticket verification info
+    return {
+        "ticket_number": ticket["ticket_number"],
+        "status": ticket["status"],
+        "is_winner": ticket["status"] in ["won", "paid"],
+        "is_paid": ticket["status"] == "paid",
+        "lottery_name": lottery_name,
+        "numbers": ticket.get("numbers", []),
+        "plays": ticket.get("plays", []),  # For multi-play tickets
+        "amount": ticket.get("amount") or ticket.get("total_amount", 0),
+        "potential_win": ticket.get("potential_win") or ticket.get("total_potential_win", 0),
+        "currency": ticket.get("currency", "RD$"),
+        "created_at": ticket["created_at"].isoformat(),
+        "customer_name": ticket.get("customer_name"),
+        "message": get_ticket_message(ticket["status"])
+    }
+
+def get_ticket_message(status: str) -> str:
+    messages = {
+        "won": "🎉 ¡BOLETO GANADOR! Presente este boleto para cobrar su premio.",
+        "paid": "✅ Este boleto ya fue pagado.",
+        "lost": "😔 Este boleto no resultó ganador.",
+        "pending": "⏳ Sorteo pendiente. Espere los resultados.",
+        "cancelled": "❌ Este boleto fue cancelado."
+    }
+    return messages.get(status, "Estado desconocido")
+
 # ==================== DRAWS ====================
 @api_router.post("/draws")
 async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
