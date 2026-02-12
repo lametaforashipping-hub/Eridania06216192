@@ -40,6 +40,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Validación de límites por número
 - QR code en recibos
 
+### Multi-Jugada con Selector de Lotería (NUEVO - 12 Feb 2026)
+- **🎰 Multi-Lotto:** Seleccionar lotería específica para cada jugada
+- **Selector de lotería:** Dropdown en modal de agregar jugada
+- **Filtrado por tipo:** Lista muestra loterías compatibles con el tipo de jugada
+- **Estado de lotería:** Muestra si está abierta o cerrada
+- **Nombre en jugada:** Cada jugada muestra el nombre de la lotería seleccionada
+- **Backend actualizado:** Acepta `lottery_id` por jugada
+
 ### Sorteos
 - Creación de sorteos con números ganadores
 - Sorteos manuales (ingreso manual de números ganadores)
@@ -60,7 +68,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Monitoreo en tiempo real
 - Panel de límites
 
-### 📊 Reporte Detallado por Vendedor (NUEVO - 12 Feb 2026)
+### 📊 Reporte Detallado por Vendedor
 - **Períodos de tiempo:** Diario, Semanal, Quincenal, Mensual
 - **Resumen completo:**
   - Total de ventas
@@ -74,19 +82,29 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **📤 Compartir Reporte:** Opciones para compartir por WhatsApp, Email o cualquier otra app
 - **Acceso:** Click en vendedor desde "Reporte por Vendedores" o ir a "Mi Reporte Detallado"
 
-### 🎫 Lista de Boletos Mejorada (NUEVO - 12 Feb 2026)
+### 🎫 Lista de Boletos Mejorada
 - **Soporte Multi-jugada:** Muestra "Multi-jugada (X jugadas)" con detalle de plays
 - **Soporte boletos simples:** Muestra nombre de lotería y números jugados
 - **Filtros:** Todos, Pendientes, Ganadores, Pagados, Perdidos, Cancelados
+- **Ver Recibo:** Botón para ver el recibo sin imprimir
+- **Acciones:** Ver, Imprimir, Compartir, Cancelar
 
 ## Cambios Recientes (12 Feb 2026)
 
-### Implementado Sesión 5 - Ver Recibo y Validación Loterías
+### ✅ Implementado Sesión 6 - Multi-Lotto y Ver Recibo
+- ✅ **Multi-Lotto para Multi-Play**
+  - Selector de lotería en modal de agregar jugada
+  - Dropdown con lista de loterías compatibles por tipo
+  - Estado de lotería visible (abierta/cerrada)
+  - Nombre de lotería mostrado en cada jugada
+  - Backend acepta `lottery_id` por jugada en `/api/tickets/multi`
 - ✅ **Ver Recibo sin Imprimir**
-  - Botón "Ver" en modal de acciones del boleto
-  - Modal con vista previa del recibo completo
-  - Muestra: Número ticket, lotería, jugadas, estado, montos
-  - Acciones: Imprimir, Compartir desde la vista previa
+  - Botón "Ver" funcional en modal de acciones
+  - Modal con vista previa completa del recibo
+  - Botones Imprimir y Compartir desde la vista
+- ✅ **Testing Completado** - 100% backend tests passed (iteration_14.json)
+
+### Implementado Sesión 5 - Ver Recibo y Validación Loterías
 - ✅ **Validación de Horario en Multi-Play**
   - Backend valida si hay loterías abiertas antes de crear multi-play
   - Muestra error si todas las loterías están cerradas
@@ -172,7 +190,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 ### Tickets
 - GET /api/tickets?country={RD|US}
 - POST /api/tickets
-- **POST /api/tickets/multi** (ticket múltiple con carrito)
+- **POST /api/tickets/multi** (ticket múltiple con carrito, acepta lottery_id por jugada)
 - **POST /api/tickets/{id}/pay** (pagar ticket ganador)
 - POST /api/tickets/{id}/cancel
 - GET /api/tickets/verify/{ticket_number}
@@ -188,7 +206,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - GET /api/accounting/summary?country={RD|US}
 - GET /api/accounting/sellers-report?country={RD|US}
 - GET /api/accounting/daily-chart?country={RD|US}
-- **GET /api/accounting/detailed-seller-report?period={daily|weekly|biweekly|monthly}&seller_id={id}** (NUEVO)
+- **GET /api/accounting/detailed-seller-report?period={daily|weekly|biweekly|monthly}&seller_id={id}**
 
 ## Tareas Pendientes
 
@@ -202,25 +220,29 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Alertas de alto riesgo~~ - **COMPLETADO**
 - ~~Configuración de premios por lotería~~ - **COMPLETADO**
 - ~~Pantalla de configuración del sistema~~ - **COMPLETADO**
+- ~~Ver recibo sin imprimir~~ - **COMPLETADO**
+- ~~Multi-Lotto para Multi-Play~~ - **COMPLETADO**
 
 ### P1 - Prioridad Alta
-- **Ninguna tarea pendiente de alta prioridad**
+- **Suplantación de Super Admin** - Permitir al Super Admin realizar acciones como vendedor (crear tickets, cancelar, etc.)
+- **Reportes de comisión detallados** - Desglose exacto de cómo se deducen las comisiones
 
 ### P2 - Prioridad Media
-- **Multi-Play con múltiples loterías** - Seleccionar varias loterías diferentes
+- **Interfaz de Pago de Premios** - Marcar tickets ganadores como "Pagados"
 - **Perfil de empresa con logo personalizable** - Logo en recibos
 
 ## Archivos Clave
-- `/app/backend/server.py` - API completa con reporte detallado, favoritos, pagos, filtrado
+- `/app/backend/server.py` - API completa con Multi-Lotto, favoritos, pagos, filtrado
+- `/app/frontend/app/multi-play.tsx` - Multi-Play con selector de lotería (MODIFICADO)
 - `/app/frontend/app/sales.tsx` - Sistema de carrito con favoritos
 - `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
-- `/app/frontend/app/tickets.tsx` - Lista de tickets con soporte multi-play
+- `/app/frontend/app/tickets.tsx` - Lista de tickets con Ver Recibo
 - `/app/frontend/app/sellers-report.tsx` - Reporte con banderas y navegación a detallado
-- `/app/frontend/app/detailed-seller-report.tsx` - Nuevo reporte detallado por vendedor (NUEVO)
+- `/app/frontend/app/detailed-seller-report.tsx` - Reporte detallado por vendedor
 
 ## Test Reports
-- `/app/test_reports/iteration_12.json` - Gestión de terminales verificada (100% passed) - **NUEVO**
+- `/app/test_reports/iteration_14.json` - Multi-Lotto feature verificado (100% passed) - **NUEVO**
+- `/app/test_reports/iteration_13.json` - En Vivo, Super Admin, Perfil Vendedor (100% passed)
+- `/app/test_reports/iteration_12.json` - Gestión de terminales verificada (100% passed)
 - `/app/test_reports/iteration_11.json` - Bug fix modal de boletos verificado (100% passed)
-- `/app/test_reports/iteration_10.json` - Pruebas de reporte detallado y tickets (100% passed)
-- `/app/test_reports/iteration_9.json` - Pruebas de favoritos y pagos (100% passed)
-- `/app/backend/tests/test_terminals.py` - Tests de endpoints de terminales - **NUEVO**
+- `/app/backend/tests/test_multi_lotto.py` - Tests de Multi-Lotto endpoint - **NUEVO**
