@@ -394,6 +394,16 @@ export default function Users() {
                 placeholderTextColor="#64748b"
               />
 
+              <Text style={styles.inputLabel}>ID de Terminal (Ej: T001)</Text>
+              <TextInput
+                style={styles.input}
+                value={newTerminalId}
+                onChangeText={setNewTerminalId}
+                placeholder="T001"
+                placeholderTextColor="#64748b"
+                autoCapitalize="characters"
+              />
+
               <Text style={styles.inputLabel}>Teléfono</Text>
               <TextInput
                 style={styles.input}
