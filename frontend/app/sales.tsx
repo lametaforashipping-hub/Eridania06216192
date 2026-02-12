@@ -312,6 +312,136 @@ export default function Sales() {
     return { totalAmount, totalPotentialWin, currency };
   };
 
+  // Save current cart as favorite
+  const handleSaveFavorite = async () => {
+    if (cart.length === 0) {
+      Alert.alert('Error', 'Agrega jugadas al carrito primero');
+      return;
+    }
+
+    if (!favoriteName.trim()) {
+      Alert.alert('Error', 'Ingresa un nombre para el favorito');
+      return;
+    }
+
+    setSavingFavorite(true);
+    try {
+      const plays = cart.map(item => {
+        const lottery = lotteries.find(l => l.id === item.lotteryId);
+        return {
+          lottery_type: lottery?.lottery_type || 'quiniela',
+          lottery_id: item.lotteryId,
+          numbers: item.numbers,
+          amount: item.amount,
+        };
+      });
+
+      const response = await fetch(`${API_URL}/api/favorites`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: favoriteName.trim(),
+          plays,
+          currency: cart[0]?.currency === 'RD$' ? 'RD' : 'USD',
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Éxito', `Favorito "${favoriteName}" guardado`);
+        setShowSaveFavoriteModal(false);
+        setFavoriteName('');
+        fetchFavorites();
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.detail || 'No se pudo guardar');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setSavingFavorite(false);
+    }
+  };
+
+  // Use a favorite - add to cart
+  const handleUseFavorite = async (favorite: Favorite) => {
+    try {
+      // Add plays to cart
+      const newItems: CartItem[] = [];
+      
+      for (const play of favorite.plays) {
+        // Find lottery by type or id
+        let lottery = play.lottery_id 
+          ? lotteries.find(l => l.id === play.lottery_id)
+          : lotteries.find(l => l.lottery_type === play.lottery_type && l.is_open);
+        
+        if (!lottery) {
+          lottery = lotteries.find(l => l.lottery_type === play.lottery_type);
+        }
+        
+        if (lottery) {
+          newItems.push({
+            id: `${Date.now()}-${lottery.id}-${Math.random().toString(36).substr(2, 9)}`,
+            lotteryId: lottery.id,
+            lotteryName: lottery.name,
+            numbers: play.numbers,
+            amount: play.amount,
+            currency: lottery.currency,
+            potentialWin: play.amount * lottery.prize_multiplier,
+            country: lottery.country,
+          });
+        }
+      }
+
+      if (newItems.length > 0) {
+        setCart([...cart, ...newItems]);
+        
+        // Increment use count
+        await fetch(`${API_URL}/api/favorites/${favorite.id}/use`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        
+        setShowFavoritesModal(false);
+        Alert.alert('Agregado', `Favorito "${favorite.name}" agregado al carrito (${newItems.length} jugadas)`);
+        fetchFavorites();
+      } else {
+        Alert.alert('Error', 'No se encontraron loterías disponibles para este favorito');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error al usar favorito');
+    }
+  };
+
+  // Delete favorite
+  const handleDeleteFavorite = (favorite: Favorite) => {
+    Alert.alert(
+      'Eliminar Favorito',
+      `¿Eliminar "${favorite.name}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await fetch(`${API_URL}/api/favorites/${favorite.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              fetchFavorites();
+              Alert.alert('Eliminado', 'Favorito eliminado');
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo eliminar');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Submit all plays as multi-play ticket
   const handleSubmit = async () => {
     if (cart.length === 0) {
