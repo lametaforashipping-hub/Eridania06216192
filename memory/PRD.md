@@ -49,11 +49,19 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
   - Muestra estado: GANADOR, PERDIDO, PENDIENTE, PAGADO, CANCELADO
 
 ### Recibos Impresos
-- [x] Diseño profesional con logo
+- [x] Diseño profesional
 - [x] Detalles del ticket (números, monto, fecha)
 - [x] Código de barras para escaneo
 - [x] **Comisión NO visible** en recibo impreso (solo en vista del vendedor)
 - [x] Premio potencial
+
+### Sistema de Notificaciones
+- [x] Campana de notificaciones en dashboard
+- [x] Badge con contador de notificaciones no leídas
+- [x] Notificaciones de resultados de sorteos (globales)
+- [x] **Alertas de ganadores personalizadas por vendedor**
+- [x] Polling automático cada 30 segundos
+- [x] Tipos: draw_result, winner_alert, system
 
 ### Monitoreo y Reportes
 - [x] Dashboard con estadísticas diarias
@@ -66,33 +74,6 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - [x] Campos sensibles (_id, password) excluidos de respuestas API
 - [x] Autenticación JWT requerida para endpoints protegidos
 - [x] Endpoint de verificación de tickets es público
-
-## Estructura de Archivos
-
-```
-/app
-├── backend/
-│   ├── server.py          # API principal FastAPI
-│   ├── requirements.txt
-│   └── tests/
-│       └── test_lottery_system.py
-└── frontend/
-    ├── app/
-    │   ├── _layout.tsx    # Layout principal
-    │   ├── login.tsx      # Pantalla de login
-    │   ├── dashboard.tsx  # Dashboard principal
-    │   ├── users.tsx      # Gestión de usuarios
-    │   ├── sales.tsx      # Venta individual
-    │   ├── multi-play.tsx # Multi-Jugada
-    │   ├── animalitos.tsx # Venta Animalitos
-    │   ├── tickets.tsx    # Lista de boletos
-    │   ├── scanner.tsx    # Verificador de tickets
-    │   ├── monitoring.tsx # Monitoreo en tiempo real
-    │   └── ...
-    └── src/
-        └── context/
-            └── AuthContext.tsx
-```
 
 ## API Endpoints Principales
 
@@ -114,6 +95,11 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 - PUT /api/users/{id}
 - POST /api/users/{id}/deposit
 
+### Notificaciones
+- GET /api/notifications
+- POST /api/notifications/{id}/read
+- GET /api/notifications/unread-count
+
 ### Loterías y Sorteos
 - GET /api/lotteries
 - POST /api/draws
@@ -126,8 +112,8 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 ## Tareas Pendientes
 
 ### Prioridad Alta (P1)
-- [ ] Monitoreo de jugadas individuales (no solo resúmenes de tickets)
 - [ ] Selección múltiple de loterías en una sola jugada
+- [ ] Monitoreo de jugadas individuales (no solo tickets)
 - [ ] Reportes detallados por vendedor con fechas
 
 ### Prioridad Media (P2)
@@ -136,7 +122,7 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 
 ### Prioridad Baja (P3)
 - [ ] Mejoras de UI adicionales
-- [ ] Notificaciones push
+- [ ] Notificaciones push nativas
 
 ## Actualizaciones Recientes (Feb 2026)
 1. Sistema de usuarios mejorado con campos adicionales
@@ -145,3 +131,5 @@ Sistema de gestión de lotería para República Dominicana y USA con soporte par
 4. Fix de seguridad: campos sensibles excluidos de API
 5. Reset automático de formulario después de jugadas
 6. Comisión oculta en recibos impresos
+7. **Sistema de notificaciones con alertas de ganadores**
+8. **Campana de notificaciones en dashboard con badge**
