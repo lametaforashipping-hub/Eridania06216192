@@ -430,6 +430,7 @@ export default function MultiPlay() {
         body: JSON.stringify({
           plays: plays.map(p => ({
             lottery_type: p.lottery_type,
+            lottery_id: p.lottery_id,
             numbers: p.numbers,
             amount: p.amount,
             position: p.position,
