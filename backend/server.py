@@ -676,19 +676,25 @@ async def update_notification_token(user_id: str, token: str, current_user: dict
 
 # ==================== FAVORITE NUMBERS ====================
 @api_router.post("/favorites")
-async def add_favorite(favorite: FavoriteNumbers, current_user: dict = Depends(get_current_user)):
-    """Add favorite numbers combination"""
+async def add_favorite(data: CreateFavoriteWithPlays, current_user: dict = Depends(get_current_user)):
+    """Add favorite numbers combination with multiple plays"""
+    # Check if name already exists
+    existing = await db.favorites.find_one({"user_id": current_user["id"], "name": data.name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe un favorito con ese nombre")
+    
     fav_doc = {
         "id": str(uuid.uuid4()),
         "user_id": current_user["id"],
-        "name": favorite.name,
-        "lottery_id": favorite.lottery_id,
-        "numbers": favorite.numbers,
+        "name": data.name,
+        "plays": [p.dict() for p in data.plays],
+        "currency": data.currency,
         "created_at": datetime.utcnow(),
-        "use_count": 0
+        "use_count": 0,
+        "last_used": None
     }
     await db.favorites.insert_one(fav_doc)
-    return {"message": "Favorito guardado", "id": fav_doc["id"]}
+    return serialize_doc(fav_doc)
 
 @api_router.get("/favorites")
 async def get_favorites(lottery_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
