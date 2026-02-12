@@ -1000,4 +1000,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  editUserHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0f172a',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  editUserEmail: {
+    fontSize: 14,
+    color: '#94a3b8',
+  },
+  editButton: {
+    backgroundColor: '#3b82f6',
+  },
 });
