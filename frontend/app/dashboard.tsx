@@ -471,4 +471,39 @@ const styles = StyleSheet.create({
   balanceValue: {
     color: '#22c55e',
   },
+  countryFilter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  countryButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  countryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#334155',
+  },
+  countryButtonActive: {
+    backgroundColor: '#22c55e',
+  },
+  countryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94a3b8',
+  },
+  countryButtonTextActive: {
+    color: '#ffffff',
+  },
 });
