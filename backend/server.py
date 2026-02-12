@@ -1756,6 +1756,7 @@ async def get_accounting_report(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     user_id: Optional[str] = None,
+    country: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     if not start_date:
@@ -1768,7 +1769,25 @@ async def get_accounting_report(
     else:
         end = datetime.fromisoformat(end_date)
     
+    # Determine country filter based on user role
+    user_country = current_user.get("country", "RD")
+    filter_country = None
+    
+    if current_user["role"] == UserRole.SUPER_ADMIN.value:
+        # Super admin can filter by country or see all
+        filter_country = country  # Can be None to see all
+    else:
+        # Non-super_admin users only see their country
+        filter_country = user_country
+    
+    # Get lottery IDs for the country filter if applicable
+    country_lottery_ids = None
+    if filter_country:
+        country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
+        country_lottery_ids = [l["id"] for l in country_lotteries]
+    
     user_filter = {}
+    vendor_ids = []
     if current_user["role"] == UserRole.VENDEDOR.value:
         user_filter["user_id"] = current_user["id"]
     elif current_user["role"] == UserRole.ADMIN.value:
@@ -1796,6 +1815,10 @@ async def get_accounting_report(
     if user_id:
         ticket_query["seller_id"] = user_id
     
+    # Apply country filter to tickets
+    if country_lottery_ids is not None:
+        ticket_query["lottery_id"] = {"$in": country_lottery_ids}
+    
     tickets = await db.tickets.find(ticket_query).to_list(10000)
     tickets_sold = len([t for t in tickets if t["status"] != TicketStatus.CANCELLED.value])
     tickets_won = len([t for t in tickets if t["status"] in [TicketStatus.WON.value, TicketStatus.PAID.value]])
@@ -1812,7 +1835,8 @@ async def get_accounting_report(
         "tickets_sold": tickets_sold,
         "tickets_won": tickets_won,
         "tickets_cancelled": tickets_cancelled,
-        "transactions": serialize_doc(transactions[-100:])
+        "transactions": serialize_doc(transactions[-100:]),
+        "country_filter": filter_country
     }
 
 @api_router.get("/accounting/summary")
