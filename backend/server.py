@@ -228,6 +228,7 @@ class MultiPlayTicketCreate(BaseModel):
     plays: List[PlayItem]
     customer_name: Optional[str] = None
     currency: Currency = Currency.RD
+    act_as_user_id: Optional[str] = None  # Super Admin can create tickets on behalf of another user
 
 class TicketResponse(BaseModel):
     id: str
