@@ -40,13 +40,22 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Validación de límites por número
 - QR code en recibos
 
-### Multi-Jugada con Selector de Lotería (NUEVO - 12 Feb 2026)
+### Multi-Jugada con Selector de Lotería (12 Feb 2026)
 - **🎰 Multi-Lotto:** Seleccionar lotería específica para cada jugada
 - **Selector de lotería:** Dropdown en modal de agregar jugada
 - **Filtrado por tipo:** Lista muestra loterías compatibles con el tipo de jugada
 - **Estado de lotería:** Muestra si está abierta o cerrada
 - **Nombre en jugada:** Cada jugada muestra el nombre de la lotería seleccionada
 - **Backend actualizado:** Acepta `lottery_id` por jugada
+
+### Suplantación de Super Admin (NUEVO - 12 Feb 2026)
+- **🎭 Modo Suplantación:** Super Admin puede actuar como vendedor
+- **Botón en Perfil:** "Actuar como [Nombre]" aparece en perfil del vendedor
+- **Pantalla de Suplantación:** Hub con acciones disponibles (Vender, Multi-Jugada)
+- **Banner de Advertencia:** Banner naranja visible durante suplantación
+- **Crear Tickets:** Tickets se crean a nombre del vendedor
+- **Auditoría:** Campo `impersonated_by` registra qué admin creó el ticket
+- **Seguridad:** Solo super_admin puede suplantar (403 para otros roles)
 
 ### Sorteos
 - Creación de sorteos con números ganadores
