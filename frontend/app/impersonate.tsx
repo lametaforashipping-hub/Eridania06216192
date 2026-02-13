@@ -523,7 +523,16 @@ const styles = StyleSheet.create({
   actionsGrid: {
     flexDirection: 'row',
     marginHorizontal: 12,
+    marginBottom: 12,
     gap: 12,
+  },
+  sectionTitleHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#94a3b8',
+    marginLeft: 16,
+    marginBottom: 8,
+    marginTop: 4,
   },
   actionCard: {
     flex: 1,
