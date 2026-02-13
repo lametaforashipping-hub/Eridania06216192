@@ -1,131 +1,145 @@
 <analysis>**original_problem_statement:**
-The user's overall goal is to build a comprehensive lottery management system for a Super Admin to oversee all operations in real-time.
+The user initially reported critical errors in the multi-jugada (multi-play) and vender (sell) flows, specifically a Token Expirado (Token Expired) error that prevented ticket creation.
 
-Initial requests from the previous session included:
-*   A detailed report for admins/sellers with ticket-by-ticket breakdowns.
-*   A compact, readable, and bolded printed ticket design.
-*   PDF export and sharing options (WhatsApp/Email) for reports.
-*   A terminal identifier for each user/seller, with a dedicated search and list view.
-*   An interface for paying out winning tickets.
-*   Super Admin controls to edit winning percentages per prize tier and per lottery.
-*   Allowing the selection of all available lotteries in the multi-play interface.
-*   A company profile page to manage a logo that appears on receipts.
+After fixing the token issue and a related UI bug, the user requested a UI improvement for the dashboard icons on the web version of the app.
 
-Newer requests from the previous session were:
-1.  **Real-time Monitoring:** All tickets must be visible to the Super Admin in real-time as they are created.
-2.  **Super Admin Impersonation:** The Super Admin must be able to enter a seller's profile and perform actions on their behalf (e.g., make plays, cancel tickets, manage profile).
-3.  **Unrestricted Cancellation:** The Super Admin must be able to cancel any ticket at any time, overriding the standard 5-minute window.
-4.  **Automatic Commission Deduction:** Seller commissions should be automatically calculated and deducted in reports.
-5.  **High-Risk Alerts:** The system should automatically flag high-value or high-risk bets and alert the Super Admin. The risk threshold should be configurable.
-6.  **Ticket Preview:** A feature to view the ticket receipt visually within the app without needing to print it.
-7.  **Multi-Lotto for Multi-Play:** The ability to include plays for multiple different lotteries within a single multi-play ticket.
-8.  **Lottery Hours Validation:** Prevent users from placing bets for lotteries that are currently closed.
+The final and most significant request from the user is to completely redesign the ticket/receipt that is generated. The new design should:
+1.  Be based on a PDF example provided by the user.
+2.  Include the company logo and information.
+3.  Include a QR code at the bottom that, when scanned, can be used to look up the ticket in the system.
+4.  Be shareable via WhatsApp and be printable.
+
+PRODUCT REQUIREMENTS:
+-   Fix the Token Expired error.
+-   Fix the non-functional Add Play button in the Multi-Play modal.
+-   Improve the appearance of dashboard icons on the web.
+-   Implement a new ticket/receipt design with a QR code and company branding.
 
 **User's preferred language**: Spanish
 
 **what currently exists?**
-The application is a lottery management system with a React Native (Expo) frontend and a Python (FastAPI) backend using MongoDB.
+The application is a full-stack lottery management system using a React Native (Expo) frontend and a FastAPI/MongoDB backend.
 
-The system now includes:
-*   User roles (Super Admin, Seller).
-*   Real-time ticket monitoring dashboard for the Super Admin.
-*   Super Admin privileges, including unrestricted ticket cancellation.
-*   A system configuration page for high-risk alerts and prize multipliers.
-*   A seller profile view for the Super Admin.
-*   **Ticket Receipt Preview:** The Ver (View) button in the ticket actions modal is now confirmed to be visible and functional, allowing users to see a receipt preview without printing.
-*   **Multi-Lotto for Multi-Play:** The multi-play screen now allows adding plays from different lotteries into a single ticket. The UI includes a lottery selector for each play, and the backend has been updated to process these transactions.
-*   **Super Admin Impersonation:** A Super Admin can now navigate to a seller's profile and click Actuar como [Vendedor] to enter an impersonation mode. In this mode, they can create tickets on behalf of the seller. An audit trail () is saved on the ticket.
+In this session, several critical issues were resolved:
+-   A Token Expired error was fixed by implementing a JWT refresh token mechanism on the backend () and updating the frontend's  to handle 401 errors gracefully.
+-   A persistent UI bug where the Add Play button in the  modal was unresponsive on the web has been fixed by using a platform-specific  with an  handler instead of .
+-   The web dashboard UI was improved by replacing non-rendering vector icons with emojis, resolving a font-loading issue.
+-   Two deployment-blocking issues (a malformed  and a missing  variable) were identified and corrected.
+
+The application is now stable, deployable, and all previously reported bugs have been fixed.
 
 **Last working item**:
-*   **Last item agent was working:** Implementing the Super Admin Impersonation feature. The agent added the frontend screens and backend logic to allow a Super Admin to create tickets on behalf of a seller. The feature was fully implemented and tested with the testing subagent.
-*   **Status:** USER VERIFICATION PENDING
-*   **Agent Testing Done:** Y
-*   **Which testing method agent to use?** NA (Testing agent was already used successfully).
-*   **User Testing Done:** N
+- **Last item agent was working:** The user provided a detailed feature request to redesign the printable/shareable ticket/receipt, including adding a QR code and company branding, and supplied a PDF as a design reference. The agent has acknowledged the request but has not started implementation.
+- **Status:** NOT STARTED
+- **Agent Testing Done:** N/A
+- **Which testing method agent to use?** both
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-There are no pending or in-progress issues. The issue with the Ver button from the previous handoff was investigated and found to be already resolved.
+- There are no pending bugs or issues. The focus is on the new feature request.
 
 **In progress Task List**:
-There are no in-progress tasks.
+- There are no tasks currently in progress.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **(P1) Super Admin Impersonation (Full Functionality):** The current implementation allows ticket creation. The next step is to expand this to allow the Super Admin to perform other actions *as* the selected seller, such as cancelling one of their tickets or managing their profile.
+    *   **(P0) Implement New Ticket/Receipt Design:** This is the highest priority task based on the user's last message.
+        *   **Phase 1: QR Code Generation:**
+            *   Select and install a QR code generation library for the frontend (e.g., ).
+            *   Implement logic to generate a QR code containing the unique ticket ID ().
+        *   **Phase 2: PDF Layout Redesign:**
+            *   Locate the current ticket generation logic (likely using  in  or a similar component).
+            *   Recreate the ticket layout as an HTML string for , matching the user's PDF example. This must include:
+                *   Company Logo and Info.
+                *   Ticket details (plays, numbers, amounts).
+                *   The generated QR code at the bottom.
+        *   **Phase 3: Testing:**
+            *   Verify that the generated PDF can be printed and shared via WhatsApp ().
+            *   Verify the QR code is scannable and contains the correct ticket ID.
 *   **Future Tasks:**
-    *   **(P2) Payout Interface:** Create a new screen and corresponding backend logic to allow an admin/seller to mark a winning ticket as Paid.
-    *   **(P2) Company Profile and Logo:** Create a Company Profile page where a logo can be uploaded and then dynamically displayed on the ticket receipt HTML generated in .
-    *   **(P2) Detailed Commission Reporting:** Enhance reports to show a detailed breakdown of how commissions are calculated and deducted from a seller's balance/payout. This involves enhancing endpoints in .
+    *   **(P1) QR Code Scanner Functionality:** After the QR code is on the ticket, build a feature in the app (likely in the Verificar screen) to scan the QR code and fetch the corresponding ticket details from the backend.
+    *   **(P2) High-Risk Alerts (Notifications):** Implement a real-time notification system for the Super Admin when high-risk bets are placed.
+    *   **(P3) Refactor :** Break down the monolithic backend file into a  directory for better maintainability.
 
 **Completed work in this session**
-- **Receipt Preview Verification:** Investigated and confirmed that the Ver Recibo (View Receipt) feature was already working correctly, resolving the main pending issue from the previous session.
-- **Multi-Lotto for Multi-Play Feature (P0):** Implemented the functionality to create a single multi-play ticket containing plays for different lotteries. This included major frontend changes to  and backend updates to . The feature was validated with the testing agent.
-- **Super Admin Impersonation Feature (P1):** Implemented the ability for a Super Admin to act on behalf of a seller to create tickets. This involved creating a new  screen, adding logic to  and , and securing the backend in  to handle these actions. The feature was validated with the testing agent.
+- **Critical Bug Fix (Auth):** Resolved the Token Expirado error by implementing a JWT refresh token flow. This involved adding a  endpoint in  and updating  to automatically refresh the token on 401 errors.
+- **Critical Bug Fix (UI):** Fixed the unresponsive Agregar Jugada (Add Play) button in the  modal for the web platform by replacing  with a platform-specific  with an  handler.
+- **UI Improvement:** Replaced non-rendering Ionicons on the  for the web with emojis for a better visual experience.
+- **Deployment Fixes:** Corrected two deployment blockers: a malformed line in  and a missing  in .
 
 **Earlier issues found/mentioned but not fixed**
-*   None.
+- None.
 
 **Known issue recurrence from previous fork**
-*   None.
+- None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend:** React Native, Expo
-*   **Backend:** Python, FastAPI
-*   **Database:** MongoDB
-*   **Impersonation:** A security context was added to the backend () to allow Super Admins to perform actions on behalf of other users, with changes logged for auditing.
+*   **JWT Refresh Token:** Implemented an authentication flow where an expired access token can be exchanged for a new one using a refresh token, preventing abrupt user logouts.
+*   **Platform-Specific Rendering (React Native):** Used  to render different components (emojis vs. Ionicons,  vs. ) for web and native mobile, resolving compatibility issues.
+*   **Expo Print & Sharing:** The app uses  to create PDFs from HTML strings and  to share them. This will be central to the next task.
+*   **Deployment Health Checks:** Used a deployment agent to identify and fix configuration issues blocking a successful deployment.
 
 **key DB schema**
-*   **Ticket:**  (New field for auditing impersonation)
-*   **User:** 
-*   **Lottery:** 
-*   **SystemConfig:** 
+- No changes were made to the database schema.
 
 **changes in tech stack**
-*   None.
+- No new libraries were added, but fixes were made to the configuration of existing dependencies. The next task will likely require adding a QR code library.
 
 **All files of reference**
-*   : Heavily modified to add the multi-lottery selection UI and logic, and the impersonation warning banner.
-*   : Modified to add the Actuar como button for impersonation.
-*   : New screen created to serve as the hub for actions taken during impersonation.
-*   : Viewed and verified to confirm the View Receipt feature was working.
-*   : Heavily modified to support multi-lottery plays and add the secure impersonation logic for ticket creation.
+*   **Modified:**
+    *   : Added the  endpoint.
+    *   : Implemented token refresh logic.
+    *   : Fixed unresponsive button with platform-specific code.
+    *   : Replaced icons with emojis for the web platform.
+    *   : Updated to use the new authentication error handling.
+    *   : Corrected formatting.
+    *   : Added .
+*   **User Artifact:**
+    *   : User-provided design for the new ticket.
 
 **Areas that need refactoring**:
-*   The  and  files are growing in complexity. They would benefit from being broken down into smaller, reusable components to improve maintainability.
+*    is a large monolith and should be broken down into smaller route files.
 
 **key api endpoints**
-*   : Modified to accept an optional  per play and an  in the payload for impersonation.
+*   : User login.
+*   : **(NEW)** Refreshes an expired JWT access token.
+*   : Creates a multi-play ticket.
 
 **Critical Info for New Agent**
-*   The agent successfully completed two major user requests: Multi-Lotto in multi-play and Super Admin impersonation for ticket creation.
-*   The next priority is to expand the impersonation feature to cover more actions, as detailed in the Upcoming Tasks.
-*   The previous blocker (Ver button not visible) was a false positive; the feature works correctly. No need to investigate it further.
+*   **Top Priority:** The immediate task is to implement the new ticket/receipt design as requested by the user. Refer to their PDF artifact for the layout. You will need to add a QR code library and modify the  HTML generation.
+*   **Communicate in Spanish.**
+*   The application is now stable and all major bugs reported in this and the previous session are fixed. You can focus on new feature development.
+*   The authentication system is now more robust with the refresh token mechanism.
 
 **documents and test reports created in this job**
-*   : Updated to reflect the completion of the Multi-Lotto and Impersonation features.
-*   : Test report for the Multi-Lotto for Multi-Play feature.
-*   : Test report for the Super Admin Impersonation feature.
+*   
+*    (User-provided design mock)
 
 **Last 10 User Messages and any pending HUMAN messages**
-*   **User: CONTINUAR** - Instruction to continue working after the agent proposed a summary. (Completed)
-*   **User: ESE ES EL LOGO** - Provided an image of a logo, likely for the future Company Profile task. This context should be saved for that task. (Pending implementation in a future task)
+1.  **User**: Asks for the application link. **Status: Completed**.
+2.  **User**:  (Give a better format to the icons on the page, the ones on the mobile app are fine). **Status: Completed**. The agent fixed the web dashboard icons.
+3.  **User**:  (I want a receipt style like this...). This is a detailed request for a new ticket design with a logo, QR code, and specific layout, and an accompanying PDF artifact. **Status: Pending Implementation**. This is the highest priority task.
 
 **Project Health Check:**
-*   **Broken:** None.
+*   **Broken:** No. The application is stable and deployable.
 *   **Mocked:** None.
 
 **3rd Party Integrations**
-*   **expo-print**: Used for generating PDF documents.
-*   **expo-sharing**: Used for sharing generated files.
+*   : For PDF generation.
+*   : For sharing files.
+*   : For logo selection.
+*   : For push notifications.
+*   : For vibration feedback.
+*    (Ionicons): For UI icons (now supplemented with emojis on web).
 
 **Testing status**
-*   **Testing agent used after significant changes:** YES. The testing agent was used twice to validate the Multi-Lotto and Impersonation features.
-*   **Troubleshoot agent used after agent stuck in loop:** NO
-*   **Test files created:** None.
-*   **Known regressions:** None.
+- **Testing agent used after significant changes:** YES. Used to identify the  button bug.
+- **Troubleshoot agent used after agent stuck in loop:** NO.
+- **Test files created:** None.
+- **Known regressions:** None.
 
 **Credentials to test flow:**
 *   **Super Admin:**
@@ -136,4 +150,4 @@ There are no in-progress tasks.
     *   Password: 
 
 **What agent forgot to execute**
-*   The agent performed exceptionally well, addressing the pending issue and then systematically implementing the next two highest-priority features from the backlog. Nothing was forgotten or overlooked.</analysis>
+- Nothing. The agent successfully fixed all reported bugs, addressed UI feedback, and prepared the application for deployment before receiving the final, major feature request which is now queued as the next priority task.</analysis>

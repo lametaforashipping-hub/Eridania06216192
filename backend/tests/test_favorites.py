@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://lottery-mobile-app.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://receipt-qr-code.preview.emergentagent.com').rstrip('/')
 
 class TestFavorites:
     """Test favorites CRUD operations"""
