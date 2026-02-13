@@ -737,6 +737,30 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         "total_commission": current_user.get("total_commission", 0.0)
     }
 
+@api_router.post("/auth/refresh")
+async def refresh_token(current_user: dict = Depends(get_current_user)):
+    """
+    Refresh the JWT token for an authenticated user.
+    Returns a new token with extended expiration time.
+    """
+    await db.users.update_one({"id": current_user["id"]}, {"$set": {"last_activity": datetime.utcnow()}})
+    
+    new_token = create_token(current_user["id"], current_user["role"])
+    return {
+        "token": new_token,
+        "user": {
+            "id": current_user["id"],
+            "email": current_user["email"],
+            "name": current_user["name"],
+            "role": current_user["role"],
+            "credit_limit": current_user["credit_limit"],
+            "balance": current_user["balance"],
+            "commission_rate": current_user.get("commission_rate", 10.0),
+            "currency": current_user["currency"],
+            "country": current_user.get("country", "RD")
+        }
+    }
+
 # ==================== USER MANAGEMENT ====================
 @api_router.get("/users")
 async def get_users(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
