@@ -25,6 +25,25 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 | Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
 | Super Pale     | 2       | 2500x      | 250x       | 125x       |
 
+## Cambios Recientes (13 Feb 2026)
+
+### ✅ Exportar Reportes a Excel (COMPLETADO 13 Feb 2026)
+- ✅ **Nueva funcionalidad de exportar a Excel** en la pantalla de Reporte Detallado
+  - Botón de Excel en el header (icono grid-outline)
+  - Opción "Exportar Excel" en modal de compartir
+  - Genera archivo .xlsx con 3 hojas: Resumen, Desglose Diario, Boletos
+  - Compatible con web (descarga directa) y móvil (expo-sharing)
+  - Librería: xlsx v0.18.5
+- ✅ **Endpoint Backend Implementado**: `GET /api/accounting/detailed-seller-report`
+  - Parámetros: `period` (daily|weekly|biweekly|monthly), `seller_id` (opcional)
+  - Retorna: resumen financiero, conteo de boletos, desglose diario, lista de tickets
+  - Archivo: `/app/backend/routes/accounting.py` (líneas 375-542)
+
+### Archivos Modificados
+- `frontend/app/detailed-seller-report.tsx`: Agregada función exportToExcel y botón en UI
+- `backend/routes/accounting.py`: Nuevo endpoint /detailed-seller-report
+- `frontend/package.json`: Agregada dependencia xlsx v0.18.5
+
 ### Estructura Backend Modular (COMPLETADO 14 Dic 2025)
 ```
 /app/backend/
@@ -40,7 +59,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 │   ├── draws.py          # Sorteos y multi-prize
 │   ├── notifications.py  # Notificaciones
 │   ├── monitoring.py     # Monitoreo en tiempo real
-│   ├── accounting.py     # Contabilidad y reportes
+│   ├── accounting.py     # Contabilidad y reportes + detailed-seller-report
 │   ├── statistics.py     # Estadísticas de números
 │   ├── admin.py          # Configuración sistema + seller-profile + act-as-seller
 │   ├── company.py        # Perfil de empresa
