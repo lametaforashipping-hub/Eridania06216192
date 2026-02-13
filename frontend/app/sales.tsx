@@ -2558,4 +2558,74 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Recent plays styles
+  recentBadge: {
+    backgroundColor: '#6366f1',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  recentBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  recentSubtitle: {
+    fontSize: 13,
+    color: '#94a3b8',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  recentPlayItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#6366f1',
+  },
+  recentPlayContent: {
+    flex: 1,
+  },
+  recentPlayNumbers: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  recentPlayNumbersText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  recentPlayTypeBadge: {
+    backgroundColor: '#1e293b',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  recentPlayTypeText: {
+    fontSize: 11,
+    color: '#6366f1',
+    fontWeight: '500',
+  },
+  recentPlayInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recentPlayLottery: {
+    fontSize: 13,
+    color: '#94a3b8',
+  },
+  recentPlayAmount: {
+    fontSize: 13,
+    color: '#22c55e',
+    fontWeight: '600',
+  },
 });
