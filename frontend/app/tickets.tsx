@@ -622,12 +622,12 @@ export default function Tickets() {
   };
 
   const filters = [
-    { key: 'all', label: 'Todos' },
-    { key: 'pending', label: 'Pendientes' },
-    { key: 'won', label: 'Ganadores' },
-    { key: 'paid', label: 'Pagados' },
-    { key: 'lost', label: 'Perdidos' },
-    { key: 'cancelled', label: 'Cancelados' },
+    { key: 'all', label: 'Todos', icon: 'list' },
+    { key: 'pending', label: 'Pendientes', icon: 'time' },
+    { key: 'won', label: 'Ganadores', icon: 'trophy' },
+    { key: 'paid', label: 'Pagados', icon: 'checkmark-circle' },
+    { key: 'lost', label: 'Perdidos', icon: 'close-circle' },
+    { key: 'cancelled', label: 'Cancelados', icon: 'ban' },
   ] as const;
 
   return (
