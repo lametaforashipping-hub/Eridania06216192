@@ -1004,6 +1004,106 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontWeight: '500',
   },
+  // Nuevos estilos para horarios mejorados
+  operatingHoursSection: {
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  operatingHoursHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  operatingHoursTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#22c55e',
+    marginLeft: 8,
+  },
+  todayHoursContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1e293b',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  todayLabel: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: '500',
+  },
+  todayHoursBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  openBadge: {
+    backgroundColor: '#14532d',
+  },
+  closedBadge: {
+    backgroundColor: '#7f1d1d',
+  },
+  todayHoursText: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  weeklyHoursContainer: {
+    marginTop: 8,
+  },
+  weeklyHoursTitle: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  weeklyHoursGrid: {
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  dayHoursRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  todayRow: {
+    backgroundColor: '#14532d30',
+  },
+  dayName: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '500',
+    width: 40,
+  },
+  todayDayName: {
+    color: '#22c55e',
+    fontWeight: '700',
+  },
+  dayHours: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: '500',
+  },
+  todayDayHours: {
+    color: '#22c55e',
+    fontWeight: '700',
+  },
+  simpleHoursContainer: {
+    marginTop: 4,
+  },
+  simpleHoursText: {
+    fontSize: 12,
+    color: '#94a3b8',
+  },
   sectionHeader: {
     fontSize: 14,
     fontWeight: '600',
