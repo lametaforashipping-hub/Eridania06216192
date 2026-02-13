@@ -487,6 +487,150 @@ export default function DetailedSellerReport() {
     }
   };
 
+  // Export to Excel functionality
+  const exportToExcel = async () => {
+    if (!report) return;
+    
+    try {
+      const currency = report.summary.currency;
+      const reportTitle = sellerName || report.seller?.name || 'Reporte General';
+      const getStatusTextLocal = (status: string) => {
+        switch (status) {
+          case 'won': return 'GANADOR';
+          case 'paid': return 'PAGADO';
+          case 'lost': return 'PERDIDO';
+          case 'cancelled': return 'CANCELADO';
+          default: return 'PENDIENTE';
+        }
+      };
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Summary sheet
+      const summaryData = [
+        ['REPORTE DETALLADO', '', '', ''],
+        ['Vendedor:', reportTitle, '', ''],
+        ['Período:', report.period_label, '', ''],
+        ['Generado:', new Date().toLocaleString('es-DO'), '', ''],
+        ['', '', '', ''],
+        ['RESUMEN FINANCIERO', '', '', ''],
+        ['Ventas Totales:', `${currency} ${report.summary.total_sales.toFixed(2)}`],
+        ['Premios:', `${currency} ${report.summary.total_wins.toFixed(2)}`],
+        ['Comisión (' + report.summary.commission_rate + '%):', `${currency} ${report.summary.total_commission.toFixed(2)}`],
+        ['Ganancia Neta:', `${currency} ${report.summary.net_profit.toFixed(2)}`],
+        ['', '', '', ''],
+        ['RESUMEN DE BOLETOS', '', '', ''],
+        ['Total:', report.ticket_counts.total],
+        ['Pendientes:', report.ticket_counts.pending],
+        ['Ganadores:', report.ticket_counts.won],
+        ['Pagados:', report.ticket_counts.paid],
+        ['Perdidos:', report.ticket_counts.lost],
+        ['Cancelados:', report.ticket_counts.cancelled],
+      ];
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      summarySheet['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, summarySheet, 'Resumen');
+      
+      // Daily breakdown sheet (if available)
+      if (report.daily_breakdown && report.daily_breakdown.length > 0) {
+        const dailyData = [
+          ['Día', 'Fecha', 'Ventas', 'Ganancia', 'Boletos'],
+          ...report.daily_breakdown.map(day => [
+            day.day_name,
+            day.label,
+            parseFloat(day.sales.toFixed(2)),
+            parseFloat(day.profit.toFixed(2)),
+            day.tickets
+          ])
+        ];
+        const dailySheet = XLSX.utils.aoa_to_sheet(dailyData);
+        dailySheet['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 10 }];
+        XLSX.utils.book_append_sheet(wb, dailySheet, 'Desglose Diario');
+      }
+      
+      // Tickets sheet
+      if (report.tickets && report.tickets.length > 0) {
+        const ticketsData = [
+          ['# Ticket', 'Tipo', 'Lotería/Jugada', 'Números', 'Monto', 'Premio Potencial', 'Estado', 'Cliente', 'Fecha'],
+          ...report.tickets.map(t => {
+            const amount = t.amount || t.total_amount || 0;
+            const potentialWin = t.potential_win || t.total_potential_win || 0;
+            const isMulti = t.is_multi_play;
+            const displayInfo = isMulti 
+              ? `Multi-jugada (${t.plays?.length || 0} jugadas)` 
+              : (t.lottery_name || '');
+            const numbers = isMulti 
+              ? t.plays?.map((p: any) => p.numbers?.join('-')).join(', ') || ''
+              : (t.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-');
+            const date = new Date(t.created_at).toLocaleString('es-DO');
+            
+            return [
+              t.ticket_number,
+              isMulti ? 'Multi-Jugada' : 'Simple',
+              displayInfo,
+              numbers,
+              parseFloat(amount.toFixed(2)),
+              parseFloat(potentialWin.toFixed(2)),
+              getStatusTextLocal(t.status),
+              t.customer_name || '',
+              date
+            ];
+          })
+        ];
+        const ticketsSheet = XLSX.utils.aoa_to_sheet(ticketsData);
+        ticketsSheet['!cols'] = [
+          { wch: 25 }, { wch: 12 }, { wch: 25 }, { wch: 20 }, 
+          { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 20 }
+        ];
+        XLSX.utils.book_append_sheet(wb, ticketsSheet, 'Boletos');
+      }
+      
+      // Generate file
+      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+      const fileName = `Reporte_${reportTitle.replace(/\s+/g, '_')}_${report.period}.xlsx`;
+      
+      if (Platform.OS === 'web') {
+        // For web, download directly
+        const blob = new Blob([s2ab(wbout)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        Alert.alert('Éxito', 'Excel descargado correctamente');
+      } else {
+        // For mobile, save and share
+        const fileUri = FileSystem.documentDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, wbout, {
+          encoding: FileSystem.EncodingType.Base64
+        });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            dialogTitle: 'Exportar Reporte Excel'
+          });
+        } else {
+          Alert.alert('Éxito', `Archivo guardado en: ${fileUri}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      Alert.alert('Error', 'No se pudo exportar a Excel');
+    }
+  };
+  
+  // Helper function for web download
+  const s2ab = (s: string) => {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+  };
+
   const generatePDFHTML = async () => {
     if (!report) return '';
     
