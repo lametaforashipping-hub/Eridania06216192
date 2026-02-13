@@ -131,6 +131,12 @@ export default function Sales() {
   const [loadingRecent, setLoadingRecent] = useState(false);
   // Track if duplicate has been processed
   const [duplicateProcessed, setDuplicateProcessed] = useState(false);
+  // Edit cart item state
+  const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
+  const [showEditCartModal, setShowEditCartModal] = useState(false);
+  const [editAmount, setEditAmount] = useState('');
+  const [editNumbers, setEditNumbers] = useState<number[]>([]);
+  const [editNumberInput, setEditNumberInput] = useState('');
 
   useEffect(() => {
     fetchLotteries();
