@@ -11,7 +11,7 @@ import os
 import uuid
 import time
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://app-diagnostics-4.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-refactor.preview.emergentagent.com')
 
 class TestUserCreationAndEdit:
     """Test user creation and editing functionality"""
