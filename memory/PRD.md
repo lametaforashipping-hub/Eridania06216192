@@ -155,6 +155,26 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - "ABIERTA" (barra verde cuando está operando)
   - Horarios de sorteos del día
 
+### Sesión 11 - Fix Token Expirado y Multi-Jugada en Web (13 Feb 2026)
+- ✅ **Fix Crítico: Error "Token Expirado"**
+  - Nuevo endpoint POST `/api/auth/refresh` para renovar tokens JWT
+  - Auto-renovación de token al iniciar la app (si está guardado)
+  - Auto-renovación periódica cada 20 horas (token expira en 24h)
+  - Manejo de error 401 con logout automático y alerta al usuario
+  - AuthContext actualizado con funciones `refreshToken()` y `handleAuthError()`
+  - Mensaje claro "Tu sesión ha expirado. Por favor, inicia sesión nuevamente."
+- ✅ **Fix Crítico: Botón "Agregar Jugada" en Multi-Jugada (Web)**
+  - El botón no respondía a clicks dentro del Modal con ScrollView
+  - Solución: Usar elemento HTML nativo `<div onClick>` para plataforma web
+  - `TouchableOpacity` se mantiene para plataformas nativas (iOS/Android)
+  - Estructura del Modal reorganizada: botón fuera del ScrollView
+  - Nuevos estilos: `modalBodyScroll`, `modalBodyContent`, `modalFooter`
+- ✅ **Testing Completado**
+  - Backend: 11/11 tests de auth/refresh passed
+  - Vender page: 100% funcional
+  - Multi-Jugada: 100% funcional (agregar jugada + crear boleto)
+  - iteration_22.json: Backend 100%, Frontend 100%
+
 ### Sesión 10 - Fix de Multi-Jugada, Validación de Horarios y Haptic Feedback (13 Feb 2026)
 - ✅ **Fix Crítico: Botón "Agregar Jugada" en Multi-Jugada**
   - El botón no respondía a clicks en la versión web
