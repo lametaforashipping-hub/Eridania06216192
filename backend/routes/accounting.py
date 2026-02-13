@@ -10,6 +10,22 @@ from utils.auth import get_current_user, require_role
 router = APIRouter(prefix="/accounting", tags=["Accounting"])
 
 
+async def get_period_stats(db, query_base: dict, start: datetime, end: datetime):
+    """Helper to get stats for a specific period"""
+    query = {**query_base, "created_at": {"$gte": start, "$lte": end}}
+    tickets = await db.tickets.find(query).to_list(10000)
+    
+    sales = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
+    wins = sum(t.get("prize") or t.get("total_prize", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    
+    return {
+        "sales": sales,
+        "wins": wins,
+        "profit": sales - wins,
+        "tickets": len([t for t in tickets if t.get("status") != TicketStatus.CANCELLED.value])
+    }
+
+
 @router.get("/summary")
 async def get_accounting_summary(
     start_date: Optional[str] = None,
@@ -17,21 +33,12 @@ async def get_accounting_summary(
     country: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get accounting summary for the period"""
+    """Get accounting summary with today, week, month breakdowns"""
     db = get_db()
+    now = datetime.utcnow()
     
-    if not start_date:
-        start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    else:
-        start = datetime.fromisoformat(start_date)
-    
-    if not end_date:
-        end = datetime.utcnow()
-    else:
-        end = datetime.fromisoformat(end_date)
-    
-    query = {"created_at": {"$gte": start, "$lte": end}}
-    
+    # Build base query
+    query_base = {}
     user_country = current_user.get("country", "RD")
     filter_country = None
     
@@ -39,31 +46,30 @@ async def get_accounting_summary(
         filter_country = country
     else:
         filter_country = user_country
-        query["seller_id"] = current_user["id"]
+        query_base["seller_id"] = current_user["id"]
     
     if filter_country:
         country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
         lottery_ids = [l["id"] for l in country_lotteries]
         if lottery_ids:
-            query["lottery_id"] = {"$in": lottery_ids}
+            query_base["lottery_id"] = {"$in": lottery_ids}
     
-    tickets = await db.tickets.find(query).to_list(10000)
+    # Today stats
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_stats = await get_period_stats(db, query_base, today_start, now)
     
-    total_sales = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
-    total_wins = sum(t.get("potential_win") or t.get("total_potential_win", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
-    total_cancelled = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") == TicketStatus.CANCELLED.value)
+    # Week stats (last 7 days)
+    week_start = today_start - timedelta(days=7)
+    week_stats = await get_period_stats(db, query_base, week_start, now)
     
-    commission_rate = current_user.get("commission_rate", 10.0)
-    total_commission = total_sales * (commission_rate / 100)
+    # Month stats (last 30 days)
+    month_start = today_start - timedelta(days=30)
+    month_stats = await get_period_stats(db, query_base, month_start, now)
     
     return {
-        "period": {"start": start.isoformat(), "end": end.isoformat()},
-        "total_sales": total_sales,
-        "total_wins": total_wins,
-        "total_cancelled": total_cancelled,
-        "net_profit": total_sales - total_wins,
-        "total_commission": total_commission,
-        "tickets_count": len([t for t in tickets if t.get("status") != TicketStatus.CANCELLED.value]),
+        "today": today_stats,
+        "week": week_stats,
+        "month": month_stats,
         "currency": current_user.get("currency", "RD$"),
         "country_filter": filter_country
     }
