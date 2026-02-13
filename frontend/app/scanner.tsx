@@ -165,28 +165,68 @@ export default function Scanner() {
             autoCorrect={false}
           />
 
-          <TouchableOpacity
-            style={[styles.verifyButton, verifying && styles.verifyButtonDisabled]}
-            onPress={() => {
-              console.log('Button pressed with value:', manualInput);
-              if (manualInput.trim()) {
-                verifyTicket(manualInput);
-              } else {
-                Alert.alert('Error', 'Ingrese un número de boleto');
-              }
-            }}
-            disabled={verifying}
-            activeOpacity={0.7}
-          >
-            {verifying ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <>
-                <Ionicons name="search" size={22} color="#ffffff" />
-                <Text style={styles.verifyButtonText}>Verificar Boleto</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          {Platform.OS === 'web' ? (
+            <button
+              onClick={() => {
+                console.log('Web button clicked with value:', manualInput);
+                if (manualInput.trim()) {
+                  verifyTicket(manualInput);
+                } else {
+                  Alert.alert('Error', 'Ingrese un número de boleto');
+                }
+              }}
+              disabled={verifying}
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: verifying ? '#475569' : '#22c55e',
+                paddingTop: 16,
+                paddingBottom: 16,
+                paddingLeft: 20,
+                paddingRight: 20,
+                borderRadius: 12,
+                marginTop: 20,
+                border: 'none',
+                cursor: verifying ? 'not-allowed' : 'pointer',
+                width: '100%',
+                gap: 8,
+              }}
+            >
+              {verifying ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="search" size={22} color="#ffffff" />
+                  <span style={{ color: '#ffffff', fontSize: 16, fontWeight: 600 }}>Verificar Boleto</span>
+                </>
+              )}
+            </button>
+          ) : (
+            <TouchableOpacity
+              style={[styles.verifyButton, verifying && styles.verifyButtonDisabled]}
+              onPress={() => {
+                console.log('Button pressed with value:', manualInput);
+                if (manualInput.trim()) {
+                  verifyTicket(manualInput);
+                } else {
+                  Alert.alert('Error', 'Ingrese un número de boleto');
+                }
+              }}
+              disabled={verifying}
+              activeOpacity={0.7}
+            >
+              {verifying ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="search" size={22} color="#ffffff" />
+                  <Text style={styles.verifyButtonText}>Verificar Boleto</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           {!isWeb && (
             <TouchableOpacity
