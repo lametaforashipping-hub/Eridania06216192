@@ -732,4 +732,90 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 40,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#1e293b',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 16,
+  },
+  depositInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  currencyPrefix: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#f97316',
+    marginRight: 8,
+  },
+  depositInput: {
+    flex: 1,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#ffffff',
+    paddingVertical: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelModalBtn: {
+    flex: 1,
+    backgroundColor: '#334155',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cancelModalBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#94a3b8',
+  },
+  confirmModalBtn: {
+    flex: 1,
+    backgroundColor: '#f97316',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  confirmModalBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  btnDisabled: {
+    opacity: 0.7,
+  },
 });
