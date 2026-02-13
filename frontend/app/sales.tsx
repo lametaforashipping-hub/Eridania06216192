@@ -1061,21 +1061,46 @@ export default function Sales() {
       <ScrollView style={styles.content} contentContainerStyle={[styles.contentContainer, isDesktop && styles.contentDesktop]}>
         {/* Step 1: Select Lottery */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Text style={styles.stepNumber}>1</Text> Seleccionar Lotería
-          </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              <Text style={styles.stepNumber}>1</Text> Seleccionar Loterías
+            </Text>
+            <TouchableOpacity 
+              style={styles.selectAllButton}
+              onPress={handleSelectAllLotteries}
+            >
+              <Ionicons 
+                name={selectedLotteries.length === getFilteredLotteries().filter(l => l.is_open).length ? "checkbox" : "square-outline"} 
+                size={20} 
+                color="#22c55e" 
+              />
+              <Text style={styles.selectAllText}>
+                {selectedLotteries.length === getFilteredLotteries().filter(l => l.is_open).length ? 'Deseleccionar' : 'Todas'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.sectionSubtitle}>
-            Toca para seleccionar una lotería
+            Selecciona una o más loterías para jugar los mismos números
           </Text>
           
-          {/* Lottery Grid */}
+          {/* Selected count badge */}
+          {selectedLotteries.length > 0 && (
+            <View style={styles.selectedBadge}>
+              <Text style={styles.selectedBadgeText}>
+                {selectedLotteries.length} lotería(s) seleccionada(s)
+              </Text>
+            </View>
+          )}
+          
+          {/* Lottery Grid with multi-select */}
           <View style={styles.lotteryGrid}>
             {getFilteredLotteries().map(lot => (
               <TouchableOpacity
                 key={lot.id}
                 style={[
                   styles.lotteryChip,
-                  selectedLottery === lot.id && styles.lotteryChipSelected,
+                  selectedLotteries.includes(lot.id) && styles.lotteryChipSelected,
+                  !lot.is_open && styles.lotteryChipDisabled,
                 ]}
                 onPress={() => handleSelectLottery(lot.id)}
               >
@@ -1085,13 +1110,15 @@ export default function Sales() {
                   </Text>
                   <Text style={[
                     styles.lotteryChipName,
-                    selectedLottery === lot.id && styles.lotteryChipNameSelected
+                    selectedLotteries.includes(lot.id) && styles.lotteryChipNameSelected
                   ]} numberOfLines={1}>
                     {lot.name}
                   </Text>
-                  {selectedLottery === lot.id && (
-                    <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
-                  )}
+                  <Ionicons 
+                    name={selectedLotteries.includes(lot.id) ? "checkbox" : "square-outline"} 
+                    size={18} 
+                    color={selectedLotteries.includes(lot.id) ? "#22c55e" : "#64748b"} 
+                  />
                 </View>
                 <Text style={styles.lotteryChipInfo}>
                   {lot.schedule?.join(', ') || ''}
@@ -1100,13 +1127,13 @@ export default function Sales() {
             ))}
           </View>
 
-          {selectedLottery && lottery && (
+          {selectedLotteries.length > 0 && (
             <View style={styles.selectionSummary}>
               <Text style={styles.selectionText}>
-                ✓ {lottery.name}
+                ✓ {getSelectedLotteriesData().map(l => l.name).join(', ')}
               </Text>
-              <TouchableOpacity onPress={() => { setSelectedLottery(null); setSelectedPlayType(null); setSelectedNumbers([]); }}>
-                <Text style={styles.clearSelectionText}>Cambiar</Text>
+              <TouchableOpacity onPress={handleClearLotteries}>
+                <Text style={styles.clearSelectionText}>Limpiar</Text>
               </TouchableOpacity>
             </View>
           )}
