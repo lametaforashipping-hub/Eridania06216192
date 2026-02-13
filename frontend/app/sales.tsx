@@ -106,7 +106,7 @@ export default function Sales() {
   const { token, user } = useAuth();
   const router = useRouter();
   const [lotteries, setLotteries] = useState<Lottery[]>([]);
-  const [selectedLottery, setSelectedLottery] = useState<string | null>(null);
+  const [selectedLotteries, setSelectedLotteries] = useState<string[]>([]); // Multi-select loterías
   const [selectedPlayType, setSelectedPlayType] = useState<string | null>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [numberInput, setNumberInput] = useState('');
