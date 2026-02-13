@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 import uuid
 from typing import Optional, Dict
-from models.schemas import LotteryCreate, LotteryUpdate, DEFAULT_WEEKLY_SCHEDULE
+from models.schemas import LotteryCreate, LotteryUpdate, DEFAULT_WEEKLY_SCHEDULE, DEFAULT_PLAY_TYPES
 from models.enums import UserRole, TicketStatus
 from utils.database import get_db
 from utils.helpers import serialize_doc, check_lottery_open
@@ -14,33 +14,39 @@ router = APIRouter(prefix="/lotteries", tags=["Lotteries"])
 
 @router.post("")
 async def create_lottery(lottery: LotteryCreate, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
-    """Create a new lottery"""
+    """Create a new lottery with multi-play support"""
     db = get_db()
+    
+    # Use provided play_types or default
+    play_types = lottery.play_types if lottery.play_types else DEFAULT_PLAY_TYPES.copy()
+    
     lottery_doc = {
         "id": str(uuid.uuid4()),
         "name": lottery.name,
         "country": lottery.country,
-        "lottery_type": lottery.lottery_type.value,
         "min_number": lottery.min_number,
         "max_number": lottery.max_number,
-        "numbers_to_pick": lottery.numbers_to_pick,
         "price": lottery.price,
         "currency": lottery.currency.value,
-        "prize_multiplier": lottery.prize_multiplier,
         "schedule": lottery.schedule,
         "closing_minutes_before": lottery.closing_minutes_before,
         "active": lottery.active,
-        "prize_rules": lottery.prize_rules or [],
-        "allows_combined": lottery.allows_combined,
         "opening_time": lottery.opening_time,
         "closing_time": lottery.closing_time,
         "weekly_hours": lottery.weekly_hours or DEFAULT_WEEKLY_SCHEDULE,
         "holidays": lottery.holidays or [],
         "ticket_limit_per_number": lottery.ticket_limit_per_number,
-        "created_at": datetime.utcnow()
+        "play_types": play_types,
+        "created_at": datetime.utcnow(),
+        # Legacy fields for backward compatibility
+        "lottery_type": lottery.lottery_type or "multi",
+        "numbers_to_pick": lottery.numbers_to_pick or 1,
+        "prize_multiplier": lottery.prize_multiplier or 70.0,
+        "allows_combined": lottery.allows_combined if lottery.allows_combined is not None else True,
+        "prize_rules": lottery.prize_rules or []
     }
     await db.lotteries.insert_one(lottery_doc)
-    return {"message": "Lotería creada", "lottery_id": lottery_doc["id"]}
+    return {"message": "Lotería creada", "lottery_id": lottery_doc["id"], "name": lottery.name}
 
 
 @router.get("")
