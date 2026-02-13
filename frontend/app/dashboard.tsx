@@ -124,6 +124,7 @@ export default function Dashboard() {
     { icon: 'hardware-chip-outline', label: 'Terminales', route: '/terminals', roles: ['super_admin', 'admin'], color: '#22c55e' },
     { icon: 'stats-chart-outline', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
     { icon: 'calculator-outline', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
+    { icon: 'receipt-outline', label: 'Comisiones', route: '/commission-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
     { icon: 'cash-outline', label: 'Pagar Premios', route: '/pay-prizes', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: 'person-add-outline', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
     { icon: 'grid-outline', label: 'Loterías', route: '/lotteries', roles: ['super_admin'], color: '#a855f7' },
