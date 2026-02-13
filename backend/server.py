@@ -1847,6 +1847,24 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
             "read": False
         }
         await db.notifications.insert_one(seller_notification)
+        
+        # Send push notification to seller and super admins
+        await notify_winner(
+            winner["user_id"],
+            winner["ticket_number"],
+            winner["prize"],
+            lottery.get("currency", "RD$"),
+            lottery["name"]
+        )
+    
+    # Send draw completion notification to super admins
+    await notify_draw_complete(
+        lottery["name"],
+        winning_numbers,
+        total_winners,
+        total_paid,
+        lottery.get("currency", "RD$")
+    )
     
     return serialize_doc(draw)
 
