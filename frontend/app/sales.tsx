@@ -207,9 +207,12 @@ export default function Sales() {
 
   // Add number from manual input
   const addNumberFromInput = () => {
-    const ref = getReferenceLottery();
-    if (!ref || !numberInput.trim()) {
-      if (!ref) Alert.alert('Error', 'Selecciona al menos una lotería primero');
+    const lottery = getSelectedLottery();
+    const playTypeConfig = getSelectedPlayTypeConfig();
+    
+    if (!lottery || !playTypeConfig || !numberInput.trim()) {
+      if (!lottery) Alert.alert('Error', 'Selecciona una lotería primero');
+      else if (!playTypeConfig) Alert.alert('Error', 'Selecciona un tipo de jugada');
       return;
     }
     
@@ -220,8 +223,8 @@ export default function Sales() {
       return;
     }
     
-    if (num < ref.min_number || num > ref.max_number) {
-      Alert.alert('Error', `El número debe estar entre ${ref.min_number} y ${ref.max_number}`);
+    if (num < lottery.min_number || num > lottery.max_number) {
+      Alert.alert('Error', `El número debe estar entre ${lottery.min_number} y ${lottery.max_number}`);
       return;
     }
     
@@ -230,8 +233,8 @@ export default function Sales() {
       return;
     }
     
-    if (selectedNumbers.length >= ref.numbers_to_pick) {
-      Alert.alert('Error', `Solo puedes seleccionar ${ref.numbers_to_pick} número(s)`);
+    if (selectedNumbers.length >= playTypeConfig.numbers_count) {
+      Alert.alert('Error', `Solo puedes seleccionar ${playTypeConfig.numbers_count} número(s) para ${playTypeConfig.name}`);
       return;
     }
     
@@ -241,15 +244,18 @@ export default function Sales() {
 
   // Quick pick random numbers
   const handleQuickPick = () => {
-    const ref = getReferenceLottery();
-    if (!ref) {
-      Alert.alert('Error', 'Selecciona al menos una lotería primero');
+    const lottery = getSelectedLottery();
+    const playTypeConfig = getSelectedPlayTypeConfig();
+    
+    if (!lottery || !playTypeConfig) {
+      if (!lottery) Alert.alert('Error', 'Selecciona una lotería primero');
+      else if (!playTypeConfig) Alert.alert('Error', 'Selecciona un tipo de jugada');
       return;
     }
     
     const numbers: number[] = [];
-    while (numbers.length < ref.numbers_to_pick) {
-      const num = Math.floor(Math.random() * (ref.max_number - ref.min_number + 1)) + ref.min_number;
+    while (numbers.length < playTypeConfig.numbers_count) {
+      const num = Math.floor(Math.random() * (lottery.max_number - lottery.min_number + 1)) + lottery.min_number;
       if (!numbers.includes(num)) {
         numbers.push(num);
       }
