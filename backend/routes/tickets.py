@@ -503,6 +503,59 @@ async def get_today_tickets(current_user: dict = Depends(get_current_user)):
     return serialize_doc(tickets)
 
 
+@router.get("/recent-plays")
+async def get_recent_plays(current_user: dict = Depends(get_current_user), limit: int = 10):
+    """Get recent unique plays for quick re-selection"""
+    db = get_db()
+    
+    # Get last 50 tickets to find unique plays
+    query = {"seller_id": current_user["id"]}
+    tickets = await db.tickets.find(query).sort("created_at", -1).limit(50).to_list(50)
+    
+    # Extract unique plays (by numbers + lottery_type combination)
+    seen_plays = set()
+    recent_plays = []
+    
+    for ticket in tickets:
+        # Handle multi-play tickets
+        if ticket.get("ticket_type") == "multi_play" and ticket.get("plays"):
+            for play in ticket.get("plays", []):
+                # Create unique key for this play
+                play_key = f"{play.get('lottery_type', 'quiniela')}:{','.join(map(str, sorted(play.get('numbers', []))))}"
+                if play_key not in seen_plays:
+                    seen_plays.add(play_key)
+                    recent_plays.append({
+                        "id": f"{ticket['id']}_{len(recent_plays)}",
+                        "lottery_type": play.get("lottery_type", "quiniela"),
+                        "lottery_id": play.get("lottery_id"),
+                        "lottery_name": play.get("lottery_name", ""),
+                        "numbers": play.get("numbers", []),
+                        "amount": play.get("amount", 20),
+                        "created_at": ticket["created_at"].isoformat() if ticket.get("created_at") else None
+                    })
+                    if len(recent_plays) >= limit:
+                        break
+        # Handle simple tickets
+        elif ticket.get("numbers"):
+            play_key = f"{ticket.get('lottery_type', 'quiniela')}:{','.join(map(str, sorted(ticket.get('numbers', []))))}"
+            if play_key not in seen_plays:
+                seen_plays.add(play_key)
+                recent_plays.append({
+                    "id": ticket["id"],
+                    "lottery_type": ticket.get("lottery_type", "quiniela"),
+                    "lottery_id": ticket.get("lottery_id"),
+                    "lottery_name": ticket.get("lottery_name", ""),
+                    "numbers": ticket.get("numbers", []),
+                    "amount": ticket.get("amount", 20),
+                    "created_at": ticket["created_at"].isoformat() if ticket.get("created_at") else None
+                })
+        
+        if len(recent_plays) >= limit:
+            break
+    
+    return recent_plays
+
+
 @router.get("/verify/{ticket_number}")
 async def verify_ticket(ticket_number: str):
     """Public endpoint to verify ticket status"""
