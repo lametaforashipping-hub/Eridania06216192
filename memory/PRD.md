@@ -25,6 +25,56 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 | Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
 | Super Pale     | 2       | 2500x      | 250x       | 125x       |
 
+## Cambios Recientes (13-14 Feb 2026)
+
+### ✅ Feature: Atajos de Teclado en Pantalla de Ventas (COMPLETADO 14 Feb 2026)
+- **Sistema completo de atajos de teclado** para acelerar el proceso de ventas
+- **Solo funciona en web** (Platform.OS === 'web')
+- **Ignora atajos** cuando el usuario está escribiendo en un campo de texto
+
+**Atajos de Tipo de Jugada:**
+| Tecla | Acción | Requisito |
+|-------|--------|-----------|
+| F1 | Seleccionar Quiniela | Loterías seleccionadas |
+| F2 | Seleccionar Pale | Loterías seleccionadas |
+| F3 | Seleccionar Tripleta | Loterías seleccionadas |
+| F4 | Seleccionar Super Pale | Loterías seleccionadas |
+
+**Atajos de Navegación:**
+| Tecla | Acción |
+|-------|--------|
+| N | Enfocar campo de número |
+| M | Enfocar campo de monto |
+| A | Seleccionar/Deseleccionar todas las loterías |
+
+**Atajos de Números:**
+| Tecla | Acción |
+|-------|--------|
+| R | Generar números aleatorios (Quick Pick) |
+| Backspace | Borrar último número seleccionado |
+| Esc | Limpiar números / Cerrar modal |
+
+**Atajos de Acciones:**
+| Tecla | Acción | Requisito |
+|-------|--------|-----------|
+| Enter | Agregar jugada al carrito | Números completos |
+| Ctrl+Enter | Procesar venta | Carrito con jugadas |
+| X / Delete | Vaciar carrito | Carrito con jugadas |
+
+**Atajos de Acceso Rápido:**
+| Tecla | Acción |
+|-------|--------|
+| F | Abrir favoritos |
+| H | Abrir jugadas recientes |
+| ? | Mostrar ayuda de atajos |
+
+**Implementación:**
+- **Archivo modificado:** `frontend/app/sales.tsx`
+- **Líneas 151-276:** useEffect con event listener de keydown
+- **Líneas 2220-2304:** Modal de ayuda de atajos
+- **Botón de ayuda (?)** en el header, visible solo en web
+- **Testing:** 100% de atajos verificados en iteration_27.json
+
 ## Cambios Recientes (15 Feb 2026)
 
 ### ✅ Bug Fix: GET /api/tickets retornaba lista vacía (COMPLETADO 15 Feb 2026)
