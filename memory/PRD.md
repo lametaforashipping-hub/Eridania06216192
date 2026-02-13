@@ -25,6 +25,17 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 | Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
 | Super Pale     | 2       | 2500x      | 250x       | 125x       |
 
+## Cambios Recientes (15 Feb 2026)
+
+### ✅ Bug Fix: GET /api/tickets retornaba lista vacía (COMPLETADO 15 Feb 2026)
+- **Problema:** El endpoint `GET /api/tickets` retornaba 0 tickets mientras que `/api/tickets/today` retornaba los tickets correctamente
+- **Causa Raíz:** Los tickets tipo `multi_play` tienen `lottery_id=None` a nivel raíz, ya que las loterías están dentro del array `plays`. El filtro original solo buscaba por `lottery_id` directo, excluyendo todos los tickets multi-play.
+- **Solución:** Modificar la query MongoDB para usar `$or` que incluya:
+  1. Tickets simples con `lottery_id` directo
+  2. Tickets multi-play con `plays.lottery_id` dentro del array
+- **Archivo modificado:** `backend/routes/tickets.py` - función `get_tickets()`
+- **Testing:** Verificado con curl - vendedor ve 14 tickets, super_admin ve 154 tickets
+
 ## Cambios Recientes (13 Feb 2026)
 
 ### ✅ Historial de Jugadas Recientes (COMPLETADO 13 Feb 2026)
