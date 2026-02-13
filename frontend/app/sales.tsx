@@ -1077,67 +1077,64 @@ export default function Sales() {
           </View>
         )}
 
-        {/* Step 2: Enter Numbers */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Text style={styles.stepNumber}>2</Text> Ingresar Números
-          </Text>
-          {ref ? (
-            <>
-              <Text style={styles.sectionSubtitle}>
-                Rango: {ref.min_number}-{ref.max_number} | Seleccionar: {ref.numbers_to_pick} número(s)
-              </Text>
-              <View style={styles.numberInputRow}>
-                <TextInput
-                  style={styles.numberInput}
-                  value={numberInput}
-                  onChangeText={setNumberInput}
-                  placeholder={`Ej: ${ref.min_number}`}
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                  maxLength={3}
-                  onSubmitEditing={addNumberFromInput}
-                />
-                <TouchableOpacity style={styles.addButton} onPress={addNumberFromInput}>
-                  <Ionicons name="add" size={24} color="#ffffff" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.randomButton} onPress={handleQuickPick}>
-                  <Ionicons name="shuffle" size={20} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
+        {/* Step 3: Enter Numbers */}
+        {selectedLottery && selectedPlayType && lottery && playTypeConfig && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              <Text style={styles.stepNumber}>3</Text> Ingresar Números ({playTypeConfig.name})
+            </Text>
+            <Text style={styles.sectionSubtitle}>
+              Rango: {lottery.min_number}-{lottery.max_number} | Seleccionar: {playTypeConfig.numbers_count} número(s)
+            </Text>
+            <View style={styles.numberInputRow}>
+              <TextInput
+                style={styles.numberInput}
+                value={numberInput}
+                onChangeText={setNumberInput}
+                placeholder={`Ej: ${lottery.min_number}`}
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+                maxLength={3}
+                onSubmitEditing={addNumberFromInput}
+              />
+              <TouchableOpacity style={styles.addButton} onPress={addNumberFromInput}>
+                <Ionicons name="add" size={24} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.randomButton} onPress={handleQuickPick}>
+                <Ionicons name="shuffle" size={20} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
 
-              <View style={styles.selectedNumbers}>
-                {selectedNumbers.length > 0 ? (
-                  selectedNumbers.map(num => (
-                    <TouchableOpacity
-                      key={num}
-                      style={styles.selectedBall}
-                      onPress={() => setSelectedNumbers(selectedNumbers.filter(n => n !== num))}
-                    >
-                      <Text style={styles.selectedBallText}>{num.toString().padStart(2, '0')}</Text>
-                      <Ionicons name="close" size={14} color="#fff" style={styles.removeBallIcon} />
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <Text style={styles.noNumbers}>Ingresa números arriba</Text>
-                )}
-              </View>
-            </>
-          ) : (
-            <Text style={styles.noLotteryText}>Selecciona una lotería primero</Text>
-          )}
-        </View>
+            <View style={styles.selectedNumbers}>
+              {selectedNumbers.length > 0 ? (
+                selectedNumbers.map(num => (
+                  <TouchableOpacity
+                    key={num}
+                    style={styles.selectedBall}
+                    onPress={() => setSelectedNumbers(selectedNumbers.filter(n => n !== num))}
+                  >
+                    <Text style={styles.selectedBallText}>{num.toString().padStart(2, '0')}</Text>
+                    <Ionicons name="close" size={14} color="#fff" style={styles.removeBallIcon} />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.noNumbers}>Ingresa {playTypeConfig.numbers_count} número(s)</Text>
+              )}
+            </View>
+          </View>
+        )}
 
-        {/* Step 3: Amount and Add to Cart */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Text style={styles.stepNumber}>3</Text> Monto y Agregar
-          </Text>
-          <View style={styles.amountRow}>
-            <Text style={styles.amountLabel}>{ref?.currency || 'RD$'}</Text>
-            <TextInput
-              style={styles.amountInput}
-              value={amount}
+        {/* Step 4: Amount and Add to Cart */}
+        {selectedLottery && selectedPlayType && lottery && playTypeConfig && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              <Text style={styles.stepNumber}>4</Text> Monto y Agregar
+            </Text>
+            <View style={styles.amountRow}>
+              <Text style={styles.amountLabel}>{lottery.currency}</Text>
+              <TextInput
+                style={styles.amountInput}
+                value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
               placeholder="20"
