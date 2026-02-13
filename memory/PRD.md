@@ -564,6 +564,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Admin UI para tipos de jugada~~ - **COMPLETADO** (13 Feb 2026)
 - ~~Exportar reportes a Excel~~ - **COMPLETADO** (13 Feb 2026)
 - ~~Endpoint /api/accounting/detailed-seller-report~~ - **COMPLETADO** (13 Feb 2026)
+- ~~Interfaz Unificada de Ventas (Vender + Multi-Jugada)~~ - **COMPLETADO** (13 Feb 2026)
 
 ### P1 - Prioridad Alta
 - **Mejorar Experiencia del Carrito** - Mejorar UI del carrito de compras para mejor visualización y edición/eliminación de jugadas
