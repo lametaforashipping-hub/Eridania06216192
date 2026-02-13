@@ -38,7 +38,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Eliminar favoritos no usados
 - **Un solo recibo:** Todas las jugadas en un único ticket
 - Validación de límites por número
-- QR code en recibos
+- **🎫 Nuevo Diseño de Ticket/Recibo (13 Feb 2026):**
+  - Logo de "Loteria Magic" en la cabecera
+  - Código QR que contiene solo el ID del ticket para búsqueda en sistema
+  - Diseño profesional con gradientes y mejor estructura visual
+  - Sección de jugadas con detalles de lotería, números y montos
+  - Totales destacados con premio potencial
+  - Pie con instrucciones de conservación del boleto
+  - Compatible con impresión (expo-print) y WhatsApp (Share)
 
 ### Multi-Jugada con Selector de Lotería (12 Feb 2026)
 - **🎰 Multi-Lotto:** Seleccionar lotería específica para cada jugada
