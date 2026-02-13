@@ -704,10 +704,16 @@ export default function MultiPlay() {
                   ))}
                 </View>
                 
-                <TouchableOpacity style={styles.addButton} onPress={addPlay}>
+                <Pressable 
+                  style={({ pressed }) => [
+                    styles.addButton,
+                    pressed && { opacity: 0.8 }
+                  ]} 
+                  onPress={addPlay}
+                >
                   <Ionicons name="add-circle" size={22} color="#ffffff" />
                   <Text style={styles.addButtonText}>Agregar Jugada</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </ScrollView>
