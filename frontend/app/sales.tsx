@@ -1624,6 +1624,7 @@ export default function Sales() {
             </Text>
             <View style={styles.numberInputRow}>
               <TextInput
+                ref={numberInputRef}
                 style={styles.numberInput}
                 value={numberInput}
                 onChangeText={setNumberInput}
@@ -1632,6 +1633,7 @@ export default function Sales() {
                 keyboardType="numeric"
                 maxLength={3}
                 onSubmitEditing={addNumberFromInput}
+                data-testid="number-input"
               />
               <TouchableOpacity style={styles.addButton} onPress={addNumberFromInput}>
                 <Ionicons name="add" size={24} color="#ffffff" />
