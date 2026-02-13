@@ -859,4 +859,108 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
+  drawHour: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  multiPrizeContainer: {
+    width: '100%',
+  },
+  prizeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 6,
+  },
+  prizeLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 60,
+  },
+  prizeLabelText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginLeft: 4,
+  },
+  firstPrizeBall: {
+    backgroundColor: '#fbbf24',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  secondPrizeBall: {
+    backgroundColor: '#64748b',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
+  thirdPrizeBall: {
+    backgroundColor: '#cd7f32',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  dateTimeInput: {
+    flex: 1,
+  },
+  dateInput: {
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    color: '#ffffff',
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  prizesSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  prizeInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 10,
+  },
+  prizeInputLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  prizeInputLabelText: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  prizeInput: {
+    backgroundColor: '#0f172a',
+    width: 80,
+    height: 60,
+    borderRadius: 12,
+    textAlign: 'center',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    borderWidth: 2,
+  },
+  firstPrizeInput: {
+    borderColor: '#fbbf24',
+  },
+  secondPrizeInput: {
+    borderColor: '#94a3b8',
+  },
+  thirdPrizeInput: {
+    borderColor: '#cd7f32',
+  },
 });
