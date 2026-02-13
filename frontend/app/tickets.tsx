@@ -118,7 +118,8 @@ export default function Tickets() {
 
   useEffect(() => {
     fetchTickets();
-  }, [fetchTickets]);
+    fetchCompanyProfile();
+  }, [fetchTickets, fetchCompanyProfile]);
 
   const onRefresh = async () => {
     setRefreshing(true);
