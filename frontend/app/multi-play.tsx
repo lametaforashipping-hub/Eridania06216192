@@ -174,12 +174,23 @@ export default function MultiPlay() {
     return isNaN(single) ? [] : [single];
   };
 
+// Cross-platform alert function
+const showAlert = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
   const addPlay = () => {
     const numbers = parseNumbers(numbersInput);
     const amount = parseFloat(amountInput);
     
+    console.log('Adding play:', { numbersInput, amountInput, numbers, amount, selectedType });
+    
     if (numbers.length !== selectedType.numbers) {
-      Alert.alert('Error', `${selectedType.label} requiere ${selectedType.numbers} número(s). Ingresa como: ${selectedType.numbers === 1 ? '25' : selectedType.numbers === 2 ? '20-50 o 2050' : '20-50-30 o 205030'}`);
+      showAlert('Error', `${selectedType.label} requiere ${selectedType.numbers} número(s). Ingresa como: ${selectedType.numbers === 1 ? '25' : selectedType.numbers === 2 ? '20-50 o 2050' : '20-50-30 o 205030'}`);
       return;
     }
     
@@ -188,13 +199,13 @@ export default function MultiPlay() {
     const maxNum = selectedLottery?.max_number ?? 99;
     for (const num of numbers) {
       if (num < minNum || num > maxNum) {
-        Alert.alert('Error', `Número ${num} fuera de rango (${minNum}-${maxNum})`);
+        showAlert('Error', `Número ${num} fuera de rango (${minNum}-${maxNum})`);
         return;
       }
     }
     
-    if (!amount || amount <= 0) {
-      Alert.alert('Error', 'Ingresa un monto válido');
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      showAlert('Error', 'Ingresa un monto válido');
       return;
     }
     
@@ -208,7 +219,8 @@ export default function MultiPlay() {
       amount,
     };
     
-    setPlays([...plays, newPlay]);
+    console.log('New play created:', newPlay);
+    setPlays(prev => [...prev, newPlay]);
     // Reset form for next play - IMPORTANT: keeps amount for convenience
     setNumbersInput('');
     // Keep the amount for consecutive plays with same amount
