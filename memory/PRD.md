@@ -8,6 +8,23 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Frontend:** React Native / Expo
 - **Base de datos:** MongoDB
 
+### Loterías Reales Implementadas (14 Dic 2025)
+**21 loterías reales de RD con soporte multi-jugada:**
+- Gana Más, Lotería Nacional, Pega 3 Más, Quiniela Leidsa, Quiniela Real, Quiniela Loteka
+- Florida Día, Florida Noche, New York Tarde, New York Noche
+- La Primera Día, Primera Noche, La Suerte 12:30, La Suerte 18:00
+- Quiniela LoteDom
+- Anguila Mañana, Anguila Medio Día, Anguila Tarde, Anguila Noche
+- King Lottery 12:30, King Lottery 7:30
+
+**Cada lotería soporta 4 tipos de jugada con 3 premios cada uno:**
+| Tipo de Jugada | Números | 1er Premio | 2do Premio | 3er Premio |
+|----------------|---------|------------|------------|------------|
+| Quiniela       | 1       | 70x        | 20x        | 10x        |
+| Pale           | 2       | 1000x      | 100x       | 50x        |
+| Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
+| Super Pale     | 2       | 2500x      | 250x       | 125x       |
+
 ### Estructura Backend Modular (COMPLETADO 14 Dic 2025)
 ```
 /app/backend/
@@ -18,7 +35,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 │   ├── users.py          # Gestión de usuarios
 │   ├── terminals.py      # Gestión de terminales
 │   ├── favorites.py      # Números favoritos
-│   ├── lotteries.py      # Gestión de loterías + holidays + prize-tiers
+│   ├── lotteries.py      # Gestión de loterías + play-types + multipliers
 │   ├── tickets.py        # Ventas de boletos (simple + multi-play)
 │   ├── draws.py          # Sorteos y multi-prize
 │   ├── notifications.py  # Notificaciones
@@ -27,23 +44,24 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 │   ├── statistics.py     # Estadísticas de números
 │   ├── admin.py          # Configuración sistema + seller-profile + act-as-seller
 │   ├── company.py        # Perfil de empresa
-│   └── system.py         # Inicialización y health checks (NEW)
+│   └── system.py         # Inicialización, reset-lotteries y health checks
 ├── services/             # Lógica de negocio
 │   └── notifications.py  # Push notifications (Expo)
 ├── models/               # Modelos Pydantic y Enums
-│   ├── schemas.py        # Modelos de request/response
+│   ├── schemas.py        # Modelos + DEFAULT_PLAY_TYPES
 │   └── enums.py          # Enumeraciones (roles, estados, etc.)
 └── utils/                # Utilidades
     ├── auth.py           # Dependencias de autenticación JWT
     ├── database.py       # Conexión MongoDB
-    └── helpers.py        # Funciones auxiliares (check_lottery_open, calculate_prize, etc.)
+    └── helpers.py        # Funciones auxiliares
 ```
 
 **Logro de Refactorización (14 Dic 2025):**
 - server.py reducido de 3347 líneas a 79 líneas (-97.6%)
 - 14 routers modulares organizados por funcionalidad
-- 18 pruebas unitarias pasando
-- Toda la funcionalidad preservada
+- 21 loterías reales de RD con nombres correctos
+- Sistema multi-jugada: cada lotería soporta Quiniela, Pale, Tripleta, Super Pale
+- Multiplicadores configurables por tipo de jugada y por premio (1ro, 2do, 3ro)
 
 
 ## Funcionalidades Implementadas
