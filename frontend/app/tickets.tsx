@@ -787,7 +787,24 @@ export default function Tickets() {
             {selectedTicket && (
               <View style={styles.receiptBody}>
                 <View style={styles.receiptHeader}>
-                  <Text style={styles.receiptLogo}>🎰 LOTERIA 🎰</Text>
+                  {companyProfile?.logo_url && (
+                    <Image source={{ uri: companyProfile.logo_url }} style={styles.receiptCompanyLogo} />
+                  )}
+                  <Text style={styles.receiptLogo}>
+                    {companyProfile?.company_name || '🎰 LOTERIA 🎰'}
+                  </Text>
+                  {companyProfile?.slogan && (
+                    <Text style={styles.receiptSlogan}>{companyProfile.slogan}</Text>
+                  )}
+                  {companyProfile?.address && (
+                    <Text style={styles.receiptCompanyInfo}>{companyProfile.address}</Text>
+                  )}
+                  {companyProfile?.phone && (
+                    <Text style={styles.receiptCompanyInfo}>Tel: {companyProfile.phone}</Text>
+                  )}
+                  {companyProfile?.rnc && (
+                    <Text style={styles.receiptCompanyInfo}>RNC: {companyProfile.rnc}</Text>
+                  )}
                 </View>
                 
                 <View style={styles.receiptTicketNumber}>
