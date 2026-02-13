@@ -13,6 +13,7 @@ import {
   Platform,
   Dimensions,
   FlatList,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
