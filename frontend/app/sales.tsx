@@ -25,6 +25,17 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
 
+interface PlayTypeConfig {
+  name: string;
+  numbers_count: number;
+  multipliers: {
+    first: number;
+    second: number;
+    third: number;
+  };
+  enabled: boolean;
+}
+
 interface Lottery {
   id: string;
   name: string;
@@ -41,6 +52,7 @@ interface Lottery {
   next_draw_time: string | null;
   closing_minutes_before: number;
   closed_message?: string;
+  play_types?: { [key: string]: PlayTypeConfig };
 }
 
 interface CartItem {
@@ -52,6 +64,8 @@ interface CartItem {
   currency: string;
   potentialWin: number;
   country: string;
+  playType: string;
+  playTypeName: string;
 }
 
 interface MultiPlayTicketResponse {
