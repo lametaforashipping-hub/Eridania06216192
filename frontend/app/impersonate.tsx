@@ -539,6 +539,18 @@ const styles = StyleSheet.create({
   actionCardBlue: {
     borderColor: '#3b82f6',
   },
+  actionCardPurple: {
+    borderColor: '#a855f7',
+  },
+  actionCardYellow: {
+    borderColor: '#eab308',
+  },
+  actionCardCyan: {
+    borderColor: '#06b6d4',
+  },
+  actionCardOrange: {
+    borderColor: '#f97316',
+  },
   actionCardTitle: {
     fontSize: 16,
     fontWeight: '600',
