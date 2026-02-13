@@ -370,12 +370,51 @@ export default function Lotteries() {
         </View>
       </View>
 
-      {/* Operating Hours */}
-      <View style={styles.operatingHours}>
-        <Ionicons name="time-outline" size={16} color="#22c55e" />
-        <Text style={styles.operatingHoursText}>
-          Hoy ({item.today_hours?.day ? item.today_hours.day.substring(0, 3) : 'N/A'}): {item.today_hours?.open || item.opening_time || '08:00'} - {item.today_hours?.close || item.closing_time || '21:00'}
-        </Text>
+      {/* Operating Hours - MEJORADO */}
+      <View style={styles.operatingHoursSection}>
+        <View style={styles.operatingHoursHeader}>
+          <Ionicons name="time-outline" size={18} color="#22c55e" />
+          <Text style={styles.operatingHoursTitle}>Horario de Operación</Text>
+        </View>
+        
+        {/* Horario de Hoy */}
+        <View style={styles.todayHoursContainer}>
+          <Text style={styles.todayLabel}>
+            📅 Hoy ({item.today_hours?.day || 'N/A'}):
+          </Text>
+          <View style={[styles.todayHoursBadge, item.is_open ? styles.openBadge : styles.closedBadge]}>
+            <Text style={styles.todayHoursText}>
+              {item.today_hours?.closed ? 'CERRADO' : `${item.today_hours?.open || item.opening_time || '08:00'} - ${item.today_hours?.close || item.closing_time || '21:00'}`}
+            </Text>
+          </View>
+        </View>
+
+        {/* Horarios Semanales Detallados */}
+        {item.weekly_hours ? (
+          <View style={styles.weeklyHoursContainer}>
+            <Text style={styles.weeklyHoursTitle}>📋 Horarios por Día:</Text>
+            <View style={styles.weeklyHoursGrid}>
+              {DAYS_OF_WEEK.map((day) => {
+                const hours = item.weekly_hours?.[day.key];
+                const isToday = item.today_hours?.day?.toLowerCase().startsWith(day.key.substring(0, 3));
+                return (
+                  <View key={day.key} style={[styles.dayHoursRow, isToday && styles.todayRow]}>
+                    <Text style={[styles.dayName, isToday && styles.todayDayName]}>{day.label}</Text>
+                    <Text style={[styles.dayHours, isToday && styles.todayDayHours]}>
+                      {hours ? `${hours.open} - ${hours.close}` : 'N/A'}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.simpleHoursContainer}>
+            <Text style={styles.simpleHoursText}>
+              🕐 Horario fijo: {item.opening_time || '08:00'} - {item.closing_time || '21:00'} (todos los días)
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.scheduleContainer}>
