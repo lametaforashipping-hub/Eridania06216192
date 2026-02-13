@@ -227,16 +227,19 @@ async def update_lottery_prize_tiers(
 
 
 @router.put("/{lottery_id}/play-types/{play_type}")
-async def update_play_type_multipliers(
+async def update_play_type_config(
     lottery_id: str,
     play_type: str,
-    multipliers: Dict[str, float],
+    config: Dict,
     current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))
 ):
-    """Update multipliers for a specific play type in a lottery
+    """Update configuration for a specific play type in a lottery
     
     play_type: quiniela, pale, tripleta, super_pale
-    multipliers: {"first": 70, "second": 20, "third": 10}
+    config: {
+        "multipliers": {"first": 70, "second": 20, "third": 10},
+        "enabled": true
+    }
     """
     db = get_db()
     lottery = await db.lotteries.find_one({"id": lottery_id})
@@ -247,8 +250,13 @@ async def update_play_type_multipliers(
     if play_type not in play_types:
         raise HTTPException(status_code=400, detail=f"Tipo de jugada '{play_type}' no existe en esta lotería")
     
-    # Update only the multipliers
-    play_types[play_type]["multipliers"] = multipliers
+    # Update multipliers if provided
+    if "multipliers" in config:
+        play_types[play_type]["multipliers"] = config["multipliers"]
+    
+    # Update enabled status if provided
+    if "enabled" in config:
+        play_types[play_type]["enabled"] = config["enabled"]
     
     await db.lotteries.update_one(
         {"id": lottery_id},
@@ -259,9 +267,9 @@ async def update_play_type_multipliers(
         }}
     )
     return {
-        "message": f"Multiplicadores de {play_type} actualizados para {lottery['name']}",
+        "message": f"Tipo de jugada {play_type} actualizado para {lottery['name']}",
         "play_type": play_type,
-        "new_multipliers": multipliers
+        "config": play_types[play_type]
     }
 
 
