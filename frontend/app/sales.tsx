@@ -1140,13 +1140,13 @@ export default function Sales() {
         </View>
 
         {/* Step 2: Select Play Type */}
-        {selectedLottery && lottery && lottery.play_types && (
+        {selectedLotteries.length > 0 && lottery && lottery.play_types && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               <Text style={styles.stepNumber}>2</Text> Tipo de Jugada
             </Text>
             <Text style={styles.sectionSubtitle}>
-              Selecciona el tipo de jugada para {lottery.name}
+              Selecciona el tipo de jugada (se aplicará a las {selectedLotteries.length} lotería(s) seleccionada(s))
             </Text>
             
             <View style={styles.playTypeGrid}>
