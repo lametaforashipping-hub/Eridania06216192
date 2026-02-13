@@ -1628,6 +1628,43 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginBottom: 12,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  selectAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#334155',
+  },
+  selectAllText: {
+    fontSize: 12,
+    color: '#22c55e',
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  selectedBadge: {
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  selectedBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  lotteryChipDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#1e293b',
+  },
   typeFilter: {
     marginBottom: 12,
   },
