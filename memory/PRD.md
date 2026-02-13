@@ -138,6 +138,23 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Modal para editar multiplicadores por lotería (1ro, 2do, 3ro lugar)
   - Menú "Configuración" agregado al dashboard
 
+### Mejoras en Gestión de Loterías (13 Feb 2026)
+- ✅ **Vista Detallada de Horarios por Lotería**
+  - Sección "Horario de Operación" con ícono y título
+  - Badge "Hoy (día): HH:MM - HH:MM" con estado abierto/cerrado
+  - Tabla de "Horarios por Día" mostrando todos los días de la semana
+  - Día actual resaltado en verde
+  - Horarios diferentes para sábado y domingo
+  - Horario fijo para loterías sin configuración semanal
+- ✅ **Modal de Edición Mejorado**
+  - Información explicativa sobre el bloqueo automático de ventas
+  - Campos claros: Apertura (🟢) y Cierre (🔴)
+  - Switch para usar horarios diferentes por día
+- ✅ **Información Visible**
+  - "Abre hoy a las XX:XX" (barra naranja cuando está cerrada)
+  - "ABIERTA" (barra verde cuando está operando)
+  - Horarios de sorteos del día
+
 ### Chequeo General Completo (12-13 Feb 2026) - TODAS LAS FUNCIONALIDADES ✅
 **Testing Agent:** iteration_17.json - Backend: 100% (25/25), Frontend: 100% (25/25 páginas)
 
