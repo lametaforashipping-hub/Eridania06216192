@@ -1165,6 +1165,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    cursor: 'pointer',
   },
   addButtonText: {
     fontSize: 16,
