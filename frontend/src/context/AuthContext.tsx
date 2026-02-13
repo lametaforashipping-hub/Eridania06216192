@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import { registerForPushNotificationsAsync, saveTokenToServer } from '../services/pushNotifications';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
