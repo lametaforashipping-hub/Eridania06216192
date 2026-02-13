@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ticket-verify-6.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-mgmt.preview.emergentagent.com').rstrip('/')
 
 class TestImpersonation:
     """Impersonation feature tests - Super Admin creates tickets as a vendedor"""

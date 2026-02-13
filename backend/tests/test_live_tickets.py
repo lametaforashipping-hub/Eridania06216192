@@ -8,7 +8,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ticket-verify-6.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-mgmt.preview.emergentagent.com')
 
 class TestLiveTicketsMonitoring:
     """Tests for live tickets monitoring endpoint"""
