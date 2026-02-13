@@ -314,48 +314,95 @@ export default function Draws() {
     );
   };
 
-  const renderDraw = ({ item }: { item: Draw }) => (
-    <View style={styles.drawCard}>
-      <View style={styles.drawHeader}>
-        <View>
-          <Text style={styles.lotteryName}>{item.lottery_name}</Text>
-          <Text style={styles.drawTime}>
-            {new Date(item.draw_time).toLocaleString('es-DO')}
-          </Text>
+  const renderDraw = ({ item }: { item: Draw }) => {
+    const drawDate = new Date(item.draw_time);
+    const hasMultiPrize = item.first_prize !== undefined;
+    
+    return (
+      <View style={styles.drawCard}>
+        <View style={styles.drawHeader}>
+          <View>
+            <Text style={styles.lotteryName}>{item.lottery_name}</Text>
+            <Text style={styles.drawTime}>
+              {drawDate.toLocaleDateString('es-DO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+            </Text>
+            <Text style={styles.drawHour}>
+              {drawDate.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+          <View style={styles.statsContainer}>
+            <View style={styles.statBadge}>
+              <Text style={styles.statValue}>{item.total_winners}</Text>
+              <Text style={styles.statLabel}>Ganadores</Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.statsContainer}>
-          <View style={styles.statBadge}>
-            <Text style={styles.statValue}>{item.total_winners}</Text>
-            <Text style={styles.statLabel}>Ganadores</Text>
+
+        <View style={styles.numbersContainer}>
+          <Text style={styles.numbersLabel}>Números Ganadores</Text>
+          
+          {hasMultiPrize ? (
+            <View style={styles.multiPrizeContainer}>
+              <View style={styles.prizeRow}>
+                <View style={styles.prizeLabel}>
+                  <Ionicons name="trophy" size={16} color="#fbbf24" />
+                  <Text style={styles.prizeLabelText}>1ro</Text>
+                </View>
+                <View style={[styles.numberBall, styles.firstPrizeBall]}>
+                  <Text style={styles.numberBallText}>{item.first_prize?.toString().padStart(2, '0')}</Text>
+                </View>
+              </View>
+              
+              {item.second_prize !== undefined && item.second_prize !== null && (
+                <View style={styles.prizeRow}>
+                  <View style={styles.prizeLabel}>
+                    <Ionicons name="trophy-outline" size={16} color="#94a3b8" />
+                    <Text style={styles.prizeLabelText}>2do</Text>
+                  </View>
+                  <View style={[styles.numberBall, styles.secondPrizeBall]}>
+                    <Text style={styles.numberBallText}>{item.second_prize.toString().padStart(2, '0')}</Text>
+                  </View>
+                </View>
+              )}
+              
+              {item.third_prize !== undefined && item.third_prize !== null && (
+                <View style={styles.prizeRow}>
+                  <View style={styles.prizeLabel}>
+                    <Ionicons name="medal-outline" size={16} color="#cd7f32" />
+                    <Text style={styles.prizeLabelText}>3ro</Text>
+                  </View>
+                  <View style={[styles.numberBall, styles.thirdPrizeBall]}>
+                    <Text style={styles.numberBallText}>{item.third_prize.toString().padStart(2, '0')}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.numberBalls}>
+              {item.winning_numbers.map((num, index) => (
+                <View key={index} style={styles.numberBall}>
+                  <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.drawFooter}>
+          <View style={styles.footerItem}>
+            <Ionicons name="ticket-outline" size={16} color="#94a3b8" />
+            <Text style={styles.footerText}>{item.total_tickets} boletos</Text>
+          </View>
+          <View style={styles.footerItem}>
+            <Ionicons name="cash-outline" size={16} color="#22c55e" />
+            <Text style={[styles.footerText, styles.paidAmount]}>
+              {item.currency} {item.total_paid.toLocaleString()}
+            </Text>
           </View>
         </View>
       </View>
-
-      <View style={styles.numbersContainer}>
-        <Text style={styles.numbersLabel}>Números Ganadores</Text>
-        <View style={styles.numberBalls}>
-          {item.winning_numbers.map((num, index) => (
-            <View key={index} style={styles.numberBall}>
-              <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.drawFooter}>
-        <View style={styles.footerItem}>
-          <Ionicons name="ticket-outline" size={16} color="#94a3b8" />
-          <Text style={styles.footerText}>{item.total_tickets} boletos</Text>
-        </View>
-        <View style={styles.footerItem}>
-          <Ionicons name="cash-outline" size={16} color="#22c55e" />
-          <Text style={[styles.footerText, styles.paidAmount]}>
-            {item.currency} {item.total_paid.toLocaleString()}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const canExecuteDraw = user?.role === 'super_admin' || user?.role === 'admin';
 
