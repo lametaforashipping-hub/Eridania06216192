@@ -1258,31 +1258,31 @@ export default function Sales() {
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {lotteries.map(lottery => (
+              {lotteries.map(lot => (
                 <TouchableOpacity
-                  key={lottery.id}
+                  key={lot.id}
                   style={[
                     styles.lotteryOption,
-                    selectedLotteries.includes(lottery.id) && styles.lotteryOptionSelected,
-                    !lottery.is_open && styles.lotteryOptionClosed,
+                    selectedLottery === lot.id && styles.lotteryOptionSelected,
+                    !lot.is_open && styles.lotteryOptionClosed,
                   ]}
-                  onPress={() => toggleLotterySelection(lottery.id)}
+                  onPress={() => { handleSelectLottery(lot.id); setShowLotteryModal(false); }}
                 >
                   <View style={styles.lotteryOptionContent}>
                     <Text style={styles.lotteryOptionFlag}>
-                      {lottery.country === 'RD' ? '🇩🇴' : '🇺🇸'}
+                      {lot.country === 'RD' ? '🇩🇴' : '🇺🇸'}
                     </Text>
                     <View style={styles.lotteryOptionInfo}>
-                      <Text style={styles.lotteryOptionName}>{lottery.name}</Text>
+                      <Text style={styles.lotteryOptionName}>{lot.name}</Text>
                       <Text style={styles.lotteryOptionDetails}>
-                        {lottery.currency} {lottery.price} • x{lottery.prize_multiplier} • {lottery.numbers_to_pick}N
+                        {lot.currency} {lot.price} • {lot.schedule?.join(', ') || ''}
                       </Text>
                     </View>
                   </View>
-                  {selectedLotteries.includes(lottery.id) && (
+                  {selectedLottery === lot.id && (
                     <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                   )}
-                  {!lottery.is_open && (
+                  {!lot.is_open && (
                     <View style={styles.closedBadge}>
                       <Text style={styles.closedBadgeText}>CERRADA</Text>
                     </View>
@@ -1294,7 +1294,7 @@ export default function Sales() {
               style={styles.modalCloseButton}
               onPress={() => setShowLotteryModal(false)}
             >
-              <Text style={styles.modalCloseText}>Listo ({selectedLotteries.length} seleccionadas)</Text>
+              <Text style={styles.modalCloseText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
         </View>
