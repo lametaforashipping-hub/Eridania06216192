@@ -1682,33 +1682,75 @@ export default function Sales() {
             <ScrollView style={styles.favoritesListContainer}>
               {recentPlays.length > 0 ? (
                 recentPlays.map((play, index) => (
-                  <TouchableOpacity 
-                    key={play.id || index} 
-                    style={styles.recentPlayItem}
-                    onPress={() => handleUseRecentPlay(play)}
-                  >
-                    <View style={styles.recentPlayContent}>
-                      <View style={styles.recentPlayNumbers}>
-                        <Text style={styles.recentPlayNumbersText}>
-                          {play.numbers.join(' - ')}
-                        </Text>
-                        <View style={styles.recentPlayTypeBadge}>
-                          <Text style={styles.recentPlayTypeText}>
-                            {play.lottery_type?.charAt(0).toUpperCase() + play.lottery_type?.slice(1)}
+                  Platform.OS === 'web' ? (
+                    <div 
+                      key={play.id || index}
+                      onClick={() => handleUseRecentPlay(play)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: '#0f172a',
+                        borderRadius: 10,
+                        padding: 12,
+                        marginBottom: 10,
+                        borderLeftWidth: 3,
+                        borderLeftStyle: 'solid',
+                        borderLeftColor: '#6366f1',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <View style={styles.recentPlayContent}>
+                        <View style={styles.recentPlayNumbers}>
+                          <Text style={styles.recentPlayNumbersText}>
+                            {play.numbers.join(' - ')}
+                          </Text>
+                          <View style={styles.recentPlayTypeBadge}>
+                            <Text style={styles.recentPlayTypeText}>
+                              {play.lottery_type?.charAt(0).toUpperCase() + play.lottery_type?.slice(1)}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.recentPlayInfo}>
+                          <Text style={styles.recentPlayLottery}>
+                            {play.lottery_name || 'Lotería'}
+                          </Text>
+                          <Text style={styles.recentPlayAmount}>
+                            ${play.amount}
                           </Text>
                         </View>
                       </View>
-                      <View style={styles.recentPlayInfo}>
-                        <Text style={styles.recentPlayLottery}>
-                          {play.lottery_name || 'Lotería'}
-                        </Text>
-                        <Text style={styles.recentPlayAmount}>
-                          ${play.amount}
-                        </Text>
+                      <Ionicons name="add-circle" size={28} color="#22c55e" />
+                    </div>
+                  ) : (
+                    <TouchableOpacity 
+                      key={play.id || index} 
+                      style={styles.recentPlayItem}
+                      onPress={() => handleUseRecentPlay(play)}
+                    >
+                      <View style={styles.recentPlayContent}>
+                        <View style={styles.recentPlayNumbers}>
+                          <Text style={styles.recentPlayNumbersText}>
+                            {play.numbers.join(' - ')}
+                          </Text>
+                          <View style={styles.recentPlayTypeBadge}>
+                            <Text style={styles.recentPlayTypeText}>
+                              {play.lottery_type?.charAt(0).toUpperCase() + play.lottery_type?.slice(1)}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.recentPlayInfo}>
+                          <Text style={styles.recentPlayLottery}>
+                            {play.lottery_name || 'Lotería'}
+                          </Text>
+                          <Text style={styles.recentPlayAmount}>
+                            ${play.amount}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                    <Ionicons name="add-circle" size={28} color="#22c55e" />
-                  </TouchableOpacity>
+                      <Ionicons name="add-circle" size={28} color="#22c55e" />
+                    </TouchableOpacity>
+                  )
                 ))
               ) : (
                 <View style={styles.emptyFavorites}>
