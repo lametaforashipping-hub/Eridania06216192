@@ -500,7 +500,13 @@ export default function Sales() {
         }
       } else {
         const error = await response.json();
-        Alert.alert('Error', error.detail || 'No se pudo crear el boleto');
+        // Handle token expired error
+        if (response.status === 401 && (error.detail?.includes('expirado') || error.detail?.includes('Token'))) {
+          Alert.alert('Sesión Expirada', 'Tu sesión ha expirado. Por favor, cierra la sesión y vuelve a iniciar.');
+          router.replace('/');
+        } else {
+          Alert.alert('Error', error.detail || 'No se pudo crear el boleto');
+        }
       }
     } catch (error) {
       Alert.alert('Error', 'Error de conexión');
