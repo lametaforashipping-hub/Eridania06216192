@@ -546,30 +546,40 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ~~Ver recibo sin imprimir~~ - **COMPLETADO**
 - ~~Multi-Lotto para Multi-Play~~ - **COMPLETADO**
 - ~~Suplantación de Super Admin~~ - **COMPLETADO** (12 Feb 2026)
+- ~~Bug Fix: Tickets no se creaban desde sales screen~~ - **CORREGIDO** (13 Feb 2026)
+- ~~Rediseño de ticket en blanco y negro~~ - **COMPLETADO** (13 Feb 2026)
+- ~~Admin UI para tipos de jugada~~ - **COMPLETADO** (13 Feb 2026)
+- ~~Exportar reportes a Excel~~ - **COMPLETADO** (13 Feb 2026)
+- ~~Endpoint /api/accounting/detailed-seller-report~~ - **COMPLETADO** (13 Feb 2026)
 
 ### P1 - Prioridad Alta
-- **Reportes de comisión detallados** - Desglose exacto de cómo se deducen las comisiones por vendedor
+- **Mejorar Experiencia del Carrito** - Mejorar UI del carrito de compras para mejor visualización y edición/eliminación de jugadas
+- **Refactorizar sales.tsx** - Dividir archivo de 2287 líneas en componentes más pequeños y reutilizables
 
 ### P2 - Prioridad Media
+- **Notificaciones Push** - Alertas de resultados de lotería (requiere configuración Expo)
+- **Dashboard de estadísticas avanzadas** - Métricas avanzadas, gráficos y tendencias
+- **Reportes de comisión detallados** - Desglose exacto de cómo se deducen las comisiones por vendedor
 - **Interfaz de Pago de Premios** - Marcar tickets ganadores como "Pagados"
 - **Perfil de empresa con logo personalizable** - Logo en recibos
 
 ## Archivos Clave
-- `/app/backend/server.py` - API completa con Multi-Lotto, favoritos, pagos, filtrado, suplantación
-- `/app/frontend/app/multi-play.tsx` - Multi-Play con selector de lotería y soporte suplantación (MODIFICADO)
-- `/app/frontend/app/impersonate.tsx` - Hub de suplantación para Super Admin (NUEVO)
-- `/app/frontend/app/seller-profile.tsx` - Perfil vendedor con botón suplantación (MODIFICADO)
+- `/app/backend/routes/accounting.py` - Contabilidad y reportes + detailed-seller-report endpoint (MODIFICADO 13 Feb 2026)
+- `/app/frontend/app/detailed-seller-report.tsx` - Reporte detallado con exportar a Excel (MODIFICADO 13 Feb 2026)
 - `/app/frontend/app/sales.tsx` - Sistema de carrito con favoritos
-- `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
+- `/app/frontend/app/multi-play.tsx` - Multi-Play con selector de lotería
 - `/app/frontend/app/tickets.tsx` - Lista de tickets con Ver Recibo
+- `/app/frontend/app/impersonate.tsx` - Hub de suplantación para Super Admin
+- `/app/frontend/app/seller-profile.tsx` - Perfil vendedor con botón suplantación
+- `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
 - `/app/frontend/app/sellers-report.tsx` - Reporte con banderas y navegación a detallado
-- `/app/frontend/app/detailed-seller-report.tsx` - Reporte detallado por vendedor
 
 ## Test Reports
-- `/app/test_reports/iteration_15.json` - Suplantación de Super Admin verificado (100% frontend, 87.5% backend) - **NUEVO**
+- `/app/test_reports/iteration_25.json` - Exportar a Excel verificado (13 Feb 2026) - **NUEVO**
+- `/app/test_reports/iteration_15.json` - Suplantación de Super Admin verificado (100% frontend, 87.5% backend)
 - `/app/test_reports/iteration_14.json` - Multi-Lotto feature verificado (100% passed)
 - `/app/test_reports/iteration_13.json` - En Vivo, Super Admin, Perfil Vendedor (100% passed)
 - `/app/test_reports/iteration_12.json` - Gestión de terminales verificada (100% passed)
 - `/app/test_reports/iteration_11.json` - Bug fix modal de boletos verificado (100% passed)
-- `/app/backend/tests/test_impersonate.py` - Tests de suplantación - **NUEVO**
+- `/app/backend/tests/test_impersonate.py` - Tests de suplantación
 - `/app/backend/tests/test_multi_lotto.py` - Tests de Multi-Lotto endpoint
