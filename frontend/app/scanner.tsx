@@ -165,29 +165,59 @@ export default function Scanner() {
             autoCorrect={false}
           />
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.verifyButton, 
-              verifying && styles.verifyButtonDisabled,
-              pressed && { opacity: 0.8 }
-            ]}
-            onPress={() => {
-              console.log('Button pressed with value:', manualInput);
-              verifyTicket(manualInput);
-            }}
-            disabled={verifying}
-            testID="verify-button"
-            accessibilityRole="button"
-          >
-            {verifying ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <>
-                <Ionicons name="search" size={22} color="#ffffff" />
-                <Text style={styles.verifyButtonText}>Verificar Boleto</Text>
-              </>
-            )}
-          </Pressable>
+          {Platform.OS === 'web' ? (
+            <div 
+              onClick={() => {
+                console.log('Web button clicked with value:', manualInput);
+                if (!verifying) verifyTicket(manualInput);
+              }}
+              style={{
+                backgroundColor: verifying ? '#334155' : '#22c55e',
+                padding: 16,
+                borderRadius: 12,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                cursor: verifying ? 'not-allowed' : 'pointer',
+                marginTop: 8,
+              }}
+            >
+              {verifying ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="search" size={22} color="#ffffff" />
+                  <span style={{ color: '#ffffff', fontSize: 16, fontWeight: '600' }}>Verificar Boleto</span>
+                </>
+              )}
+            </div>
+          ) : (
+            <Pressable
+              style={({ pressed }) => [
+                styles.verifyButton, 
+                verifying && styles.verifyButtonDisabled,
+                pressed && { opacity: 0.8 }
+              ]}
+              onPress={() => {
+                console.log('Button pressed with value:', manualInput);
+                verifyTicket(manualInput);
+              }}
+              disabled={verifying}
+              testID="verify-button"
+              accessibilityRole="button"
+            >
+              {verifying ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="search" size={22} color="#ffffff" />
+                  <Text style={styles.verifyButtonText}>Verificar Boleto</Text>
+                </>
+              )}
+            </Pressable>
+          )}
 
           {!isWeb && (
             <TouchableOpacity
