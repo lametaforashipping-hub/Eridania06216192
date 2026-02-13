@@ -1665,6 +1665,70 @@ export default function Sales() {
           </View>
         </View>
       </Modal>
+
+      {/* Recent Plays Modal */}
+      <Modal visible={showRecentModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.favoritesModalContent, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🕐 Jugadas Recientes</Text>
+              <TouchableOpacity onPress={() => setShowRecentModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.recentSubtitle}>
+              Toca una jugada para agregarla al carrito
+            </Text>
+            <ScrollView style={styles.favoritesListContainer}>
+              {recentPlays.length > 0 ? (
+                recentPlays.map((play, index) => (
+                  <TouchableOpacity 
+                    key={play.id || index} 
+                    style={styles.recentPlayItem}
+                    onPress={() => handleUseRecentPlay(play)}
+                  >
+                    <View style={styles.recentPlayContent}>
+                      <View style={styles.recentPlayNumbers}>
+                        <Text style={styles.recentPlayNumbersText}>
+                          {play.numbers.join(' - ')}
+                        </Text>
+                        <View style={styles.recentPlayTypeBadge}>
+                          <Text style={styles.recentPlayTypeText}>
+                            {play.lottery_type?.charAt(0).toUpperCase() + play.lottery_type?.slice(1)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.recentPlayInfo}>
+                        <Text style={styles.recentPlayLottery}>
+                          {play.lottery_name || 'Lotería'}
+                        </Text>
+                        <Text style={styles.recentPlayAmount}>
+                          ${play.amount}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons name="add-circle" size={28} color="#22c55e" />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.emptyFavorites}>
+                  <Ionicons name="time-outline" size={48} color="#475569" />
+                  <Text style={styles.emptyFavoritesText}>No hay jugadas recientes</Text>
+                  <Text style={styles.emptyFavoritesSubtext}>
+                    Las jugadas que realices aparecerán aquí
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowRecentModal(false)}
+            >
+              <Text style={styles.modalCloseText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
