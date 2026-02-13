@@ -16,6 +16,7 @@ import random
 from enum import Enum
 import asyncio
 from bson import ObjectId
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
