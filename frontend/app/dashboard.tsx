@@ -434,16 +434,17 @@ const styles = StyleSheet.create({
     width: 140,
   },
   menuIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   menuLabel: {
-    fontSize: 11,
-    color: '#94a3b8',
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#ffffff',
     textAlign: 'center',
   },
   userInfoCard: {
