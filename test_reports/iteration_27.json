@@ -1,0 +1,104 @@
+{
+  "summary": "Frontend testing iteration 27: Comprehensive testing of keyboard shortcuts in the Sales page. All 12 keyboard shortcuts tested successfully. The shortcuts work correctly on web platform as expected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Sales page header",
+        "issues": ["Help button (?) icon is very subtle with grey color (#94a3b8) - consider using a more visible color for better discoverability"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_27.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Keyboard shortcuts are well implemented with proper checks for input focus and modal states",
+    "The shortcut help modal provides comprehensive documentation of all available shortcuts",
+    "Shortcuts correctly require prerequisites (e.g., F1-F4 need lotteries selected)"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100% (All 12 keyboard shortcuts working)"
+  },
+  "test_credentials": {
+    "seller": {"email": "vendedor@test.com", "password": "12345678"}
+  },
+  "seed_data_creation": "Created test ticket TKT-20260213235543-1019 during Ctrl+Enter shortcut test",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All keyboard shortcuts in the Sales page (sales.tsx) are working correctly. The shortcuts are web-only (Platform.OS === 'web') and properly ignore keypresses when user is typing in input fields.",
+  "tests_executed": {
+    "frontend": {
+      "test_1_help_modal_question_mark": {
+        "status": "PASS",
+        "description": "'?' or 'Shift+/' shortcut opens the keyboard shortcuts help modal 'Atajos de Teclado'"
+      },
+      "test_2_escape_close_modal": {
+        "status": "PASS",
+        "description": "'Escape' key closes any open modal"
+      },
+      "test_3_a_select_all_lotteries": {
+        "status": "PASS",
+        "description": "'A' key selects/deselects all open lotteries. Shows '20 lotería(s) seleccionada(s)' badge and 'Deseleccionar' button when all selected"
+      },
+      "test_4_f1_select_quiniela": {
+        "status": "PASS",
+        "description": "'F1' key selects Quiniela play type (requires lotteries selected first). Step 3 shows 'Ingresar Números (Quiniela)'"
+      },
+      "test_5_f2_select_pale": {
+        "status": "PASS",
+        "description": "'F2' key selects Pale play type (requires lotteries selected first)"
+      },
+      "test_6_r_random_numbers": {
+        "status": "PASS",
+        "description": "'R' key generates random numbers based on selected play type (requires lottery and play type selected)"
+      },
+      "test_7_backspace_delete_number": {
+        "status": "PASS",
+        "description": "'Backspace' key removes the last selected number. Step 3 shows 'Ingresa 1 número(s)' after deletion"
+      },
+      "test_8_enter_add_to_cart": {
+        "status": "PASS",
+        "description": "'Enter' key adds the current play to cart when numbers are complete. Cart shows '1 jugadas)' after adding"
+      },
+      "test_9_ctrl_enter_process_sale": {
+        "status": "PASS",
+        "description": "'Ctrl+Enter' processes the sale and creates ticket. Showed '¡Venta Exitosa!' modal with ticket TKT-20260213235543-1019"
+      },
+      "test_10_f_open_favorites": {
+        "status": "PASS",
+        "description": "'F' key opens the Favorites modal 'Mis Favoritos'"
+      },
+      "test_11_h_open_recent": {
+        "status": "PASS",
+        "description": "'H' key opens the Recent Plays modal 'Jugadas Recientes' with 14 recent plays"
+      },
+      "test_12_help_button_web_only": {
+        "status": "PASS",
+        "description": "Help button (?) with data-testid='shortcuts-help-btn' is present in header on web platform"
+      }
+    }
+  },
+  "verified_features": {
+    "question_mark_shortcut": "VERIFIED - Opens help modal",
+    "escape_shortcut": "VERIFIED - Closes modals",
+    "a_shortcut": "VERIFIED - Selects/deselects all lotteries",
+    "f1_shortcut": "VERIFIED - Selects Quiniela",
+    "f2_shortcut": "VERIFIED - Selects Pale",
+    "r_shortcut": "VERIFIED - Generates random numbers",
+    "backspace_shortcut": "VERIFIED - Deletes last number",
+    "enter_shortcut": "VERIFIED - Adds to cart",
+    "ctrl_enter_shortcut": "VERIFIED - Processes sale",
+    "f_shortcut": "VERIFIED - Opens favorites",
+    "h_shortcut": "VERIFIED - Opens recent plays",
+    "help_button_web": "VERIFIED - Present in header on web"
+  }
+}
