@@ -2583,14 +2583,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   recentPlayItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#0f172a',
     borderRadius: 10,
-    padding: 12,
     marginBottom: 10,
     borderLeftWidth: 3,
     borderLeftColor: '#6366f1',
+    overflow: 'hidden',
+  },
+  recentPlayTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
   },
   recentPlayContent: {
     flex: 1,
