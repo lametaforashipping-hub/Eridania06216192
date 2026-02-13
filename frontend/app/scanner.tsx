@@ -166,8 +166,14 @@ export default function Scanner() {
 
           <TouchableOpacity
             style={[styles.verifyButton, verifying && styles.verifyButtonDisabled]}
-            onPress={() => verifyTicket(manualInput)}
+            onPress={() => {
+              console.log('Button pressed with value:', manualInput);
+              verifyTicket(manualInput);
+            }}
             disabled={verifying}
+            testID="verify-button"
+            accessibilityRole="button"
+            activeOpacity={0.7}
           >
             {verifying ? (
               <ActivityIndicator color="#ffffff" />
