@@ -591,8 +591,13 @@ export default function DetailedSellerReport() {
       const fileName = `Reporte_${reportTitle.replace(/\s+/g, '_')}_${report.period}.xlsx`;
       
       if (Platform.OS === 'web') {
-        // For web, download directly
-        const blob = new Blob([s2ab(wbout)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        // For web, download directly - decode base64 to binary
+        const binaryString = atob(wbout);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -621,14 +626,6 @@ export default function DetailedSellerReport() {
       console.error('Error exporting to Excel:', error);
       Alert.alert('Error', 'No se pudo exportar a Excel');
     }
-  };
-  
-  // Helper function for web download
-  const s2ab = (s: string) => {
-    const buf = new ArrayBuffer(s.length);
-    const view = new Uint8Array(buf);
-    for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-    return buf;
   };
 
   const generatePDFHTML = async () => {
