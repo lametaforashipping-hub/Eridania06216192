@@ -107,8 +107,107 @@ export default function Draws() {
     setSelectedLottery(lottery);
     // Initialize empty inputs based on numbers_to_pick
     setManualNumbers(Array(lottery.numbers_to_pick).fill(''));
+    // Reset multi-prize fields
+    setFirstPrize('');
+    setSecondPrize('');
+    setThirdPrize('');
+    // Set default date and time to now
+    const now = new Date();
+    setDrawDate(now.toISOString().split('T')[0]);
+    setDrawTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
     setShowLotteryModal(false);
     setShowManualDrawModal(true);
+  };
+
+  const executeMultiPrizeDraw = async () => {
+    if (!selectedLottery) return;
+
+    // Validate first prize is required
+    const first = parseInt(firstPrize.trim());
+    if (isNaN(first)) {
+      Alert.alert('Error', 'Primer premio es obligatorio');
+      return;
+    }
+    if (first < selectedLottery.min_number || first > selectedLottery.max_number) {
+      Alert.alert('Error', `Primer premio debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    // Validate second prize if provided
+    const second = secondPrize.trim() ? parseInt(secondPrize.trim()) : null;
+    if (second !== null && (isNaN(second) || second < selectedLottery.min_number || second > selectedLottery.max_number)) {
+      Alert.alert('Error', `Segundo premio debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    // Validate third prize if provided
+    const third = thirdPrize.trim() ? parseInt(thirdPrize.trim()) : null;
+    if (third !== null && (isNaN(third) || third < selectedLottery.min_number || third > selectedLottery.max_number)) {
+      Alert.alert('Error', `Tercer premio debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    const prizeText = [
+      `1ro: ${first}`,
+      second !== null ? `2do: ${second}` : null,
+      third !== null ? `3ro: ${third}` : null
+    ].filter(Boolean).join(', ');
+
+    Alert.alert(
+      'Confirmar Sorteo',
+      `¿Ejecutar sorteo de ${selectedLottery.name}?\n\n${prizeText}\n\nFecha: ${drawDate}\nHora: ${drawTime}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Ejecutar',
+          onPress: async () => {
+            setCreating(true);
+            setShowManualDrawModal(false);
+            try {
+              const response = await fetch(`${API_URL}/api/draws/multi-prize`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ 
+                  lottery_id: selectedLottery.id,
+                  first_prize: first,
+                  second_prize: second,
+                  third_prize: third,
+                  draw_date: drawDate,
+                  draw_time: drawTime
+                }),
+              });
+
+              if (response.ok) {
+                const draw = await response.json();
+                Alert.alert(
+                  '¡Sorteo Ejecutado!',
+                  `${selectedLottery.name}\n\n` +
+                  `1er Premio: ${draw.first_prize}\n` +
+                  (draw.second_prize ? `2do Premio: ${draw.second_prize}\n` : '') +
+                  (draw.third_prize ? `3er Premio: ${draw.third_prize}\n` : '') +
+                  `\nGanadores: ${draw.total_winners}\nPremios: ${draw.currency} ${draw.total_paid.toLocaleString()}`
+                );
+                fetchDraws();
+                setSelectedLottery(null);
+                setFirstPrize('');
+                setSecondPrize('');
+                setThirdPrize('');
+              } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || 'No se pudo ejecutar el sorteo');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setCreating(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const executeManualDraw = async () => {
