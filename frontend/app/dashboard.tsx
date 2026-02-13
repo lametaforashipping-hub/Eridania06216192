@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
-const isWeb = Platform.OS === 'web';
 
 interface AccountingSummary {
   today: { sales: number; wins: number; profit: number; tickets: number };
