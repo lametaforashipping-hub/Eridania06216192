@@ -155,6 +155,19 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - "ABIERTA" (barra verde cuando está operando)
   - Horarios de sorteos del día
 
+### Sesión 10 - Fix de Multi-Jugada y Validación de Horarios (13 Feb 2026)
+- ✅ **Fix Crítico: Botón "Agregar Jugada" en Multi-Jugada**
+  - El botón no respondía a clicks en la versión web
+  - Solución: Componente `ModalButton` usando `Pressable` con `accessibilityRole="button"`
+  - Testing confirmado: 100% funcional (iteration_21.json)
+- ✅ **Fix Backend: Validación de Horas Inválidas**
+  - Función `parse_time_string` ahora maneja horas fuera de rango (ej: "24:00")
+  - Previene `ValueError: hour must be in 0..23` al cargar loterías
+  - Horas >= 24 se convierten a 23:59, horas < 0 a 00:00
+- ✅ **Alert Cross-Platform**
+  - Nueva función `showAlert` que usa `window.alert()` en web y `Alert.alert()` en móvil
+  - Mejora la experiencia de usuario mostrando errores de validación en todas las plataformas
+
 ### Sesión 9 - Impersonación Completa, Recibos con Logo, Push Notifications y Reportes de Comisiones (13 Feb 2026)
 - ✅ **Logo de Empresa en Recibos**
   - El recibo del boleto ahora muestra información completa de la empresa
