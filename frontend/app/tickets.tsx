@@ -120,16 +120,26 @@ export default function Tickets() {
 
   const fetchTickets = useCallback(async () => {
     try {
-      let url = `${API_URL}/api/tickets`;
-      if (filter !== 'all') {
-        url += `?status=${filter}`;
-      }
-      const response = await fetch(url, {
+      // Fetch all tickets first for counts
+      const allResponse = await fetch(`${API_URL}/api/tickets`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setTickets(data);
+      if (allResponse.ok) {
+        const allData = await allResponse.json();
+        
+        // Calculate status counts
+        const counts: {[key: string]: number} = { all: allData.length };
+        allData.forEach((t: Ticket) => {
+          counts[t.status] = (counts[t.status] || 0) + 1;
+        });
+        setStatusCounts(counts);
+        
+        // Apply filter
+        if (filter === 'all') {
+          setTickets(allData);
+        } else {
+          setTickets(allData.filter((t: Ticket) => t.status === filter));
+        }
       }
     } catch (error) {
       console.error('Error fetching tickets:', error);
