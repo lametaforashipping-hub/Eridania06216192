@@ -156,6 +156,142 @@ export default function Sales() {
     }
   }, [params.duplicate, lotteries, token, duplicateProcessed]);
 
+  // Keyboard shortcuts handler (web only)
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      const target = event.target as HTMLElement;
+      const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      
+      // Allow Enter in number input to add number
+      if (isInputFocused && event.key === 'Enter') {
+        return; // Let the input handle Enter
+      }
+
+      // Ignore shortcuts when modals are open (except Escape to close)
+      const modalOpen = showTicketModal || showFavoritesModal || showSaveFavoriteModal || 
+                        showRecentModal || showEditCartModal || showLotteryModal;
+      
+      if (event.key === 'Escape') {
+        // Close any open modal
+        if (showTicketModal) setShowTicketModal(false);
+        if (showFavoritesModal) setShowFavoritesModal(false);
+        if (showSaveFavoriteModal) setShowSaveFavoriteModal(false);
+        if (showRecentModal) setShowRecentModal(false);
+        if (showEditCartModal) setShowEditCartModal(false);
+        if (showLotteryModal) setShowLotteryModal(false);
+        if (showShortcutsHelp) setShowShortcutsHelp(false);
+        // Clear numbers if no modal is open
+        if (!modalOpen && !showShortcutsHelp) {
+          setSelectedNumbers([]);
+          setNumberInput('');
+        }
+        return;
+      }
+
+      // Don't process other shortcuts if modal is open or typing
+      if (modalOpen || isInputFocused) return;
+
+      // F1-F4: Select play type
+      if (event.key === 'F1' && selectedLotteries.length > 0) {
+        event.preventDefault();
+        handleSelectPlayType('quiniela');
+      }
+      if (event.key === 'F2' && selectedLotteries.length > 0) {
+        event.preventDefault();
+        handleSelectPlayType('pale');
+      }
+      if (event.key === 'F3' && selectedLotteries.length > 0) {
+        event.preventDefault();
+        handleSelectPlayType('tripleta');
+      }
+      if (event.key === 'F4' && selectedLotteries.length > 0) {
+        event.preventDefault();
+        handleSelectPlayType('super_pale');
+      }
+
+      // N: Focus number input
+      if (event.key === 'n' || event.key === 'N') {
+        event.preventDefault();
+        numberInputRef.current?.focus();
+      }
+
+      // M: Focus amount input
+      if (event.key === 'm' || event.key === 'M') {
+        event.preventDefault();
+        amountInputRef.current?.focus();
+      }
+
+      // R: Quick random numbers
+      if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault();
+        handleQuickPick();
+      }
+
+      // A: Select all lotteries
+      if (event.key === 'a' || event.key === 'A') {
+        event.preventDefault();
+        handleSelectAllLotteries();
+      }
+
+      // Enter: Add to cart (when numbers are complete)
+      if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey) {
+        const playTypeConfig = getSelectedPlayTypeConfig();
+        if (playTypeConfig && selectedNumbers.length === playTypeConfig.numbers_count) {
+          event.preventDefault();
+          addToCart();
+        }
+      }
+
+      // Ctrl+Enter or Cmd+Enter: Submit sale
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        if (cart.length > 0 && !submitting) {
+          handleSubmit();
+        }
+      }
+
+      // F: Open favorites
+      if (event.key === 'f' || event.key === 'F') {
+        event.preventDefault();
+        setShowFavoritesModal(true);
+      }
+
+      // H: Open recent plays (history)
+      if (event.key === 'h' || event.key === 'H') {
+        event.preventDefault();
+        setShowRecentModal(true);
+      }
+
+      // ?: Show shortcuts help
+      if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+        event.preventDefault();
+        setShowShortcutsHelp(true);
+      }
+
+      // Backspace: Remove last number
+      if (event.key === 'Backspace' && selectedNumbers.length > 0) {
+        event.preventDefault();
+        setSelectedNumbers(prev => prev.slice(0, -1));
+      }
+
+      // Delete or X: Clear cart (with confirmation)
+      if ((event.key === 'Delete' || event.key === 'x' || event.key === 'X') && cart.length > 0) {
+        event.preventDefault();
+        clearCart();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    selectedLotteries, selectedPlayType, selectedNumbers, cart, submitting,
+    showTicketModal, showFavoritesModal, showSaveFavoriteModal, showRecentModal,
+    showEditCartModal, showLotteryModal, showShortcutsHelp
+  ]);
+
   // Function to duplicate a ticket
   const handleDuplicateTicket = async (ticketId: string) => {
     try {
