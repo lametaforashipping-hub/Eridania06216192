@@ -36,6 +36,22 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Archivo modificado:** `backend/routes/tickets.py` - función `get_tickets()`
 - **Testing:** Verificado con curl - vendedor ve 14 tickets, super_admin ve 154 tickets
 
+### ✅ Mejora: Pantalla de Boletos con Expand/Collapse (COMPLETADO 15 Feb 2026)
+- **Filtros con contadores:** Cada filtro muestra el número de tickets (Todos 14, Pendientes 14, etc.)
+- **Badge de cantidad de jugadas:** Tickets multi-play muestran badge púrpura con número de jugadas
+- **Vista previa de jugadas:** Muestra las primeras 2 jugadas con:
+  - Badge circular de color por tipo (Q=Quiniela/azul, P=Pale/púrpura, T=Tripleta/rosa, S=Super Pale/naranja)
+  - Nombre de la lotería
+  - Números jugados
+  - Monto en verde
+- **Expandir/Colapsar:** Botón "Ver X jugadas" para expandir todas las jugadas con diseño de tarjeta:
+  - Header con tipo de jugada y número de índice
+  - Nombre de lotería centrado
+  - Números en círculos con borde de color
+  - Monto y premio potencial
+  - Botón "Colapsar" para cerrar
+- **Archivo modificado:** `frontend/app/tickets.tsx`
+
 ## Cambios Recientes (13 Feb 2026)
 
 ### ✅ Historial de Jugadas Recientes (COMPLETADO 13 Feb 2026)
