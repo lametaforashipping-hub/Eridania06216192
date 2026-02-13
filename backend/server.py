@@ -346,8 +346,9 @@ def require_role(allowed_roles: List[UserRole]):
 def parse_time_string(time_str: str) -> tuple:
     """
     Parse time string in various formats to (hour, minute).
-    Supports: "08:00", "8:00", "08:00pm", "8:00 PM", etc.
+    Supports: "08:00", "8:00", "08:00pm", "8:00 PM", "00:00", "24:00", etc.
     Returns (None, None) if parsing fails.
+    Validates hour is in 0-23 range (converts 24:00 to 00:00).
     """
     if not time_str:
         return None, None
@@ -376,6 +377,18 @@ def parse_time_string(time_str: str) -> tuple:
             hour += 12
         elif is_am and hour == 12:
             hour = 0
+        
+        # Handle invalid hour values (e.g., 24:00 -> 00:00, or values > 24)
+        if hour >= 24:
+            hour = 23  # Cap at 23 for safety (end of day)
+            minute = 59
+        elif hour < 0:
+            hour = 0
+            minute = 0
+        
+        # Validate minute
+        if minute < 0 or minute > 59:
+            minute = 0
         
         return hour, minute
     except (ValueError, IndexError):
