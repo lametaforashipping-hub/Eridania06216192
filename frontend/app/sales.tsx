@@ -106,7 +106,8 @@ export default function Sales() {
   const { token, user } = useAuth();
   const router = useRouter();
   const [lotteries, setLotteries] = useState<Lottery[]>([]);
-  const [selectedLotteries, setSelectedLotteries] = useState<string[]>([]);
+  const [selectedLottery, setSelectedLottery] = useState<string | null>(null);
+  const [selectedPlayType, setSelectedPlayType] = useState<string | null>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [numberInput, setNumberInput] = useState('');
   const [amount, setAmount] = useState('20');
@@ -117,7 +118,6 @@ export default function Sales() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [lastTicket, setLastTicket] = useState<MultiPlayTicketResponse | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
-  const [lotteryTypeFilter, setLotteryTypeFilter] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [showSaveFavoriteModal, setShowSaveFavoriteModal] = useState(false);
