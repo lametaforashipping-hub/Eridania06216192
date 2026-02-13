@@ -75,42 +75,100 @@ class PrizeRule(BaseModel):
     matches: int
     multiplier: float
 
+# ==================== PLAY TYPE CONFIG ====================
+# Default play types configuration for each lottery
+# Each lottery supports: quiniela (1 num), pale (2 nums), tripleta (3 nums), super_pale (2 nums)
+DEFAULT_PLAY_TYPES = {
+    "quiniela": {
+        "name": "Quiniela",
+        "numbers_count": 1,
+        "multipliers": {
+            "first": 70,    # Primer premio
+            "second": 20,   # Segundo premio
+            "third": 10     # Tercer premio
+        },
+        "enabled": True
+    },
+    "pale": {
+        "name": "Pale",
+        "numbers_count": 2,
+        "multipliers": {
+            "first": 1000,
+            "second": 100,
+            "third": 50
+        },
+        "enabled": True
+    },
+    "tripleta": {
+        "name": "Tripleta",
+        "numbers_count": 3,
+        "multipliers": {
+            "first": 50000,
+            "second": 5000,
+            "third": 2500
+        },
+        "enabled": True
+    },
+    "super_pale": {
+        "name": "Super Pale",
+        "numbers_count": 2,
+        "multipliers": {
+            "first": 2500,
+            "second": 250,
+            "third": 125
+        },
+        "enabled": True
+    }
+}
+
 # ==================== LOTTERY MODELS ====================
+class PlayTypeConfig(BaseModel):
+    """Configuration for a play type within a lottery"""
+    name: str
+    numbers_count: int
+    multipliers: Dict[str, float]  # {"first": 70, "second": 20, "third": 10}
+    enabled: bool = True
+
 class LotteryCreate(BaseModel):
     name: str
-    country: str
-    lottery_type: LotteryType
+    country: str = "RD"
     min_number: int = 0
     max_number: int = 99
-    numbers_to_pick: int = 1
     price: float = 20.0
     currency: Currency = Currency.RD
-    prize_multiplier: float = 70.0
     schedule: List[str] = ["12:00", "15:00", "21:00"]
     closing_minutes_before: int = 15
     active: bool = True
-    prize_rules: Optional[List[Dict]] = None
-    allows_combined: bool = False
     opening_time: Optional[str] = "08:00"
     closing_time: Optional[str] = "21:00"
     weekly_hours: Optional[Dict[str, Dict[str, str]]] = None
     holidays: Optional[List[Dict]] = None
     ticket_limit_per_number: Optional[int] = None
+    # New: Play types configuration - each lottery supports multiple play types
+    play_types: Optional[Dict[str, Dict]] = None  # Uses DEFAULT_PLAY_TYPES if not provided
+    # Legacy fields for backward compatibility
+    lottery_type: Optional[str] = None
+    prize_multiplier: Optional[float] = 70.0
+    numbers_to_pick: Optional[int] = 1
+    prize_rules: Optional[List[Dict]] = None
+    allows_combined: Optional[bool] = True
     prize_tiers: Optional[Dict[str, float]] = None
 
 class LotteryUpdate(BaseModel):
     name: Optional[str] = None
     price: Optional[float] = None
-    prize_multiplier: Optional[float] = None
     schedule: Optional[List[str]] = None
     closing_minutes_before: Optional[int] = None
     active: Optional[bool] = None
-    prize_rules: Optional[List[Dict]] = None
     opening_time: Optional[str] = None
     closing_time: Optional[str] = None
     weekly_hours: Optional[Dict[str, Dict[str, str]]] = None
     holidays: Optional[List[Dict]] = None
     ticket_limit_per_number: Optional[int] = None
+    play_types: Optional[Dict[str, Dict]] = None
+    # Legacy fields
+    prize_multiplier: Optional[float] = None
+    prize_rules: Optional[List[Dict]] = None
     prize_tiers: Optional[Dict[str, float]] = None
 
 # ==================== TICKET MODELS ====================
