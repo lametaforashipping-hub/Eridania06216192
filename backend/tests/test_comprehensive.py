@@ -8,9 +8,9 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-refactor.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://play-types-feature.preview.emergentagent.com')
 if not BASE_URL.endswith('.com'):
-    BASE_URL = 'https://lottery-refactor.preview.emergentagent.com'
+    BASE_URL = 'https://play-types-feature.preview.emergentagent.com'
 
 # Test credentials
 SUPER_ADMIN_EMAIL = "admin@loteria.com"
