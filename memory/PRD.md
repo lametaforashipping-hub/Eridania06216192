@@ -178,6 +178,20 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `frontend/app/tickets.tsx` - función generateTicketHTML
 - ✅ **Testing Completado** - iteration_23.json: 100% backend, 100% frontend
 
+### Sesión 13 - Alertas de Alto Riesgo + Refactorización Backend (13 Feb 2026)
+- ✅ **(P2) Alertas de Alto Riesgo en Tiempo Real**
+  - Cuando se crea un ticket que excede el umbral (RD$10,000 o USD$200)
+  - Se crea automáticamente una notificación para todos los Super Admins
+  - Notificación incluye: vendedor, monto, número de ticket, tipo "high_risk_alert"
+  - Funciona tanto para tickets simples como multi-jugada
+- ✅ **(P3) Refactorización del Backend**
+  - Nueva estructura modular creada:
+    - `/backend/models/` - Enums (enums.py) y Schemas Pydantic (schemas.py)
+    - `/backend/utils/` - Helpers (helpers.py) y Database connection (database.py)
+    - `/backend/routes/` - Preparado para migración incremental de rutas
+    - `/backend/services/` - Preparado para lógica de negocio
+  - El server.py original sigue funcionando mientras se migra gradualmente
+
 ### Verificación de Tickets con QR (Ya Implementado)
 - **🔍 Pantalla de Verificar** (`/scanner`)
   - Entrada manual del número de ticket
