@@ -723,12 +723,13 @@ const showAlert = (title: string, message: string) => {
                       console.log('Web button pressed');
                       addPlay();
                     }}
+                    data-testid="add-play-btn"
                   >
                     <Ionicons name="add-circle" size={22} color="#ffffff" />
                     <Text style={styles.addButtonText}>Agregar Jugada</Text>
                   </Pressable>
                 ) : (
-                  <TouchableOpacity style={styles.addButton} onPress={addPlay}>
+                  <TouchableOpacity style={styles.addButton} onPress={addPlay} testID="add-play-btn">
                     <Ionicons name="add-circle" size={22} color="#ffffff" />
                     <Text style={styles.addButtonText}>Agregar Jugada</Text>
                   </TouchableOpacity>
