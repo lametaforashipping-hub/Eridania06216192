@@ -731,15 +731,37 @@ const showAlert = (title: string, message: string) => {
             
             {/* Button outside ScrollView for better touch handling */}
             <View style={styles.modalFooter}>
-              <TouchableOpacity 
-                style={styles.addButton} 
-                onPress={addPlay} 
-                testID="add-play-btn"
-                activeOpacity={0.7}
-              >
-                <Ionicons name="add-circle" size={22} color="#ffffff" />
-                <Text style={styles.addButtonText}>Agregar Jugada</Text>
-              </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                <div 
+                  onClick={addPlay}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    backgroundColor: '#22c55e',
+                    height: 52,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    width: '100%',
+                    gap: 8,
+                  }}
+                  data-testid="add-play-btn"
+                >
+                  <Ionicons name="add-circle" size={22} color="#ffffff" />
+                  <Text style={styles.addButtonText}>Agregar Jugada</Text>
+                </div>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.addButton} 
+                  onPress={addPlay} 
+                  testID="add-play-btn"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle" size={22} color="#ffffff" />
+                  <Text style={styles.addButtonText}>Agregar Jugada</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </KeyboardAvoidingView>
