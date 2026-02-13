@@ -1233,7 +1233,7 @@ export default function Sales() {
         )}
 
         {/* Step 4: Amount and Add to Cart */}
-        {selectedLottery && selectedPlayType && lottery && playTypeConfig && (
+        {selectedLotteries.length > 0 && selectedPlayType && lottery && playTypeConfig && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               <Text style={styles.stepNumber}>4</Text> Monto y Agregar
