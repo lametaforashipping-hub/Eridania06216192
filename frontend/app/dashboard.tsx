@@ -448,6 +448,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
+  menuEmoji: {
+    fontSize: 28,
+  },
   menuLabel: {
     fontSize: 13,
     fontWeight: '500',
