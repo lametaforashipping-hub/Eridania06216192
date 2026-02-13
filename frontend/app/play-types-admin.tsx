@@ -59,15 +59,22 @@ export default function PlayTypesAdmin() {
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
+    // Wait for auth context to be ready
+    if (!token) {
+      return;
+    }
+    
     if (user?.role !== 'super_admin') {
       Alert.alert('Acceso Denegado', 'Solo Super Admin puede acceder a esta pantalla');
       router.back();
       return;
     }
     fetchLotteries();
-  }, []);
+  }, [token, user]);
 
   const fetchLotteries = async () => {
+    if (!token) return;
+    
     try {
       const response = await fetch(`${API_URL}/api/lotteries?active_only=false`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -75,6 +82,8 @@ export default function PlayTypesAdmin() {
       if (response.ok) {
         const data = await response.json();
         setLotteries(data);
+      } else {
+        console.error('Failed to fetch lotteries:', response.status);
       }
     } catch (error) {
       console.error('Error fetching lotteries:', error);
