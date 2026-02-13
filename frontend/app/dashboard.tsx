@@ -262,7 +262,7 @@ export default function Dashboard() {
               onPress={() => router.push(item.route as any)}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: item.color + '20' }]}>
-                {isWeb ? (
+                {Platform.OS === 'web' ? (
                   <Text style={styles.menuEmoji}>{item.emoji}</Text>
                 ) : (
                   <Ionicons name={item.icon as any} size={32} color={item.color} />
