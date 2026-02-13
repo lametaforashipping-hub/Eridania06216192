@@ -1671,13 +1671,15 @@ export default function Sales() {
             <View style={styles.amountRow}>
               <Text style={styles.amountLabel}>{lottery.currency}</Text>
               <TextInput
+                ref={amountInputRef}
                 style={styles.amountInput}
                 value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-              placeholder="20"
-              placeholderTextColor="#64748b"
-            />
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                placeholder="20"
+                placeholderTextColor="#64748b"
+                data-testid="amount-input"
+              />
             <TouchableOpacity
               style={[styles.addToCartButton, (selectedNumbers.length !== playTypeConfig.numbers_count) && styles.buttonDisabled]}
               onPress={addToCart}
