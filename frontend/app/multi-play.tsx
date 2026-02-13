@@ -241,6 +241,12 @@ const ModalButton = ({ onPress, style, children, testID }: any) => {
     
     console.log('New play created:', newPlay);
     setPlays(prev => [...prev, newPlay]);
+    
+    // Haptic feedback when play is added (mobile only)
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    
     // Reset form for next play - IMPORTANT: keeps amount for convenience
     setNumbersInput('');
     // Keep the amount for consecutive plays with same amount
