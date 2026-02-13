@@ -62,6 +62,8 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - 21 loterías reales de RD con nombres correctos
 - Sistema multi-jugada: cada lotería soporta Quiniela, Pale, Tripleta, Super Pale
 - Multiplicadores configurables por tipo de jugada y por premio (1ro, 2do, 3ro)
+- Frontend actualizado con nueva pantalla de ventas mostrando tipos de jugada
+- Endpoint `/api/accounting/summary` corregido para devolver today/week/month stats
 
 
 ## Funcionalidades Implementadas
