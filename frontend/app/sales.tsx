@@ -496,6 +496,91 @@ export default function Sales() {
     setCart(cart.filter(item => item.id !== itemId));
   };
 
+  // Open edit modal for cart item
+  const openEditCartItem = (item: CartItem) => {
+    setEditingCartItem(item);
+    setEditAmount(item.amount.toString());
+    setEditNumbers([...item.numbers]);
+    setEditNumberInput('');
+    setShowEditCartModal(true);
+  };
+
+  // Add number to edit list
+  const addEditNumber = () => {
+    if (!editNumberInput.trim()) return;
+    const num = parseInt(editNumberInput);
+    if (isNaN(num) || num < 0 || num > 99) {
+      Alert.alert('Error', 'Ingresa un número válido (0-99)');
+      return;
+    }
+    
+    // Get max numbers based on play type
+    const maxNumbers = editingCartItem?.playType === 'quiniela' ? 1 : 
+                       editingCartItem?.playType === 'pale' ? 2 : 
+                       editingCartItem?.playType === 'tripleta' ? 3 : 
+                       editingCartItem?.playType === 'super_pale' ? 4 : 1;
+    
+    if (editNumbers.length >= maxNumbers) {
+      Alert.alert('Error', `Máximo ${maxNumbers} número(s) para ${editingCartItem?.playTypeName}`);
+      return;
+    }
+    
+    setEditNumbers([...editNumbers, num]);
+    setEditNumberInput('');
+  };
+
+  // Remove number from edit list
+  const removeEditNumber = (index: number) => {
+    setEditNumbers(editNumbers.filter((_, i) => i !== index));
+  };
+
+  // Save edited cart item
+  const saveEditedCartItem = () => {
+    if (!editingCartItem) return;
+    
+    const newAmount = parseFloat(editAmount);
+    if (isNaN(newAmount) || newAmount <= 0) {
+      Alert.alert('Error', 'Ingresa un monto válido');
+      return;
+    }
+    
+    // Get min numbers based on play type
+    const minNumbers = editingCartItem.playType === 'quiniela' ? 1 : 
+                       editingCartItem.playType === 'pale' ? 2 : 
+                       editingCartItem.playType === 'tripleta' ? 3 : 
+                       editingCartItem.playType === 'super_pale' ? 4 : 1;
+    
+    if (editNumbers.length < minNumbers) {
+      Alert.alert('Error', `Necesitas ${minNumbers} número(s) para ${editingCartItem.playTypeName}`);
+      return;
+    }
+    
+    // Find lottery to get multiplier
+    const lottery = lotteries.find(l => l.id === editingCartItem.lotteryId);
+    const playTypeConfig = lottery?.play_types?.[editingCartItem.playType];
+    const multiplier = playTypeConfig?.multipliers?.first || lottery?.prize_multiplier || 70;
+    
+    // Update cart item
+    setCart(prevCart => prevCart.map(item => {
+      if (item.id === editingCartItem.id) {
+        return {
+          ...item,
+          numbers: editNumbers,
+          amount: newAmount,
+          potentialWin: newAmount * multiplier,
+        };
+      }
+      return item;
+    }));
+    
+    setShowEditCartModal(false);
+    setEditingCartItem(null);
+    
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
   // Clear entire cart
   const clearCart = () => {
     Alert.alert(
