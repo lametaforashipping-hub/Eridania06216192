@@ -547,6 +547,72 @@ export default function Sales() {
     );
   };
 
+  // Use a recent play - add to cart
+  const handleUseRecentPlay = (recentPlay: any) => {
+    // Find the lottery by id or type
+    let lottery = recentPlay.lottery_id 
+      ? lotteries.find(l => l.id === recentPlay.lottery_id)
+      : lotteries.find(l => l.lottery_type === recentPlay.lottery_type && l.is_open);
+    
+    if (!lottery) {
+      lottery = lotteries.find(l => l.lottery_type === recentPlay.lottery_type);
+    }
+    
+    if (!lottery) {
+      Alert.alert('Error', 'No se encontró la lotería para esta jugada');
+      return;
+    }
+
+    if (!lottery.is_open) {
+      Alert.alert('Lotería Cerrada', `${lottery.name} está cerrada. ¿Deseas agregar a una lotería abierta?`, [
+        { text: 'No', style: 'cancel' },
+        { 
+          text: 'Buscar Abierta', 
+          onPress: () => {
+            const openLottery = lotteries.find(l => l.lottery_type === recentPlay.lottery_type && l.is_open);
+            if (openLottery) {
+              addRecentPlayToCart(recentPlay, openLottery);
+            } else {
+              Alert.alert('Error', 'No hay loterías abiertas de este tipo');
+            }
+          }
+        }
+      ]);
+      return;
+    }
+
+    addRecentPlayToCart(recentPlay, lottery);
+  };
+
+  const addRecentPlayToCart = (recentPlay: any, lottery: Lottery) => {
+    const playTypeConfig = lottery.play_types?.[recentPlay.lottery_type];
+    const multiplier = playTypeConfig?.multipliers?.first || lottery.prize_multiplier || 70;
+    const potentialWin = recentPlay.amount * multiplier;
+
+    const newItem: CartItem = {
+      id: `${Date.now()}-${lottery.id}-${Math.random().toString(36).substr(2, 9)}`,
+      lotteryId: lottery.id,
+      lotteryName: lottery.name,
+      numbers: recentPlay.numbers,
+      amount: recentPlay.amount,
+      currency: lottery.currency,
+      potentialWin: potentialWin,
+      country: lottery.country,
+      playType: recentPlay.lottery_type,
+      playTypeName: playTypeConfig?.name || recentPlay.lottery_type,
+    };
+
+    setCart([...cart, newItem]);
+    setShowRecentModal(false);
+
+    // Haptic feedback
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+
+    Alert.alert('Agregado', `Jugada reciente agregada: ${recentPlay.numbers.join('-')} en ${lottery.name}`);
+  };
+
   // Submit all plays as multi-play ticket
   const handleSubmit = async () => {
     if (cart.length === 0) {
