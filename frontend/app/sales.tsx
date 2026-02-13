@@ -123,11 +123,31 @@ export default function Sales() {
   const [showSaveFavoriteModal, setShowSaveFavoriteModal] = useState(false);
   const [favoriteName, setFavoriteName] = useState('');
   const [savingFavorite, setSavingFavorite] = useState(false);
+  // Recent plays state
+  const [recentPlays, setRecentPlays] = useState<any[]>([]);
+  const [showRecentModal, setShowRecentModal] = useState(false);
+  const [loadingRecent, setLoadingRecent] = useState(false);
 
   useEffect(() => {
     fetchLotteries();
     fetchFavorites();
+    fetchRecentPlays();
   }, []);
+
+  const fetchRecentPlays = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/tickets/recent-plays?limit=15`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRecentPlays(data);
+      }
+    } catch (error) {
+      console.error('Error fetching recent plays:', error);
+    }
+  };
 
   const fetchFavorites = async () => {
     if (!token) return;
