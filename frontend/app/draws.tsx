@@ -58,6 +58,13 @@ export default function Draws() {
   const [showManualDrawModal, setShowManualDrawModal] = useState(false);
   const [selectedLottery, setSelectedLottery] = useState<Lottery | null>(null);
   const [manualNumbers, setManualNumbers] = useState<string[]>([]);
+  
+  // Multi-prize state
+  const [firstPrize, setFirstPrize] = useState('');
+  const [secondPrize, setSecondPrize] = useState('');
+  const [thirdPrize, setThirdPrize] = useState('');
+  const [drawDate, setDrawDate] = useState('');
+  const [drawTime, setDrawTime] = useState('');
 
   const fetchDraws = useCallback(async () => {
     try {
