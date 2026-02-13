@@ -589,7 +589,8 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - `/app/frontend/app/sellers-report.tsx` - Reporte con banderas y navegación a detallado
 
 ## Test Reports
-- `/app/test_reports/iteration_25.json` - Exportar a Excel verificado (13 Feb 2026) - **NUEVO**
+- `/app/test_reports/iteration_26.json` - Interfaz Unificada de Ventas (13 Feb 2026) - **NUEVO** - 100% passed
+- `/app/test_reports/iteration_25.json` - Exportar a Excel verificado (13 Feb 2026)
 - `/app/test_reports/iteration_15.json` - Suplantación de Super Admin verificado (100% frontend, 87.5% backend)
 - `/app/test_reports/iteration_14.json` - Multi-Lotto feature verificado (100% passed)
 - `/app/test_reports/iteration_13.json` - En Vivo, Super Admin, Perfil Vendedor (100% passed)
