@@ -615,6 +615,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 20,
+    zIndex: 100,
+    position: 'relative',
   },
   verifyButtonDisabled: {
     opacity: 0.7,
