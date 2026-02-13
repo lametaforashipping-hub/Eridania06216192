@@ -1,13 +1,17 @@
 """System administration routes"""
 from fastapi import APIRouter, HTTPException, Depends
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict
+import jwt
+import os
 from pydantic import BaseModel
 from models.schemas import SystemConfig
 from models.enums import UserRole, TicketStatus
 from utils.database import get_db
 from utils.helpers import serialize_doc
 from utils.auth import require_role
+
+JWT_SECRET = os.environ.get('JWT_SECRET', 'lottery-super-secret-key-2024-extended')
 
 router = APIRouter(prefix="/admin", tags=["Administration"])
 
