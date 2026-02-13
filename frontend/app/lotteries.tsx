@@ -759,6 +759,13 @@ export default function Lotteries() {
 
               <Text style={styles.sectionHeader}>⏰ Horario de Operación</Text>
               
+              <View style={styles.infoBox}>
+                <Ionicons name="information-circle" size={18} color="#3b82f6" />
+                <Text style={styles.infoBoxText}>
+                  Define cuándo la lotería acepta jugadas. Las ventas se bloquean automáticamente fuera de horario.
+                </Text>
+              </View>
+              
               <View style={styles.switchRow}>
                 <Text style={styles.switchLabel}>Usar horarios diferentes por día</Text>
                 <Switch
@@ -771,9 +778,10 @@ export default function Lotteries() {
 
               {!useWeeklySchedule ? (
                 <>
+                  <Text style={styles.simpleScheduleInfo}>🕐 Horario fijo para todos los días</Text>
                   <View style={styles.rowInputs}>
                     <View style={styles.halfInput}>
-                      <Text style={styles.inputLabel}>Hora de Apertura</Text>
+                      <Text style={styles.inputLabel}>🟢 Apertura</Text>
                       <TextInput
                         style={styles.input}
                         value={formOpeningTime}
