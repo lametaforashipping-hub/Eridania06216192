@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import { registerForPushNotificationsAsync, saveTokenToServer } from '../services/pushNotifications';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -23,6 +23,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshToken: () => Promise<boolean>;
+  handleAuthError: (error: any) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,20 +38,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadStoredAuth();
   }, []);
 
+  // Auto-refresh token every 20 hours (token expires in 24 hours)
+  useEffect(() => {
+    if (!token) return;
+    
+    const refreshInterval = setInterval(() => {
+      refreshToken();
+    }, 20 * 60 * 60 * 1000); // 20 hours
+    
+    return () => clearInterval(refreshInterval);
+  }, [token]);
+
   const loadStoredAuth = async () => {
     try {
       const storedToken = await AsyncStorage.getItem('token');
       const storedUser = await AsyncStorage.getItem('user');
       
       if (storedToken && storedUser) {
+        // Verify token is still valid by attempting to refresh
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        
+        // Try to refresh token silently on app load
+        setTimeout(async () => {
+          try {
+            const response = await fetch(`${API_URL}/api/auth/refresh`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${storedToken}` },
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              await AsyncStorage.setItem('token', data.token);
+              await AsyncStorage.setItem('user', JSON.stringify(data.user));
+              setToken(data.token);
+              setUser(data.user);
+              console.log('Token refreshed successfully on app load');
+            } else if (response.status === 401) {
+              // Token is expired, force logout
+              console.log('Token expired on app load, logging out');
+              await performLogout();
+              showSessionExpiredAlert();
+            }
+          } catch (error) {
+            console.log('Token refresh on load failed:', error);
+          }
+        }, 1000);
       }
     } catch (error) {
       console.error('Error loading auth:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const showSessionExpiredAlert = () => {
+    if (Platform.OS === 'web') {
+      window.alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+    } else {
+      Alert.alert(
+        'Sesión Expirada',
+        'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+        [{ text: 'OK', style: 'default' }]
+      );
+    }
+  };
+
+  const performLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
   };
 
   const login = async (email: string, password: string) => {
@@ -91,11 +150,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+    await performLogout();
   };
+
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    if (!token) return false;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('user', JSON.stringify(data.user));
+        setToken(data.token);
+        setUser(data.user);
+        console.log('Token refreshed successfully');
+        return true;
+      } else if (response.status === 401) {
+        // Token is expired
+        await performLogout();
+        showSessionExpiredAlert();
+        return false;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return false;
+    }
+  }, [token]);
+
+  const handleAuthError = useCallback(async (error: any): Promise<boolean> => {
+    // Check if error is a 401 (token expired)
+    const isAuthError = 
+      error?.status === 401 || 
+      error?.message?.includes('Token expirado') ||
+      error?.message?.includes('token expirado') ||
+      error?.detail?.includes('Token expirado') ||
+      error?.detail?.includes('token expirado');
+    
+    if (isAuthError) {
+      // Try to refresh the token first
+      const refreshed = await refreshToken();
+      if (!refreshed) {
+        // If refresh failed, logout and show alert
+        await performLogout();
+        showSessionExpiredAlert();
+      }
+      return refreshed;
+    }
+    return true; // Not an auth error
+  }, [refreshToken]);
 
   const refreshUser = async () => {
     if (!token) return;
@@ -109,6 +217,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await response.json();
         setUser(userData);
         await AsyncStorage.setItem('user', JSON.stringify(userData));
+      } else if (response.status === 401) {
+        // Token expired during refresh
+        const refreshed = await refreshToken();
+        if (refreshed) {
+          // Retry the request with new token
+          const newToken = await AsyncStorage.getItem('token');
+          if (newToken) {
+            const retryResponse = await fetch(`${API_URL}/api/auth/me`, {
+              headers: { 'Authorization': `Bearer ${newToken}` },
+            });
+            if (retryResponse.ok) {
+              const userData = await retryResponse.json();
+              setUser(userData);
+              await AsyncStorage.setItem('user', JSON.stringify(userData));
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
@@ -116,7 +241,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      loading, 
+      login, 
+      logout, 
+      refreshUser,
+      refreshToken,
+      handleAuthError
+    }}>
       {children}
     </AuthContext.Provider>
   );
