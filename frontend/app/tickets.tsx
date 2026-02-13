@@ -77,6 +77,32 @@ export default function Tickets() {
   const [processing, setProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
+  const [statusCounts, setStatusCounts] = useState<{[key: string]: number}>({});
+
+  // Toggle expanded state for a ticket
+  const toggleExpanded = (ticketId: string) => {
+    setExpandedTickets(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(ticketId)) {
+        newSet.delete(ticketId);
+      } else {
+        newSet.add(ticketId);
+      }
+      return newSet;
+    });
+  };
+
+  // Get lottery type color
+  const getLotteryTypeColor = (type?: string): string => {
+    const colors: {[key: string]: string} = {
+      'quiniela': '#3b82f6',
+      'pale': '#8b5cf6', 
+      'tripleta': '#ec4899',
+      'super_pale': '#f59e0b',
+    };
+    return colors[type?.toLowerCase() || ''] || '#64748b';
+  };
 
   const fetchCompanyProfile = useCallback(async () => {
     try {
