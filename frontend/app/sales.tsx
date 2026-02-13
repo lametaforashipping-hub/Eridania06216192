@@ -2329,6 +2329,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ffffff',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  shortcutsHelpButton: {
+    padding: 4,
+  },
   content: {
     flex: 1,
   },
