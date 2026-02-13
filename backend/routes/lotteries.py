@@ -224,3 +224,70 @@ async def update_lottery_prize_tiers(
         }}
     )
     return {"message": f"Tiers de premios actualizados para {lottery['name']}"}
+
+
+@router.put("/{lottery_id}/play-types/{play_type}")
+async def update_play_type_multipliers(
+    lottery_id: str,
+    play_type: str,
+    multipliers: Dict[str, float],
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Update multipliers for a specific play type in a lottery
+    
+    play_type: quiniela, pale, tripleta, super_pale
+    multipliers: {"first": 70, "second": 20, "third": 10}
+    """
+    db = get_db()
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    play_types = lottery.get("play_types", {})
+    if play_type not in play_types:
+        raise HTTPException(status_code=400, detail=f"Tipo de jugada '{play_type}' no existe en esta lotería")
+    
+    # Update only the multipliers
+    play_types[play_type]["multipliers"] = multipliers
+    
+    await db.lotteries.update_one(
+        {"id": lottery_id},
+        {"$set": {
+            "play_types": play_types,
+            "updated_at": datetime.utcnow(),
+            "updated_by": current_user["id"]
+        }}
+    )
+    return {
+        "message": f"Multiplicadores de {play_type} actualizados para {lottery['name']}",
+        "play_type": play_type,
+        "new_multipliers": multipliers
+    }
+
+
+@router.put("/{lottery_id}/play-types/{play_type}/toggle")
+async def toggle_play_type(
+    lottery_id: str,
+    play_type: str,
+    enabled: bool,
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Enable or disable a play type for a lottery"""
+    db = get_db()
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    play_types = lottery.get("play_types", {})
+    if play_type not in play_types:
+        raise HTTPException(status_code=400, detail=f"Tipo de jugada '{play_type}' no existe")
+    
+    play_types[play_type]["enabled"] = enabled
+    
+    await db.lotteries.update_one(
+        {"id": lottery_id},
+        {"$set": {"play_types": play_types}}
+    )
+    
+    status = "habilitado" if enabled else "deshabilitado"
+    return {"message": f"Tipo {play_type} {status} para {lottery['name']}"}
