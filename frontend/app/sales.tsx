@@ -285,6 +285,11 @@ export default function Sales() {
     setSelectedNumbers([]);
     setSelectedLotteries([]);
     
+    // Haptic feedback when items are added to cart (mobile only)
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    
     Alert.alert('Agregado', `${newItems.length} jugada(s) agregada(s) al carrito`);
   };
 
