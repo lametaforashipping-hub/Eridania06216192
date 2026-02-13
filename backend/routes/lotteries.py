@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 import uuid
-from typing import Optional
+from typing import Optional, Dict
 from models.schemas import LotteryCreate, LotteryUpdate, DEFAULT_WEEKLY_SCHEDULE
 from models.enums import UserRole, TicketStatus
 from utils.database import get_db
@@ -193,3 +193,28 @@ async def get_lottery_number_stats(lottery_id: str, current_user: dict = Depends
         "blocked_numbers": blocked_numbers,
         "total_numbers_with_sales": len(stats)
     }
+
+
+@router.put("/{lottery_id}/prize-tiers")
+async def update_lottery_prize_tiers(
+    lottery_id: str,
+    prize_tiers: Dict[str, float],
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Update prize tiers for a lottery (Super Admin only)
+    Example: {"first": 70, "second": 15, "third": 5}
+    """
+    db = get_db()
+    lottery = await db.lotteries.find_one({"id": lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    await db.lotteries.update_one(
+        {"id": lottery_id},
+        {"$set": {
+            "prize_tiers": prize_tiers,
+            "prize_tiers_updated_at": datetime.utcnow(),
+            "prize_tiers_updated_by": current_user["id"]
+        }}
+    )
+    return {"message": f"Tiers de premios actualizados para {lottery['name']}"}
