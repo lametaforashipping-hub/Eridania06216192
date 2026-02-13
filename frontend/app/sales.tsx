@@ -1685,7 +1685,11 @@ export default function Sales() {
                   Platform.OS === 'web' ? (
                     <div 
                       key={play.id || index}
-                      onClick={() => handleUseRecentPlay(play)}
+                      data-testid={`recent-play-${index}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUseRecentPlay(play);
+                      }}
                       style={{
                         display: 'flex',
                         flexDirection: 'row',
@@ -1694,9 +1698,7 @@ export default function Sales() {
                         borderRadius: 10,
                         padding: 12,
                         marginBottom: 10,
-                        borderLeftWidth: 3,
-                        borderLeftStyle: 'solid',
-                        borderLeftColor: '#6366f1',
+                        borderLeft: '3px solid #6366f1',
                         cursor: 'pointer',
                       }}
                     >
