@@ -35,6 +35,16 @@ interface CompanyProfile {
   receipt_footer?: string;
 }
 
+interface Play {
+  lottery_type?: string;
+  lottery_name?: string;
+  lottery_id?: string;
+  numbers: number[];
+  amount: number;
+  position?: number;
+  potential_win?: number;
+}
+
 interface Ticket {
   id: string;
   ticket_number: string;
@@ -50,7 +60,7 @@ interface Ticket {
   created_at: string;
   seller_name: string;
   ticket_type?: string;
-  plays?: any[];
+  plays?: Play[];
 }
 
 export default function Tickets() {
