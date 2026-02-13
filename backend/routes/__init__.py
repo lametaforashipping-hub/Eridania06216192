@@ -9,6 +9,9 @@ from .statistics import router as statistics_router
 from .admin import router as admin_router
 from .company import router as company_router
 from .tickets import router as tickets_router
+from .draws import router as draws_router
+from .monitoring import router as monitoring_router
+from .accounting import router as accounting_router
 
 __all__ = [
     "auth_router",
@@ -20,5 +23,8 @@ __all__ = [
     "statistics_router",
     "admin_router",
     "company_router",
-    "tickets_router"
+    "tickets_router",
+    "draws_router",
+    "monitoring_router",
+    "accounting_router"
 ]
