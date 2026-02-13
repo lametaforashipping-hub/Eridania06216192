@@ -12,6 +12,7 @@ import {
   Share,
   Dimensions,
   TextInput,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
