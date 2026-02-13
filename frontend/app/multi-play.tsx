@@ -740,15 +740,14 @@ const ModalButton = ({ onPress, style, children, testID }: any) => {
                   ))}
                 </View>
                 
-                <TouchableOpacity 
+                <ModalButton 
                   style={styles.addButton} 
                   onPress={addPlay} 
                   testID="add-play-btn"
-                  activeOpacity={0.8}
                 >
                   <Ionicons name="add-circle" size={22} color="#ffffff" />
                   <Text style={styles.addButtonText}>Agregar Jugada</Text>
-                </TouchableOpacity>
+                </ModalButton>
               </View>
             </View>
           </ScrollView>
