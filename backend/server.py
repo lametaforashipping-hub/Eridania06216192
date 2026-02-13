@@ -2530,6 +2530,120 @@ async def get_accounting_summary(
         "country_filter": filter_country
     }
 
+@api_router.get("/accounting/commissions")
+async def get_commission_report(
+    period: str = "today",
+    current_user: dict = Depends(get_current_user)
+):
+    """Get detailed commission breakdown by sale"""
+    now = datetime.utcnow()
+    
+    # Determine date range based on period
+    if period == "today":
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "week":
+        start_date = now - timedelta(days=7)
+    elif period == "month":
+        start_date = now - timedelta(days=30)
+    else:
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Build query based on user role
+    query = {
+        "transaction_type": TransactionType.COMMISSION.value,
+        "created_at": {"$gte": start_date}
+    }
+    
+    is_super_admin = current_user["role"] == UserRole.SUPER_ADMIN.value
+    
+    if not is_super_admin:
+        query["user_id"] = current_user["id"]
+    
+    # Get commission transactions
+    transactions = await db.transactions.find(query).sort("created_at", -1).to_list(500)
+    
+    # Get related tickets for details
+    details = []
+    total_sales = 0
+    total_commission = 0
+    commission_rate = current_user.get("commission_rate", 10.0)
+    
+    for tx in transactions:
+        # Parse ticket number from description
+        ticket_number = tx.get("description", "").split()[-1] if "venta" in tx.get("description", "") else ""
+        
+        if ticket_number:
+            ticket = await db.tickets.find_one({"ticket_number": ticket_number})
+            if ticket:
+                sale_amount = ticket.get("amount") or ticket.get("total_amount", 0)
+                lottery = await db.lotteries.find_one({"id": ticket.get("lottery_id")})
+                seller = await db.users.find_one({"id": ticket.get("seller_id")}) if is_super_admin else None
+                
+                detail = {
+                    "id": tx.get("id"),
+                    "ticket_number": ticket_number,
+                    "lottery_name": lottery.get("name") if lottery else ticket.get("lottery_name", "N/A"),
+                    "sale_amount": sale_amount,
+                    "commission_rate": tx.get("description", "").split("%")[0].split()[-1] if "%" in tx.get("description", "") else commission_rate,
+                    "commission_earned": tx.get("amount", 0),
+                    "currency": tx.get("currency", "RD$"),
+                    "created_at": tx.get("created_at").isoformat() if tx.get("created_at") else "",
+                    "seller_name": seller.get("name") if seller else None
+                }
+                
+                # Try to extract commission rate from description
+                try:
+                    desc = tx.get("description", "")
+                    if "%" in desc:
+                        rate_str = desc.split("Comisión")[1].split("%")[0].strip() if "Comisión" in desc else "10"
+                        detail["commission_rate"] = float(rate_str)
+                except:
+                    detail["commission_rate"] = commission_rate
+                
+                details.append(detail)
+                total_sales += sale_amount
+                total_commission += tx.get("amount", 0)
+    
+    # Calculate seller breakdown for super admin
+    seller_breakdown = []
+    if is_super_admin:
+        seller_commissions = {}
+        for detail in details:
+            seller_name = detail.get("seller_name") or "Desconocido"
+            if seller_name not in seller_commissions:
+                seller_commissions[seller_name] = {
+                    "seller_id": "",
+                    "seller_name": seller_name,
+                    "total_sales": 0,
+                    "total_commission": 0,
+                    "commission_rate": detail.get("commission_rate", 10),
+                    "ticket_count": 0
+                }
+            seller_commissions[seller_name]["total_sales"] += detail.get("sale_amount", 0)
+            seller_commissions[seller_name]["total_commission"] += detail.get("commission_earned", 0)
+            seller_commissions[seller_name]["ticket_count"] += 1
+        
+        seller_breakdown = list(seller_commissions.values())
+    
+    # Calculate summary
+    ticket_count = len(details)
+    average_sale = total_sales / ticket_count if ticket_count > 0 else 0
+    
+    summary = {
+        "total_sales": total_sales,
+        "total_commission": total_commission,
+        "commission_rate": commission_rate,
+        "currency": current_user.get("currency", "RD$"),
+        "ticket_count": ticket_count,
+        "average_sale": average_sale
+    }
+    
+    return {
+        "summary": summary,
+        "details": details,
+        "seller_breakdown": seller_breakdown
+    }
+
 @api_router.get("/accounting/sellers-report")
 async def get_sellers_report(
     start_date: Optional[str] = None,
