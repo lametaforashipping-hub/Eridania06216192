@@ -3386,4 +3386,58 @@ const styles = StyleSheet.create({
     color: '#22c55e',
     fontWeight: '600',
   },
+  // Keyboard shortcuts modal styles
+  shortcutsModalContent: {
+    backgroundColor: '#1e293b',
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 450,
+    maxHeight: '80%',
+  },
+  shortcutsListContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  shortcutsSection: {
+    marginBottom: 20,
+  },
+  shortcutsSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#22c55e',
+    marginBottom: 10,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  shortcutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 12,
+  },
+  shortcutKey: {
+    backgroundColor: '#0f172a',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#475569',
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  shortcutKeyWide: {
+    minWidth: 90,
+  },
+  shortcutKeyText: {
+    color: '#f8fafc',
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: 'monospace',
+  },
+  shortcutDesc: {
+    color: '#cbd5e1',
+    fontSize: 14,
+    flex: 1,
+  },
 });
