@@ -12,6 +12,7 @@ from .tickets import router as tickets_router
 from .draws import router as draws_router
 from .monitoring import router as monitoring_router
 from .accounting import router as accounting_router
+from .system import router as system_router
 
 __all__ = [
     "auth_router",
@@ -26,5 +27,6 @@ __all__ = [
     "tickets_router",
     "draws_router",
     "monitoring_router",
-    "accounting_router"
+    "accounting_router",
+    "system_router"
 ]
