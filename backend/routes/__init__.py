@@ -1,7 +1,12 @@
-# Routes package - Modular API routes
-# This package organizes routes by functionality
+"""Routes package - Modular API routes organized by functionality"""
+from .auth import router as auth_router
+from .users import router as users_router
+from .terminals import router as terminals_router
+from .favorites import router as favorites_router
 
-# Note: Routes are currently in server.py for backward compatibility
-# Future migration will move routes here incrementally
-
-__all__ = []
+__all__ = [
+    "auth_router",
+    "users_router", 
+    "terminals_router",
+    "favorites_router"
+]
