@@ -2198,6 +2198,112 @@ export default function Sales() {
           </View>
         </View>
       </Modal>
+
+      {/* Keyboard Shortcuts Help Modal */}
+      <Modal visible={showShortcutsHelp} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.shortcutsModalContent, isDesktop && styles.modalContentDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>⌨️ Atajos de Teclado</Text>
+              <TouchableOpacity onPress={() => setShowShortcutsHelp(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.shortcutsListContainer}>
+              <View style={styles.shortcutsSection}>
+                <Text style={styles.shortcutsSectionTitle}>Tipo de Jugada</Text>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>F1</Text></View>
+                  <Text style={styles.shortcutDesc}>Seleccionar Quiniela</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>F2</Text></View>
+                  <Text style={styles.shortcutDesc}>Seleccionar Pale</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>F3</Text></View>
+                  <Text style={styles.shortcutDesc}>Seleccionar Tripleta</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>F4</Text></View>
+                  <Text style={styles.shortcutDesc}>Seleccionar Super Pale</Text>
+                </View>
+              </View>
+
+              <View style={styles.shortcutsSection}>
+                <Text style={styles.shortcutsSectionTitle}>Navegación</Text>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>N</Text></View>
+                  <Text style={styles.shortcutDesc}>Ir al campo de número</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>M</Text></View>
+                  <Text style={styles.shortcutDesc}>Ir al campo de monto</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>A</Text></View>
+                  <Text style={styles.shortcutDesc}>Seleccionar todas las loterías</Text>
+                </View>
+              </View>
+
+              <View style={styles.shortcutsSection}>
+                <Text style={styles.shortcutsSectionTitle}>Números</Text>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>R</Text></View>
+                  <Text style={styles.shortcutDesc}>Números aleatorios (Quick Pick)</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>⌫</Text></View>
+                  <Text style={styles.shortcutDesc}>Borrar último número</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>Esc</Text></View>
+                  <Text style={styles.shortcutDesc}>Limpiar números / Cerrar modal</Text>
+                </View>
+              </View>
+
+              <View style={styles.shortcutsSection}>
+                <Text style={styles.shortcutsSectionTitle}>Acciones</Text>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>Enter</Text></View>
+                  <Text style={styles.shortcutDesc}>Agregar jugada al carrito</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={[styles.shortcutKey, styles.shortcutKeyWide]}><Text style={styles.shortcutKeyText}>Ctrl+Enter</Text></View>
+                  <Text style={styles.shortcutDesc}>Procesar venta</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>X</Text></View>
+                  <Text style={styles.shortcutDesc}>Vaciar carrito</Text>
+                </View>
+              </View>
+
+              <View style={styles.shortcutsSection}>
+                <Text style={styles.shortcutsSectionTitle}>Acceso Rápido</Text>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>F</Text></View>
+                  <Text style={styles.shortcutDesc}>Abrir favoritos</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>H</Text></View>
+                  <Text style={styles.shortcutDesc}>Abrir jugadas recientes</Text>
+                </View>
+                <View style={styles.shortcutRow}>
+                  <View style={styles.shortcutKey}><Text style={styles.shortcutKeyText}>?</Text></View>
+                  <Text style={styles.shortcutDesc}>Mostrar esta ayuda</Text>
+                </View>
+              </View>
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowShortcutsHelp(false)}
+              data-testid="close-shortcuts-modal"
+            >
+              <Text style={styles.modalCloseText}>Cerrar (Esc)</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
