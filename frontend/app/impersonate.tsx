@@ -96,6 +96,60 @@ export default function ImpersonateScreen() {
     router.push(`/multi-play?actAs=${sellerId}&actAsName=${encodeURIComponent(sellerName || '')}`);
   };
 
+  const handleViewTickets = () => {
+    // Navigate to tickets view for this seller
+    router.push(`/tickets?sellerId=${sellerId}`);
+  };
+
+  const handlePayPrizes = () => {
+    // Navigate to pay prizes screen
+    router.push(`/pay-prizes?sellerId=${sellerId}&sellerName=${encodeURIComponent(sellerName || '')}`);
+  };
+
+  const handleViewReport = () => {
+    // Navigate to detailed seller report
+    router.push(`/detailed-seller-report?seller_id=${sellerId}`);
+  };
+
+  const handleDeposit = () => {
+    Alert.prompt(
+      'Depositar Balance',
+      `Ingrese el monto a depositar para ${sellerName}:`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Depositar',
+          onPress: async (amount) => {
+            const depositAmount = parseFloat(amount || '0');
+            if (isNaN(depositAmount) || depositAmount <= 0) {
+              Alert.alert('Error', 'Ingrese un monto válido mayor a 0');
+              return;
+            }
+            try {
+              const response = await fetch(`${API_URL}/api/users/${sellerId}/deposit?amount=${depositAmount}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (response.ok) {
+                const result = await response.json();
+                Alert.alert('Éxito', `Depósito realizado. Nuevo balance: ${seller?.currency} ${result.new_balance.toLocaleString()}`);
+                fetchSellerData();
+              } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || 'No se pudo hacer el depósito');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Error de conexión');
+            }
+          }
+        }
+      ],
+      'plain-text',
+      '',
+      'numeric'
+    );
+  };
+
   const handleCancelTicket = async (ticket: Ticket) => {
     Alert.alert(
       'Cancelar Boleto',
