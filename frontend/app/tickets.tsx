@@ -248,6 +248,28 @@ export default function Tickets() {
       `<div class="play-row"><strong>${play.lottery_type || play.lottery_name}:</strong> ${(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}</div>`
     ).join('') : '';
     
+    // Company profile data
+    const hasCompany = companyProfile && companyProfile.company_name;
+    const logoHTML = companyProfile?.logo_url 
+      ? `<img src="${companyProfile.logo_url}" class="company-logo" alt="Logo" />` 
+      : '';
+    const companyName = companyProfile?.company_name || 'LOTERIA';
+    const sloganHTML = companyProfile?.slogan 
+      ? `<div class="slogan">${companyProfile.slogan}</div>` 
+      : '';
+    const addressHTML = companyProfile?.address 
+      ? `<div class="company-info">${companyProfile.address}</div>` 
+      : '';
+    const phoneHTML = companyProfile?.phone 
+      ? `<div class="company-info">Tel: ${companyProfile.phone}</div>` 
+      : '';
+    const rncHTML = companyProfile?.rnc 
+      ? `<div class="company-info">RNC: ${companyProfile.rnc}</div>` 
+      : '';
+    const footerHTML = companyProfile?.receipt_footer 
+      ? `<div class="receipt-footer-custom">${companyProfile.receipt_footer}</div>` 
+      : '';
+    
     return `
       <!DOCTYPE html>
       <html>
@@ -270,11 +292,29 @@ export default function Tickets() {
             padding-bottom: 6px; 
             margin-bottom: 6px; 
           }
+          .company-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 6px;
+          }
           .title { 
-            font-size: 18px; 
+            font-size: 16px; 
             font-weight: 900; 
-            letter-spacing: 2px; 
+            letter-spacing: 1px; 
             text-transform: uppercase;
+          }
+          .slogan {
+            font-size: 10px;
+            color: #666;
+            font-style: italic;
+            margin-top: 2px;
+          }
+          .company-info {
+            font-size: 9px;
+            color: #333;
+            margin-top: 2px;
           }
           .ticket-number { 
             font-size: 12px; 
@@ -381,11 +421,23 @@ export default function Tickets() {
             font-size: 10px; 
             font-weight: 900;
           }
+          .receipt-footer-custom {
+            font-size: 9px;
+            color: #666;
+            margin-top: 6px;
+            text-align: center;
+            font-style: italic;
+          }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="title">🎰 LOTERIA 🎰</div>
+          ${logoHTML}
+          <div class="title">${hasCompany ? companyName : '🎰 LOTERIA 🎰'}</div>
+          ${sloganHTML}
+          ${addressHTML}
+          ${phoneHTML}
+          ${rncHTML}
         </div>
         <div class="ticket-number">${ticket.ticket_number}</div>
         <div class="lottery-name">${isMultiPlay ? `MULTI-JUGADA (${ticket.plays?.length || 0})` : ticket.lottery_name}</div>
@@ -406,7 +458,10 @@ export default function Tickets() {
           <div class="row"><span class="label">MONTO:</span><span class="value">${ticket.currency} ${amount.toLocaleString()}</span></div>
           <div class="row"><span class="label">PREMIO:</span><span class="value prize">${ticket.currency} ${potentialWin.toLocaleString()}</span></div>
         </div>
-        <div class="footer"><strong>${ticket.seller_name}</strong></div>
+        <div class="footer">
+          <strong>${ticket.seller_name}</strong>
+          ${footerHTML}
+        </div>
       </body>
       </html>
     `;
