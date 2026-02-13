@@ -246,30 +246,29 @@ export default function Tickets() {
     
     // Generate plays HTML for multi-play tickets
     const playsHTML = isMultiPlay && ticket.plays ? ticket.plays.map(play => 
-      `<div class="play-row"><strong>${play.lottery_type || play.lottery_name}:</strong> ${(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}</div>`
+      `<div class="play-row">
+        <span class="play-type">${play.lottery_type || play.lottery_name}</span>
+        <span class="play-numbers">${(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}</span>
+        <span class="play-amount">${ticket.currency} ${play.amount || 0}</span>
+      </div>`
     ).join('') : '';
     
-    // Company profile data
-    const hasCompany = companyProfile && companyProfile.company_name;
-    const logoHTML = companyProfile?.logo_url 
-      ? `<img src="${companyProfile.logo_url}" class="company-logo" alt="Logo" />` 
-      : '';
-    const companyName = companyProfile?.company_name || 'LOTERIA';
-    const sloganHTML = companyProfile?.slogan 
-      ? `<div class="slogan">${companyProfile.slogan}</div>` 
-      : '';
-    const addressHTML = companyProfile?.address 
-      ? `<div class="company-info">${companyProfile.address}</div>` 
-      : '';
-    const phoneHTML = companyProfile?.phone 
-      ? `<div class="company-info">Tel: ${companyProfile.phone}</div>` 
-      : '';
-    const rncHTML = companyProfile?.rnc 
-      ? `<div class="company-info">RNC: ${companyProfile.rnc}</div>` 
-      : '';
-    const footerHTML = companyProfile?.receipt_footer 
-      ? `<div class="receipt-footer-custom">${companyProfile.receipt_footer}</div>` 
-      : '';
+    // Company Logo URL - Loteria Magic
+    const logoUrl = 'https://customer-assets.emergentagent.com/job_0d52222c-173f-46ac-b2b0-ffceca2336e1/artifacts/cql3117b_loteria.jpg';
+    
+    // Generate QR code URL - Contains only ticket ID for system lookup
+    const qrData = encodeURIComponent(ticket.ticket_number);
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}&bgcolor=ffffff&color=1e3a5f`;
+    
+    // Status color mapping
+    const statusColors: { [key: string]: string } = {
+      'won': '#22c55e',
+      'paid': '#3b82f6',
+      'pending': '#f59e0b',
+      'lost': '#ef4444',
+      'cancelled': '#6b7280'
+    };
+    const statusColor = statusColors[ticket.status] || '#64748b';
     
     return `
       <!DOCTYPE html>
@@ -279,189 +278,367 @@ export default function Tickets() {
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
-            font-family: 'Arial Black', 'Helvetica Neue', sans-serif; 
-            padding: 10px; 
-            max-width: 280px; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 0; 
+            max-width: 320px; 
             margin: 0 auto; 
-            font-weight: 900; 
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            background: #fff; 
           }
+          .ticket { 
+            border: 3px solid #1a365d; 
+            border-radius: 16px; 
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          
+          /* Header con Logo */
           .header { 
-            text-align: center; 
-            border-bottom: 2px dashed #000; 
-            padding-bottom: 6px; 
-            margin-bottom: 6px; 
+            background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%);
+            padding: 20px 15px 15px; 
+            text-align: center;
+            border-bottom: 3px solid #1a365d;
           }
-          .company-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+          .logo-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 10px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #1a365d;
+          }
+          .logo-img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            margin-bottom: 6px;
           }
-          .title { 
-            font-size: 16px; 
-            font-weight: 900; 
-            letter-spacing: 1px; 
+          .brand-name { 
+            font-size: 22px; 
+            font-weight: 800; 
+            color: #1a365d;
+            letter-spacing: 1px;
             text-transform: uppercase;
           }
-          .slogan {
-            font-size: 10px;
-            color: #666;
+          .brand-tagline {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
             font-style: italic;
-            margin-top: 2px;
           }
-          .company-info {
-            font-size: 9px;
-            color: #333;
-            margin-top: 2px;
+          
+          /* Ticket Number Section */
+          .ticket-number-section { 
+            background: linear-gradient(135deg, #1a365d 0%, #2d4a6f 100%);
+            color: white; 
+            padding: 12px 15px; 
+            text-align: center;
+          }
+          .ticket-label { 
+            font-size: 11px; 
+            opacity: 0.85;
+            letter-spacing: 2px;
+            text-transform: uppercase;
           }
           .ticket-number { 
-            font-size: 12px; 
-            font-weight: 900; 
-            margin: 4px 0; 
-            text-align: center; 
-            background: #000;
-            color: #fff;
-            padding: 4px;
-            border-radius: 4px;
+            font-size: 20px; 
+            font-weight: 800; 
+            letter-spacing: 2px; 
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
           }
-          .lottery-name { 
-            font-size: 14px; 
-            font-weight: 900; 
-            text-align: center; 
-            margin: 4px 0; 
-            text-transform: uppercase;
-          }
-          .details { 
-            font-size: 11px; 
-            font-weight: 900; 
-            margin: 6px 0;
-          }
-          .row { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 2px 0; 
-            font-weight: 900;
-          }
-          .numbers { 
-            font-size: 22px; 
-            font-weight: 900; 
-            text-align: center; 
-            padding: 10px 6px; 
-            background: #f0f0f0; 
-            border: 2px solid #000;
-            border-radius: 6px; 
-            margin: 6px 0; 
-            letter-spacing: 4px;
-          }
-          .plays-container {
-            background: #f5f5f5;
-            border: 2px solid #000;
-            border-radius: 6px;
-            padding: 8px;
-            margin: 6px 0;
-          }
-          .plays-title {
-            font-size: 12px;
-            font-weight: 900;
+          
+          /* Status Badge */
+          .status-section {
+            padding: 10px 15px;
             text-align: center;
-            margin-bottom: 6px;
-            text-transform: uppercase;
           }
-          .play-row {
-            font-size: 11px;
-            font-weight: 900;
-            padding: 3px 0;
-            border-bottom: 1px dotted #999;
-          }
-          .play-row:last-child {
-            border-bottom: none;
-          }
-          .status { 
-            text-align: center; 
-            padding: 6px 8px; 
-            margin: 6px 0; 
-            font-weight: 900; 
-            font-size: 14px; 
-            border-radius: 4px;
+          .status-badge {
+            display: inline-block;
+            background: ${statusColor};
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 1px;
           }
-          .won { background: #22c55e; color: white; }
-          .paid { background: #3b82f6; color: white; }
-          .pending { background: #f59e0b; color: white; }
-          .lost { background: #ef4444; color: white; }
-          .amounts { 
-            font-size: 14px; 
-            font-weight: 900; 
-            margin: 6px 0;
-            border: 2px solid #000;
-            border-radius: 6px;
-            padding: 8px;
-            background: #fafafa;
+          
+          /* Date and Customer Info */
+          .info-section {
+            background: #f8fafc;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
           }
-          .amounts .row { 
-            padding: 4px 0; 
-            font-weight: 900;
+          .date-info {
+            font-size: 13px;
+            color: #475569;
+            font-weight: 600;
           }
-          .amounts .label {
-            font-weight: 900;
+          .customer-info {
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
           }
-          .amounts .value {
-            font-weight: 900;
-            font-size: 15px;
-          }
-          .prize { color: #16a34a; }
-          .footer { 
-            text-align: center; 
-            border-top: 2px dashed #000; 
-            padding-top: 6px; 
-            margin-top: 6px; 
-            font-size: 10px; 
-            font-weight: 900;
-          }
-          .receipt-footer-custom {
-            font-size: 9px;
-            color: #666;
-            margin-top: 6px;
+          
+          /* Plays Section */
+          .body { padding: 15px; background: #fff; }
+          .lottery-name {
             text-align: center;
-            font-style: italic;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a365d;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+          }
+          .plays-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1a365d;
+          }
+          .plays-title { 
+            font-weight: 700; 
+            font-size: 14px; 
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .plays-count {
+            background: #1a365d;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+          }
+          .play-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 8px; 
+            margin-bottom: 6px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
+            align-items: center; 
+          }
+          .play-type { 
+            background: #22c55e; 
+            color: white; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+          .play-numbers { 
+            font-weight: 800; 
+            font-size: 18px; 
+            color: #1a365d; 
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+          }
+          .play-amount { 
+            color: #22c55e; 
+            font-weight: 700; 
+            font-size: 13px; 
+          }
+          
+          /* Single Numbers Display */
+          .numbers-display {
+            background: #f8fafc;
+            border: 3px solid #1a365d;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+          }
+          .numbers-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a365d;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+          }
+          
+          /* Totals Section */
+          .totals { 
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
+            border-radius: 12px; 
+            padding: 16px; 
+            margin: 15px 0;
+            text-align: center;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          }
+          .total-row:last-child { margin-bottom: 0; }
+          .total-label { 
+            color: rgba(255,255,255,0.9); 
+            font-size: 13px;
+            font-weight: 500;
+          }
+          .total-amount { 
+            font-size: 24px; 
+            font-weight: 800; 
+            color: #fff;
+          }
+          .potential-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 11px;
+          }
+          .potential-amount {
+            color: #fef08a;
+            font-size: 16px;
+            font-weight: 700;
+          }
+          
+          /* QR Footer Section */
+          .footer { 
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 20px 15px; 
+            text-align: center; 
+            border-top: 2px dashed #94a3b8;
+          }
+          .qr-container { 
+            background: #fff; 
+            padding: 12px; 
+            margin: 0 auto 12px; 
+            border-radius: 12px;
+            display: inline-block;
+            border: 3px solid #1a365d;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .qr-code { 
+            width: 130px; 
+            height: 130px; 
+            display: block;
+          }
+          .qr-label { 
+            font-size: 10px; 
+            color: #64748b; 
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .scan-text {
+            font-size: 12px;
+            color: #1a365d;
+            font-weight: 600;
+            margin-top: 10px;
+          }
+          .seller-info {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #cbd5e1;
+            font-size: 11px;
+            color: #64748b;
+          }
+          .footer-notes { 
+            margin-top: 8px;
+          }
+          .footer-text { 
+            font-size: 10px; 
+            color: #64748b; 
+            margin: 3px 0;
+          }
+          
+          /* Promo Bar */
+          .promo { 
+            background: linear-gradient(135deg, #1a365d 0%, #2d4a6f 100%);
+            color: #fbbf24; 
+            padding: 12px; 
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: 700;
+            letter-spacing: 2px;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          ${logoHTML}
-          <div class="title">${hasCompany ? companyName : '🎰 LOTERIA 🎰'}</div>
-          ${sloganHTML}
-          ${addressHTML}
-          ${phoneHTML}
-          ${rncHTML}
-        </div>
-        <div class="ticket-number">${ticket.ticket_number}</div>
-        <div class="lottery-name">${isMultiPlay ? `MULTI-JUGADA (${ticket.plays?.length || 0})` : ticket.lottery_name}</div>
-        <div class="details">
-          <div class="row"><strong>${date.toLocaleDateString('es-DO')}</strong><strong>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}</strong></div>
-          ${ticket.customer_name ? `<div class="row"><strong>Cliente:</strong><strong>${ticket.customer_name}</strong></div>` : ''}
-        </div>
-        ${isMultiPlay ? `
-          <div class="plays-container">
-            <div class="plays-title">Jugadas</div>
-            ${playsHTML}
+        <div class="ticket">
+          <!-- Header con Logo de Empresa -->
+          <div class="header">
+            <div class="logo-container">
+              <img class="logo-img" src="${logoUrl}" alt="Loteria Magic" />
+            </div>
+            <div class="brand-name">Loteria Magic</div>
+            <div class="brand-tagline">Tu suerte comienza aqui</div>
           </div>
-        ` : `
-          <div class="numbers">${(ticket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}</div>
-        `}
-        <div class="status ${ticket.status === 'won' ? 'won' : ticket.status === 'paid' ? 'paid' : ticket.status === 'lost' ? 'lost' : 'pending'}">${getStatusText(ticket.status)}</div>
-        <div class="amounts">
-          <div class="row"><span class="label">MONTO:</span><span class="value">${ticket.currency} ${amount.toLocaleString()}</span></div>
-          <div class="row"><span class="label">PREMIO:</span><span class="value prize">${ticket.currency} ${potentialWin.toLocaleString()}</span></div>
-        </div>
-        <div class="footer">
-          <strong>${ticket.seller_name}</strong>
-          ${footerHTML}
+          
+          <!-- Numero de Ticket -->
+          <div class="ticket-number-section">
+            <div class="ticket-label">Boleto No.</div>
+            <div class="ticket-number">${ticket.ticket_number}</div>
+          </div>
+          
+          <!-- Status Badge -->
+          <div class="status-section">
+            <span class="status-badge">${getStatusText(ticket.status)}</span>
+          </div>
+          
+          <!-- Info de Fecha y Cliente -->
+          <div class="info-section">
+            <div class="date-info">
+              ${date.toLocaleDateString('es-DO', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+              <br>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
+            </div>
+            ${ticket.customer_name ? `<div class="customer-info">Cliente:<br><strong>${ticket.customer_name}</strong></div>` : ''}
+          </div>
+          
+          <!-- Contenido del Ticket -->
+          <div class="body">
+            ${isMultiPlay ? `
+              <div class="plays-header">
+                <span class="plays-title">Jugadas</span>
+                <span class="plays-count">${ticket.plays?.length || 0}</span>
+              </div>
+              ${playsHTML}
+            ` : `
+              <div class="lottery-name">${ticket.lottery_name}</div>
+              <div class="numbers-display">
+                <div class="numbers-value">${(ticket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}</div>
+              </div>
+            `}
+            
+            <!-- Totales -->
+            <div class="totals">
+              <div class="total-row">
+                <span class="total-label">Monto Jugado:</span>
+                <span class="total-amount">${ticket.currency} ${amount.toLocaleString()}</span>
+              </div>
+              <div class="total-row">
+                <span class="potential-label">Premio Potencial:</span>
+                <span class="potential-amount">${ticket.currency} ${potentialWin.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Footer con QR -->
+          <div class="footer">
+            <div class="qr-container">
+              <img class="qr-code" src="${qrCodeUrl}" alt="QR Code" />
+              <div class="qr-label">ID: ${ticket.ticket_number}</div>
+            </div>
+            <div class="scan-text">Escanea para verificar tu boleto</div>
+            <div class="seller-info">
+              Vendedor: <strong>${ticket.seller_name}</strong>
+            </div>
+            <div class="footer-notes">
+              <div class="footer-text">Conserve este boleto para cobrar su premio</div>
+              <div class="footer-text">Valido solo con boleto original</div>
+            </div>
+          </div>
+          
+          <!-- Promo -->
+          <div class="promo">BUENA SUERTE!</div>
         </div>
       </body>
       </html>
