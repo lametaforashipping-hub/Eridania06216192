@@ -11,26 +11,31 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 ### Estructura Backend Modular (Refactorizado 13 Feb 2026)
 ```
 /app/backend/
-├── server.py              # Archivo principal (legacy, contiene rutas complejas)
-├── routes/                # Routers modulares
+├── server.py              # Archivo principal (legacy, mantiene compatibilidad)
+├── routes/                # 13 Routers modulares (~90KB total)
+│   ├── __init__.py        # Exporta todos los routers
 │   ├── auth.py           # Autenticación (login, register, me, refresh)
 │   ├── users.py          # Gestión de usuarios
 │   ├── terminals.py      # Gestión de terminales
 │   ├── favorites.py      # Números favoritos
-│   ├── lotteries.py      # Gestión de loterías
+│   ├── lotteries.py      # Gestión de loterías + holidays
+│   ├── tickets.py        # Ventas de boletos (simple + multi-play)
+│   ├── draws.py          # Sorteos y multi-prize
 │   ├── notifications.py  # Notificaciones
-│   ├── statistics.py     # Estadísticas
+│   ├── monitoring.py     # Monitoreo en tiempo real
+│   ├── accounting.py     # Contabilidad y reportes
+│   ├── statistics.py     # Estadísticas de números
 │   ├── admin.py          # Configuración sistema
 │   └── company.py        # Perfil de empresa
 ├── services/             # Lógica de negocio
-│   └── notifications.py  # Push notifications
+│   └── notifications.py  # Push notifications (Expo)
 ├── models/               # Modelos Pydantic y Enums
 │   ├── schemas.py        # Modelos de request/response
 │   └── enums.py          # Enumeraciones (roles, estados, etc.)
 └── utils/                # Utilidades
-    ├── auth.py           # Dependencias de autenticación
+    ├── auth.py           # Dependencias de autenticación JWT
     ├── database.py       # Conexión MongoDB
-    └── helpers.py        # Funciones auxiliares
+    └── helpers.py        # Funciones auxiliares (check_lottery_open, calculate_prize, etc.)
 ```
 
 
