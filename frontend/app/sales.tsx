@@ -1298,9 +1298,22 @@ export default function Sales() {
           <Text style={styles.cartItemWin}>1er Premio: {item.currency} {item.potentialWin.toLocaleString()}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.cartRemoveButton} onPress={() => removeFromCart(item.id)}>
-        <Ionicons name="trash" size={20} color="#ef4444" />
-      </TouchableOpacity>
+      <View style={styles.cartItemActions}>
+        <TouchableOpacity 
+          style={styles.cartEditButton} 
+          onPress={() => openEditCartItem(item)}
+          data-testid={`edit-cart-item-${item.id}`}
+        >
+          <Ionicons name="pencil" size={18} color="#3b82f6" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.cartRemoveButton} 
+          onPress={() => removeFromCart(item.id)}
+          data-testid={`remove-cart-item-${item.id}`}
+        >
+          <Ionicons name="trash" size={18} color="#ef4444" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
