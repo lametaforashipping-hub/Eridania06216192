@@ -1683,13 +1683,11 @@ export default function Sales() {
               {recentPlays.length > 0 ? (
                 recentPlays.map((play, index) => (
                   Platform.OS === 'web' ? (
-                    <div 
+                    <button 
                       key={play.id || index}
                       data-testid={`recent-play-${index}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUseRecentPlay(play);
-                      }}
+                      type="button"
+                      onClick={() => handleUseRecentPlay(play)}
                       style={{
                         display: 'flex',
                         flexDirection: 'row',
@@ -1698,8 +1696,11 @@ export default function Sales() {
                         borderRadius: 10,
                         padding: 12,
                         marginBottom: 10,
+                        border: 'none',
                         borderLeft: '3px solid #6366f1',
                         cursor: 'pointer',
+                        width: '100%',
+                        textAlign: 'left',
                       }}
                     >
                       <View style={styles.recentPlayContent}>
@@ -1723,7 +1724,7 @@ export default function Sales() {
                         </View>
                       </View>
                       <Ionicons name="add-circle" size={28} color="#22c55e" />
-                    </div>
+                    </button>
                   ) : (
                     <TouchableOpacity 
                       key={play.id || index} 
