@@ -1186,7 +1186,7 @@ export default function Sales() {
         )}
 
         {/* Step 3: Enter Numbers */}
-        {selectedLottery && selectedPlayType && lottery && playTypeConfig && (
+        {selectedLotteries.length > 0 && selectedPlayType && lottery && playTypeConfig && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               <Text style={styles.stepNumber}>3</Text> Ingresar Números ({playTypeConfig.name})
