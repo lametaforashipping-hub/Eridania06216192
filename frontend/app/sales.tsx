@@ -265,14 +265,21 @@ export default function Sales() {
 
   // Add plays to cart
   const addToCart = () => {
-    if (selectedLotteries.length === 0) {
-      Alert.alert('Error', 'Selecciona al menos una lotería');
+    const lottery = getSelectedLottery();
+    const playTypeConfig = getSelectedPlayTypeConfig();
+    
+    if (!lottery) {
+      Alert.alert('Error', 'Selecciona una lotería');
+      return;
+    }
+    
+    if (!playTypeConfig || !selectedPlayType) {
+      Alert.alert('Error', 'Selecciona un tipo de jugada');
       return;
     }
 
-    const ref = getReferenceLottery();
-    if (!ref || selectedNumbers.length !== ref.numbers_to_pick) {
-      Alert.alert('Error', `Selecciona ${ref?.numbers_to_pick || 1} número(s)`);
+    if (selectedNumbers.length !== playTypeConfig.numbers_count) {
+      Alert.alert('Error', `Selecciona ${playTypeConfig.numbers_count} número(s) para ${playTypeConfig.name}`);
       return;
     }
 
@@ -281,41 +288,37 @@ export default function Sales() {
       return;
     }
 
-    // Check if all selected lotteries are open
-    const closedLotteries = selectedLotteries
-      .map(id => lotteries.find(l => l.id === id))
-      .filter(l => l && !l.is_open);
-    
-    if (closedLotteries.length > 0) {
-      Alert.alert('Error', `Las siguientes loterías están cerradas: ${closedLotteries.map(l => l?.name).join(', ')}`);
+    if (!lottery.is_open) {
+      Alert.alert('Error', `La lotería ${lottery.name} está cerrada`);
       return;
     }
 
-    // Add one cart item per selected lottery
-    const newItems: CartItem[] = selectedLotteries.map(lotteryId => {
-      const lottery = lotteries.find(l => l.id === lotteryId)!;
-      return {
-        id: `${Date.now()}-${lotteryId}-${Math.random().toString(36).substr(2, 9)}`,
-        lotteryId: lottery.id,
-        lotteryName: lottery.name,
-        numbers: [...selectedNumbers],
-        amount: parseFloat(amount),
-        currency: lottery.currency,
-        potentialWin: parseFloat(amount) * lottery.prize_multiplier,
-        country: lottery.country,
-      };
-    });
+    // Calculate potential win based on first prize multiplier
+    const potentialWin = parseFloat(amount) * playTypeConfig.multipliers.first;
 
-    setCart([...cart, ...newItems]);
+    const newItem: CartItem = {
+      id: `${Date.now()}-${lottery.id}-${Math.random().toString(36).substr(2, 9)}`,
+      lotteryId: lottery.id,
+      lotteryName: lottery.name,
+      numbers: [...selectedNumbers],
+      amount: parseFloat(amount),
+      currency: lottery.currency,
+      potentialWin: potentialWin,
+      country: lottery.country,
+      playType: selectedPlayType,
+      playTypeName: playTypeConfig.name,
+    };
+
+    setCart([...cart, newItem]);
     setSelectedNumbers([]);
-    setSelectedLotteries([]);
+    // Keep lottery and play type selected for quick repeated entries
     
     // Haptic feedback when items are added to cart (mobile only)
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     
-    Alert.alert('Agregado', `${newItems.length} jugada(s) agregada(s) al carrito`);
+    Alert.alert('Agregado', `${playTypeConfig.name} agregado al carrito`);
   };
 
   // Remove item from cart
