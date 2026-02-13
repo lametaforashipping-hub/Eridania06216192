@@ -164,10 +164,15 @@ export default function Sales() {
     return types.sort();
   };
 
-  // Get selected lottery
+  // Get selected lottery (first one for play type config - all share same play types structure)
   const getSelectedLottery = (): Lottery | null => {
-    if (!selectedLottery) return null;
-    return lotteries.find(l => l.id === selectedLottery) || null;
+    if (selectedLotteries.length === 0) return null;
+    return lotteries.find(l => l.id === selectedLotteries[0]) || null;
+  };
+
+  // Get all selected lotteries
+  const getSelectedLotteriesData = (): Lottery[] => {
+    return lotteries.filter(l => selectedLotteries.includes(l.id));
   };
 
   // Get selected play type config
@@ -184,7 +189,7 @@ export default function Sales() {
     return 1;
   };
 
-  // Select a lottery
+  // Toggle lottery selection (multi-select)
   const handleSelectLottery = (lotteryId: string) => {
     const lottery = lotteries.find(l => l.id === lotteryId);
     if (!lottery) return;
@@ -194,8 +199,41 @@ export default function Sales() {
       return;
     }
     
-    setSelectedLottery(lotteryId);
-    setSelectedPlayType(null); // Reset play type when lottery changes
+    setSelectedLotteries(prev => {
+      if (prev.includes(lotteryId)) {
+        // Deselect - remove from array
+        const newSelection = prev.filter(id => id !== lotteryId);
+        // If no lotteries selected, reset play type and numbers
+        if (newSelection.length === 0) {
+          setSelectedPlayType(null);
+          setSelectedNumbers([]);
+        }
+        return newSelection;
+      } else {
+        // Select - add to array
+        return [...prev, lotteryId];
+      }
+    });
+  };
+
+  // Select all open lotteries
+  const handleSelectAllLotteries = () => {
+    const openLotteries = getFilteredLotteries().filter(l => l.is_open);
+    if (selectedLotteries.length === openLotteries.length) {
+      // Deselect all
+      setSelectedLotteries([]);
+      setSelectedPlayType(null);
+      setSelectedNumbers([]);
+    } else {
+      // Select all open
+      setSelectedLotteries(openLotteries.map(l => l.id));
+    }
+  };
+
+  // Clear lottery selection
+  const handleClearLotteries = () => {
+    setSelectedLotteries([]);
+    setSelectedPlayType(null);
     setSelectedNumbers([]);
   };
 
