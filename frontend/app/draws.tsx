@@ -479,12 +479,12 @@ export default function Draws() {
         </View>
       </Modal>
 
-      {/* Manual Draw Modal */}
+      {/* Manual Draw Modal - Multi Prize */}
       <Modal visible={showManualDrawModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ingresar Números Ganadores</Text>
+              <Text style={styles.modalTitle}>Ingresar Resultados del Sorteo</Text>
               <TouchableOpacity onPress={() => { setShowManualDrawModal(false); setSelectedLottery(null); }}>
                 <Ionicons name="close" size={24} color="#ffffff" />
               </TouchableOpacity>
@@ -498,36 +498,88 @@ export default function Draws() {
                   </Text>
                 </View>
 
-                <Text style={styles.inputLabel}>Números Ganadores ({selectedLottery.numbers_to_pick})</Text>
+                {/* Date and Time Inputs */}
+                <View style={styles.dateTimeRow}>
+                  <View style={styles.dateTimeInput}>
+                    <Text style={styles.inputLabel}>Fecha</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={drawDate}
+                      onChangeText={setDrawDate}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#64748b"
+                    />
+                  </View>
+                  <View style={styles.dateTimeInput}>
+                    <Text style={styles.inputLabel}>Hora</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={drawTime}
+                      onChangeText={setDrawTime}
+                      placeholder="HH:MM"
+                      placeholderTextColor="#64748b"
+                    />
+                  </View>
+                </View>
+
+                {/* Prize Inputs */}
+                <Text style={styles.prizesSectionTitle}>Números Ganadores</Text>
                 
-                <View style={styles.numbersInputContainer}>
-                  {manualNumbers.map((num, index) => (
-                    <View key={index} style={styles.numberInputWrapper}>
-                      <Text style={styles.numberInputLabel}>#{index + 1}</Text>
-                      <TextInput
-                        style={styles.numberInput}
-                        value={num}
-                        onChangeText={(text) => {
-                          const newNumbers = [...manualNumbers];
-                          newNumbers[index] = text;
-                          setManualNumbers(newNumbers);
-                        }}
-                        keyboardType="numeric"
-                        placeholder="00"
-                        placeholderTextColor="#64748b"
-                        maxLength={3}
-                      />
-                    </View>
-                  ))}
+                <View style={styles.prizeInputRow}>
+                  <View style={styles.prizeInputLabel}>
+                    <Ionicons name="trophy" size={24} color="#fbbf24" />
+                    <Text style={styles.prizeInputLabelText}>1er Premio *</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.prizeInput, styles.firstPrizeInput]}
+                    value={firstPrize}
+                    onChangeText={setFirstPrize}
+                    keyboardType="numeric"
+                    placeholder="00"
+                    placeholderTextColor="#64748b"
+                    maxLength={3}
+                  />
+                </View>
+
+                <View style={styles.prizeInputRow}>
+                  <View style={styles.prizeInputLabel}>
+                    <Ionicons name="trophy-outline" size={24} color="#94a3b8" />
+                    <Text style={styles.prizeInputLabelText}>2do Premio</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.prizeInput, styles.secondPrizeInput]}
+                    value={secondPrize}
+                    onChangeText={setSecondPrize}
+                    keyboardType="numeric"
+                    placeholder="00"
+                    placeholderTextColor="#64748b"
+                    maxLength={3}
+                  />
+                </View>
+
+                <View style={styles.prizeInputRow}>
+                  <View style={styles.prizeInputLabel}>
+                    <Ionicons name="medal-outline" size={24} color="#cd7f32" />
+                    <Text style={styles.prizeInputLabelText}>3er Premio</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.prizeInput, styles.thirdPrizeInput]}
+                    value={thirdPrize}
+                    onChangeText={setThirdPrize}
+                    keyboardType="numeric"
+                    placeholder="00"
+                    placeholderTextColor="#64748b"
+                    maxLength={3}
+                  />
                 </View>
 
                 <Text style={styles.infoText}>
-                  Ingrese los números ganadores del sorteo oficial
+                  * Primer premio es obligatorio. 2do y 3er premio son opcionales.
                 </Text>
 
                 <TouchableOpacity
                   style={[styles.executeButton, creating && styles.executeButtonDisabled]}
-                  onPress={executeManualDraw}
+                  onPress={executeMultiPrizeDraw}
                   disabled={creating}
                 >
                   {creating ? (
@@ -535,7 +587,7 @@ export default function Draws() {
                   ) : (
                     <>
                       <Ionicons name="trophy" size={24} color="#ffffff" />
-                      <Text style={styles.executeButtonText}>Ejecutar Sorteo</Text>
+                      <Text style={styles.executeButtonText}>Guardar Resultados</Text>
                     </>
                   )}
                 </TouchableOpacity>
