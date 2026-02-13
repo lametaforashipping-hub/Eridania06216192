@@ -52,6 +52,22 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Botón "Colapsar" para cerrar
 - **Archivo modificado:** `frontend/app/tickets.tsx`
 
+### ✅ Feature: Duplicar Ticket (COMPLETADO 15 Feb 2026)
+- **Nuevo botón "Duplicar Ticket"** en el modal de acciones de boletos (color púrpura)
+- **Flujo de duplicación:**
+  1. Desde la pantalla de Boletos, abrir modal de un ticket
+  2. Click en "Duplicar Ticket"
+  3. Navega a pantalla de Ventas con parámetro `?duplicate=ticketId`
+  4. Las jugadas del ticket original se agregan automáticamente al carrito
+  5. Alerta de confirmación: "Se agregaron X jugada(s) al carrito"
+- **Soporte para:**
+  - Tickets multi-play: extrae todas las jugadas del array `plays`
+  - Tickets simples: extrae la jugada individual
+- **Haptic feedback** en dispositivos móviles
+- **Archivos modificados:**
+  - `frontend/app/tickets.tsx`: Botón "Duplicar" + navegación
+  - `frontend/app/sales.tsx`: Hook `useLocalSearchParams` + función `handleDuplicateTicket`
+
 ## Cambios Recientes (13 Feb 2026)
 
 ### ✅ Historial de Jugadas Recientes (COMPLETADO 13 Feb 2026)
