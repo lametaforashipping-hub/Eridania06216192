@@ -260,7 +260,7 @@ export default function Dashboard() {
               onPress={() => router.push(item.route as any)}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: item.color + '20' }]}>
-                <Ionicons name={item.icon as any} size={28} color={item.color} />
+                <Ionicons name={item.icon as any} size={32} color={item.color} />
               </View>
               <Text style={styles.menuLabel}>{item.label}</Text>
             </TouchableOpacity>
