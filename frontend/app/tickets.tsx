@@ -787,6 +787,19 @@ export default function Tickets() {
                   </TouchableOpacity>
                 </View>
 
+                {/* Duplicate ticket button */}
+                <TouchableOpacity
+                  style={styles.duplicateButton}
+                  onPress={() => {
+                    setShowActionModal(false);
+                    router.push(`/sales?duplicate=${selectedTicket.id}`);
+                  }}
+                  data-testid="duplicate-ticket-btn"
+                >
+                  <Ionicons name="copy" size={20} color="#ffffff" />
+                  <Text style={styles.duplicateButtonText}>Duplicar Ticket</Text>
+                </TouchableOpacity>
+
                 {selectedTicket.status === 'won' && (
                   <TouchableOpacity
                     style={[styles.payButton, processing && styles.buttonDisabled]}
