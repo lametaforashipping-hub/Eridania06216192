@@ -11,6 +11,7 @@ import {
   Modal,
   ScrollView,
   TextInput,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -24,6 +25,9 @@ interface Draw {
   lottery_id: string;
   lottery_name: string;
   winning_numbers: number[];
+  first_prize?: number;
+  second_prize?: number;
+  third_prize?: number;
   draw_time: string;
   total_tickets: number;
   total_winners: number;
@@ -39,6 +43,7 @@ interface Lottery {
   min_number: number;
   max_number: number;
   numbers_to_pick: number;
+  prize_tiers?: { first?: number; second?: number; third?: number };
 }
 
 export default function Draws() {
