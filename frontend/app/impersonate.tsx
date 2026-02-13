@@ -60,6 +60,9 @@ export default function ImpersonateScreen() {
   const [recentTickets, setRecentTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [processingDeposit, setProcessingDeposit] = useState(false);
 
   const fetchSellerData = useCallback(async () => {
     if (!token || !sellerId) return;
