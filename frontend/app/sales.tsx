@@ -926,6 +926,7 @@ export default function Sales() {
       <View style={styles.cartItemContent}>
         <View style={styles.cartItemHeader}>
           <Text style={styles.cartItemLottery}>{item.lotteryName}</Text>
+          <Text style={styles.cartItemPlayType}>{item.playTypeName}</Text>
           <Text style={styles.cartItemCountry}>
             {item.country === 'RD' ? '🇩🇴' : '🇺🇸'}
           </Text>
@@ -939,7 +940,7 @@ export default function Sales() {
         </View>
         <View style={styles.cartItemFooter}>
           <Text style={styles.cartItemAmount}>{item.currency} {item.amount}</Text>
-          <Text style={styles.cartItemWin}>Premio: {item.currency} {item.potentialWin.toLocaleString()}</Text>
+          <Text style={styles.cartItemWin}>1er Premio: {item.currency} {item.potentialWin.toLocaleString()}</Text>
         </View>
       </View>
       <TouchableOpacity style={styles.cartRemoveButton} onPress={() => removeFromCart(item.id)}>
