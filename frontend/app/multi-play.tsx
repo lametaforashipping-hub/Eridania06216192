@@ -90,7 +90,7 @@ export default function MultiPlay() {
   // Form state for adding new play
   const [selectedType, setSelectedType] = useState(LOTTERY_TYPES[0]);
   const [numbersInput, setNumbersInput] = useState('');
-  const [amountInput, setAmountInput] = useState('');
+  const [amountInput, setAmountInput] = useState('20'); // Default amount
   const [showAddModal, setShowAddModal] = useState(false);
   
   // Lottery selection state
