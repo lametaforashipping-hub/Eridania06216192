@@ -418,6 +418,7 @@ export default function Draws() {
             style={{ cursor: 'pointer' }}
             onClick={() => !creating && setShowLotteryModal(true)}
             onTouchEnd={() => !creating && setShowLotteryModal(true)}
+            data-testid="add-draw-button"
           >
             {creating ? (
               <ActivityIndicator size="small" color="#22c55e" />
