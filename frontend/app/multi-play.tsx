@@ -716,16 +716,23 @@ const showAlert = (title: string, message: string) => {
                   ))}
                 </View>
                 
-                <Pressable 
-                  style={({ pressed }) => [
-                    styles.addButton,
-                    pressed && { opacity: 0.8 }
-                  ]} 
-                  onPress={addPlay}
-                >
-                  <Ionicons name="add-circle" size={22} color="#ffffff" />
-                  <Text style={styles.addButtonText}>Agregar Jugada</Text>
-                </Pressable>
+                {Platform.OS === 'web' ? (
+                  <Pressable 
+                    style={styles.addButton}
+                    onPress={() => {
+                      console.log('Web button pressed');
+                      addPlay();
+                    }}
+                  >
+                    <Ionicons name="add-circle" size={22} color="#ffffff" />
+                    <Text style={styles.addButtonText}>Agregar Jugada</Text>
+                  </Pressable>
+                ) : (
+                  <TouchableOpacity style={styles.addButton} onPress={addPlay}>
+                    <Ionicons name="add-circle" size={22} color="#ffffff" />
+                    <Text style={styles.addButtonText}>Agregar Jugada</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </ScrollView>
