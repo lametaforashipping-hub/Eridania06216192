@@ -27,6 +27,23 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (13 Feb 2026)
 
+### ✅ Historial de Jugadas Recientes (COMPLETADO 13 Feb 2026)
+- ✅ **Nuevo endpoint backend**: `GET /api/tickets/recent-plays?limit=15`
+  - Devuelve las últimas jugadas únicas del vendedor
+  - Filtra duplicados por combinación números + tipo
+  - Incluye: lottery_type, lottery_id, lottery_name, numbers, amount, created_at
+- ✅ **Botón "Recientes"** junto a "Favoritos" en pantalla de ventas
+  - Badge púrpura/índigo mostrando cantidad de jugadas recientes
+  - Modal con lista scrollable de jugadas
+- ✅ **Funcionalidad un-click**: Tocar jugada para agregarla al carrito
+  - Detecta si la lotería está abierta o cerrada
+  - Ofrece buscar lotería abierta del mismo tipo si está cerrada
+  - Haptic feedback en dispositivos móviles
+- ✅ **Archivos modificados**:
+  - `backend/routes/tickets.py`: Nuevo endpoint recent-plays
+  - `frontend/app/sales.tsx`: Estado, fetch, modal y handler
+- ⚠️ **Nota**: Click en web puede tener issues dentro del modal de RN Web
+
 ### ✅ Interfaz Unificada de Ventas (COMPLETADO 13 Feb 2026)
 - ✅ **Fusión de Vender y Multi-Jugada en una sola pantalla**
   - Checkboxes para seleccionar múltiples loterías simultáneamente
