@@ -164,40 +164,45 @@ export default function Sales() {
     return types.sort();
   };
 
-  // Get first selected lottery for number range reference
-  const getReferenceLottery = (): Lottery | null => {
-    if (selectedLotteries.length === 0) return null;
-    return lotteries.find(l => l.id === selectedLotteries[0]) || null;
+  // Get selected lottery
+  const getSelectedLottery = (): Lottery | null => {
+    if (!selectedLottery) return null;
+    return lotteries.find(l => l.id === selectedLottery) || null;
   };
 
-  // Get numbers to pick based on lottery type
+  // Get selected play type config
+  const getSelectedPlayTypeConfig = (): PlayTypeConfig | null => {
+    const lottery = getSelectedLottery();
+    if (!lottery || !selectedPlayType || !lottery.play_types) return null;
+    return lottery.play_types[selectedPlayType] || null;
+  };
+
+  // Get numbers to pick based on selected play type
   const getNumbersToPick = (): number => {
-    const ref = getReferenceLottery();
-    if (!ref) return 1;
-    return ref.numbers_to_pick;
+    const playTypeConfig = getSelectedPlayTypeConfig();
+    if (playTypeConfig) return playTypeConfig.numbers_count;
+    return 1;
   };
 
-  // Toggle lottery selection
-  const toggleLotterySelection = (lotteryId: string) => {
+  // Select a lottery
+  const handleSelectLottery = (lotteryId: string) => {
     const lottery = lotteries.find(l => l.id === lotteryId);
     if (!lottery) return;
-
-    if (selectedLotteries.includes(lotteryId)) {
-      setSelectedLotteries(selectedLotteries.filter(id => id !== lotteryId));
-    } else {
-      // Check if the lottery type is compatible (same numbers_to_pick)
-      if (selectedLotteries.length > 0) {
-        const refLottery = getReferenceLottery();
-        if (refLottery && refLottery.numbers_to_pick !== lottery.numbers_to_pick) {
-          Alert.alert(
-            'Lotería Incompatible',
-            `Esta lotería requiere ${lottery.numbers_to_pick} números, pero ya seleccionaste loterías de ${refLottery.numbers_to_pick} números.`
-          );
-          return;
-        }
-      }
-      setSelectedLotteries([...selectedLotteries, lotteryId]);
+    
+    if (!lottery.is_open) {
+      Alert.alert('Lotería Cerrada', lottery.closed_message || 'Esta lotería está cerrada');
+      return;
     }
+    
+    setSelectedLottery(lotteryId);
+    setSelectedPlayType(null); // Reset play type when lottery changes
+    setSelectedNumbers([]);
+  };
+
+  // Select a play type
+  const handleSelectPlayType = (playType: string) => {
+    setSelectedPlayType(playType);
+    setSelectedNumbers([]); // Reset numbers when play type changes
   };
 
   // Add number from manual input
