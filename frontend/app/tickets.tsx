@@ -1491,4 +1491,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 6,
   },
+  receiptCompanyLogo: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 8,
+  },
+  receiptSlogan: {
+    fontSize: 10,
+    color: '#666666',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  receiptCompanyInfo: {
+    fontSize: 9,
+    color: '#333333',
+    marginTop: 2,
+  },
+  receiptCustomFooter: {
+    fontSize: 9,
+    color: '#666666',
+    marginTop: 6,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
 });
