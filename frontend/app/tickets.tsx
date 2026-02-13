@@ -65,6 +65,21 @@ export default function Tickets() {
   const [showActionModal, setShowActionModal] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+
+  const fetchCompanyProfile = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/company-profile`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCompanyProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching company profile:', error);
+    }
+  }, [token]);
 
   const fetchTickets = useCallback(async () => {
     try {
