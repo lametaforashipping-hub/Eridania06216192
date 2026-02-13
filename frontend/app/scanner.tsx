@@ -54,22 +54,31 @@ export default function Scanner() {
       return;
     }
 
+    console.log('Verifying ticket:', ticketNumber);
     setVerifying(true);
     setScanning(false);
     
     try {
-      const response = await fetch(`${API_URL}/api/tickets/verify/${ticketNumber.trim()}`);
+      const url = `${API_URL}/api/tickets/verify/${ticketNumber.trim()}`;
+      console.log('Fetching:', url);
+      
+      const response = await fetch(url);
+      console.log('Response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Ticket data:', JSON.stringify(data));
         setResult(data);
         setShowResult(true);
+        console.log('showResult set to true');
       } else {
         const error = await response.json();
+        console.log('Error:', error);
         Alert.alert('Error', error.detail || 'Boleto no encontrado');
         setScanning(true);
       }
     } catch (error) {
+      console.error('Fetch error:', error);
       Alert.alert('Error', 'Error de conexión');
       setScanning(true);
     } finally {
