@@ -138,6 +138,100 @@ export default function Sales() {
     fetchRecentPlays();
   }, []);
 
+  // Handle ticket duplication from URL params
+  useEffect(() => {
+    if (params.duplicate && !duplicateProcessed && lotteries.length > 0 && token) {
+      handleDuplicateTicket(params.duplicate);
+      setDuplicateProcessed(true);
+    }
+  }, [params.duplicate, lotteries, token, duplicateProcessed]);
+
+  // Function to duplicate a ticket
+  const handleDuplicateTicket = async (ticketId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      
+      if (!response.ok) {
+        Alert.alert('Error', 'No se pudo cargar el ticket para duplicar');
+        return;
+      }
+      
+      const ticket = await response.json();
+      const newCartItems: CartItem[] = [];
+      
+      // Handle multi-play tickets
+      if (ticket.ticket_type === 'multi_play' && ticket.plays) {
+        for (const play of ticket.plays) {
+          // Find matching lottery
+          const lottery = lotteries.find(l => l.id === play.lottery_id) || 
+                         lotteries.find(l => l.name === play.lottery_name);
+          
+          if (lottery) {
+            const playType = play.lottery_type || 'quiniela';
+            const playTypeConfig = lottery.play_types?.[playType];
+            const multiplier = playTypeConfig?.multipliers?.first || lottery.prize_multiplier || 70;
+            
+            newCartItems.push({
+              id: `dup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              lotteryId: lottery.id,
+              lotteryName: lottery.name,
+              numbers: play.numbers,
+              amount: play.amount,
+              currency: ticket.currency || lottery.currency,
+              potentialWin: play.amount * multiplier,
+              country: lottery.country,
+              playType: playType,
+              playTypeName: playType.charAt(0).toUpperCase() + playType.slice(1).replace('_', ' '),
+            });
+          }
+        }
+      } 
+      // Handle simple tickets
+      else if (ticket.numbers && ticket.lottery_id) {
+        const lottery = lotteries.find(l => l.id === ticket.lottery_id);
+        if (lottery) {
+          const playType = ticket.lottery_type || 'quiniela';
+          const playTypeConfig = lottery.play_types?.[playType];
+          const multiplier = playTypeConfig?.multipliers?.first || lottery.prize_multiplier || 70;
+          
+          newCartItems.push({
+            id: `dup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            lotteryId: lottery.id,
+            lotteryName: lottery.name,
+            numbers: ticket.numbers,
+            amount: ticket.amount,
+            currency: ticket.currency || lottery.currency,
+            potentialWin: ticket.amount * multiplier,
+            country: lottery.country,
+            playType: playType,
+            playTypeName: playType.charAt(0).toUpperCase() + playType.slice(1).replace('_', ' '),
+          });
+        }
+      }
+      
+      if (newCartItems.length > 0) {
+        setCart(prev => [...prev, ...newCartItems]);
+        Alert.alert(
+          '✅ Ticket Duplicado', 
+          `Se agregaron ${newCartItems.length} jugada(s) al carrito. Revisa y confirma para crear un nuevo ticket.`
+        );
+        
+        // Haptic feedback
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      } else {
+        Alert.alert('Aviso', 'No se pudieron encontrar las loterías para duplicar el ticket');
+      }
+      
+    } catch (error) {
+      console.error('Error duplicating ticket:', error);
+      Alert.alert('Error', 'Error al duplicar el ticket');
+    }
+  };
+
   const fetchRecentPlays = async () => {
     if (!token) return;
     try {
