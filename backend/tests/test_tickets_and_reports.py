@@ -22,7 +22,7 @@ def seller_token():
     """Get seller auth token"""
     response = requests.post(f"{BASE_URL}/api/auth/login", json=SELLER_CREDENTIALS)
     if response.status_code == 200:
-        return response.json().get("access_token")
+        return response.json().get("token")  # API returns 'token' not 'access_token'
     pytest.skip(f"Seller login failed: {response.text}")
 
 
@@ -31,7 +31,7 @@ def admin_token():
     """Get super admin auth token"""
     response = requests.post(f"{BASE_URL}/api/auth/login", json=SUPER_ADMIN_CREDENTIALS)
     if response.status_code == 200:
-        return response.json().get("access_token")
+        return response.json().get("token")  # API returns 'token' not 'access_token'
     pytest.skip(f"Admin login failed: {response.text}")
 
 
@@ -53,7 +53,7 @@ class TestSellerLogin:
         response = requests.post(f"{BASE_URL}/api/auth/login", json=SELLER_CREDENTIALS)
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "Missing access_token in response"
+        assert "token" in data, "Missing token in response"
         assert "user" in data, "Missing user in response"
         print(f"Seller login successful: {data['user'].get('name')}")
     
@@ -62,7 +62,7 @@ class TestSellerLogin:
         response = requests.post(f"{BASE_URL}/api/auth/login", json=SUPER_ADMIN_CREDENTIALS)
         assert response.status_code == 200, f"Admin login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data
+        assert "token" in data
         print(f"Admin login successful: {data['user'].get('name')}")
 
 
