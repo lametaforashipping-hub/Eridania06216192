@@ -461,72 +461,163 @@ export default function Tickets() {
     const potentialWin = item.potential_win || item.total_potential_win || 0;
     const isMultiPlay = item.ticket_type === 'multi_play';
     const displayNumbers = item.numbers || [];
+    const isExpanded = expandedTickets.has(item.id);
+    const playsCount = item.plays?.length || 0;
+    
     const lotteryName = isMultiPlay 
-      ? `Multi-jugada (${item.plays?.length || 0} jugadas)` 
+      ? `Multi-jugada` 
       : (item.lottery_name || 'N/A');
     
     return (
-      <TouchableOpacity
-        style={[styles.ticketCard, item.status === 'cancelled' && styles.ticketCancelled]}
-        onPress={() => {
-          setSelectedTicket(item);
-          setShowActionModal(true);
-        }}
-      >
-        <View style={styles.ticketHeader}>
-          <View>
-            <Text style={styles.ticketNumber}>{item.ticket_number}</Text>
-            <Text style={styles.lotteryName}>{lotteryName}</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-          </View>
-        </View>
-
-        {!isMultiPlay && displayNumbers.length > 0 && (
-          <View style={styles.numbersContainer}>
-            {displayNumbers.map((num, index) => (
-              <View key={index} style={[styles.numberBall, item.status === 'won' && styles.winnerBall]}>
-                <Text style={styles.numberBallText}>{num?.toString().padStart(2, '0') || '--'}</Text>
+      <View style={[styles.ticketCard, item.status === 'cancelled' && styles.ticketCancelled]}>
+        {/* Clickable Header Area */}
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedTicket(item);
+            setShowActionModal(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.ticketHeader}>
+            <View style={styles.ticketHeaderLeft}>
+              <Text style={styles.ticketNumber}>{item.ticket_number}</Text>
+              <View style={styles.lotteryNameRow}>
+                <Text style={styles.lotteryName}>{lotteryName}</Text>
+                {isMultiPlay && (
+                  <View style={styles.playsCountBadge}>
+                    <Text style={styles.playsCountText}>{playsCount}</Text>
+                  </View>
+                )}
               </View>
-            ))}
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+              <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+            </View>
           </View>
-        )}
 
-        {isMultiPlay && item.plays && (
-          <View style={styles.playsContainer}>
-            {item.plays.slice(0, 3).map((play: any, idx: number) => (
-              <Text key={idx} style={styles.playText}>
-                {play.lottery_type || play.lottery_name}: {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
-              </Text>
-            ))}
-            {item.plays.length > 3 && (
-              <Text style={styles.playText}>+{item.plays.length - 3} más...</Text>
-            )}
-          </View>
-        )}
-
-        <View style={styles.ticketDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Monto:</Text>
-            <Text style={styles.detailValue}>{item.currency} {amount.toLocaleString()}</Text>
-          </View>
-          {(item.status === 'won' || item.status === 'paid') && (
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Premio:</Text>
-              <Text style={[styles.detailValue, styles.prizeValue]}>
-                {item.currency} {potentialWin.toLocaleString()}
-              </Text>
+          {/* Simple ticket numbers */}
+          {!isMultiPlay && displayNumbers.length > 0 && (
+            <View style={styles.numbersContainer}>
+              {displayNumbers.map((num, index) => (
+                <View key={index} style={[styles.numberBall, item.status === 'won' && styles.winnerBall]}>
+                  <Text style={styles.numberBallText}>{num?.toString().padStart(2, '0') || '--'}</Text>
+                </View>
+              ))}
             </View>
           )}
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Fecha:</Text>
-            <Text style={styles.detailValue}>
-              {new Date(item.created_at).toLocaleString('es-DO')}
-            </Text>
+        </TouchableOpacity>
+
+        {/* Multi-play expandable section */}
+        {isMultiPlay && item.plays && item.plays.length > 0 && (
+          <View style={styles.multiPlaySection}>
+            {/* Collapsed preview - show first 2 plays */}
+            {!isExpanded && (
+              <View style={styles.playsPreviewContainer}>
+                {item.plays.slice(0, 2).map((play: Play, idx: number) => (
+                  <View key={idx} style={styles.playPreviewRow}>
+                    <View style={[styles.playTypeBadge, { backgroundColor: getLotteryTypeColor(play.lottery_type) }]}>
+                      <Text style={styles.playTypeBadgeText}>
+                        {(play.lottery_type || 'Q').substring(0, 1).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={styles.playLotteryText} numberOfLines={1}>
+                      {play.lottery_name || play.lottery_type || 'Lotería'}
+                    </Text>
+                    <View style={styles.playNumbersPreview}>
+                      {play.numbers.map((n: number, i: number) => (
+                        <Text key={i} style={styles.playNumberText}>
+                          {n.toString().padStart(2, '0')}{i < play.numbers.length - 1 ? '-' : ''}
+                        </Text>
+                      ))}
+                    </View>
+                    <Text style={styles.playAmountText}>{item.currency}{play.amount}</Text>
+                  </View>
+                ))}
+                {playsCount > 2 && (
+                  <Text style={styles.morePlaysBadge}>+{playsCount - 2} más</Text>
+                )}
+              </View>
+            )}
+
+            {/* Expanded view - show all plays */}
+            {isExpanded && (
+              <View style={styles.playsExpandedContainer}>
+                {item.plays.map((play: Play, idx: number) => (
+                  <View key={idx} style={styles.playCard}>
+                    <View style={styles.playCardHeader}>
+                      <View style={[styles.playTypeIndicator, { backgroundColor: getLotteryTypeColor(play.lottery_type) }]} />
+                      <Text style={styles.playCardType}>
+                        {(play.lottery_type || 'quiniela').toUpperCase()}
+                      </Text>
+                      <Text style={styles.playCardIndex}>#{idx + 1}</Text>
+                    </View>
+                    <Text style={styles.playCardLottery}>{play.lottery_name || 'Lotería'}</Text>
+                    <View style={styles.playCardNumbers}>
+                      {play.numbers.map((n: number, i: number) => (
+                        <View key={i} style={[styles.playNumberBall, { borderColor: getLotteryTypeColor(play.lottery_type) }]}>
+                          <Text style={styles.playNumberBallText}>{n.toString().padStart(2, '0')}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    <View style={styles.playCardFooter}>
+                      <Text style={styles.playCardAmount}>{item.currency} {play.amount.toFixed(2)}</Text>
+                      {play.potential_win && (
+                        <Text style={styles.playCardPotential}>Premio: {item.currency} {play.potential_win.toFixed(2)}</Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Expand/Collapse button */}
+            <TouchableOpacity 
+              style={styles.expandButton}
+              onPress={() => toggleExpanded(item.id)}
+              data-testid={`expand-btn-${item.id}`}
+            >
+              <Ionicons 
+                name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+                size={18} 
+                color="#64748b" 
+              />
+              <Text style={styles.expandButtonText}>
+                {isExpanded ? 'Colapsar' : `Ver ${playsCount} jugadas`}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
-      </TouchableOpacity>
+        )}
+
+        {/* Ticket details footer */}
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedTicket(item);
+            setShowActionModal(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.ticketDetails}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Monto:</Text>
+              <Text style={styles.detailValue}>{item.currency} {amount.toLocaleString()}</Text>
+            </View>
+            {(item.status === 'won' || item.status === 'paid') && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Premio:</Text>
+                <Text style={[styles.detailValue, styles.prizeValue]}>
+                  {item.currency} {potentialWin.toLocaleString()}
+                </Text>
+              </View>
+            )}
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Fecha:</Text>
+              <Text style={styles.detailValue}>
+                {new Date(item.created_at).toLocaleString('es-DO')}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
     );
   };
 
