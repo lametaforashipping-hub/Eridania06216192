@@ -8,25 +8,26 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Frontend:** React Native / Expo
 - **Base de datos:** MongoDB
 
-### Estructura Backend Modular (Refactorizado 13 Feb 2026)
+### Estructura Backend Modular (COMPLETADO 14 Dic 2025)
 ```
 /app/backend/
-├── server.py              # Archivo principal (legacy, mantiene compatibilidad)
-├── routes/                # 13 Routers modulares (~90KB total)
+├── server.py              # Archivo principal refactorizado (79 líneas, -97.6%)
+├── routes/                # 14 Routers modulares
 │   ├── __init__.py        # Exporta todos los routers
 │   ├── auth.py           # Autenticación (login, register, me, refresh)
 │   ├── users.py          # Gestión de usuarios
 │   ├── terminals.py      # Gestión de terminales
 │   ├── favorites.py      # Números favoritos
-│   ├── lotteries.py      # Gestión de loterías + holidays
+│   ├── lotteries.py      # Gestión de loterías + holidays + prize-tiers
 │   ├── tickets.py        # Ventas de boletos (simple + multi-play)
 │   ├── draws.py          # Sorteos y multi-prize
 │   ├── notifications.py  # Notificaciones
 │   ├── monitoring.py     # Monitoreo en tiempo real
 │   ├── accounting.py     # Contabilidad y reportes
 │   ├── statistics.py     # Estadísticas de números
-│   ├── admin.py          # Configuración sistema
-│   └── company.py        # Perfil de empresa
+│   ├── admin.py          # Configuración sistema + seller-profile + act-as-seller
+│   ├── company.py        # Perfil de empresa
+│   └── system.py         # Inicialización y health checks (NEW)
 ├── services/             # Lógica de negocio
 │   └── notifications.py  # Push notifications (Expo)
 ├── models/               # Modelos Pydantic y Enums
@@ -37,6 +38,12 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
     ├── database.py       # Conexión MongoDB
     └── helpers.py        # Funciones auxiliares (check_lottery_open, calculate_prize, etc.)
 ```
+
+**Logro de Refactorización (14 Dic 2025):**
+- server.py reducido de 3347 líneas a 79 líneas (-97.6%)
+- 14 routers modulares organizados por funcionalidad
+- 18 pruebas unitarias pasando
+- Toda la funcionalidad preservada
 
 
 ## Funcionalidades Implementadas
