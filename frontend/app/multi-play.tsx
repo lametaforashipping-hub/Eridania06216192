@@ -695,7 +695,7 @@ const showAlert = (title: string, message: string) => {
                     style={styles.amountInput}
                     value={amountInput}
                     onChangeText={setAmountInput}
-                    placeholder="5"
+                    placeholder="20"
                     placeholderTextColor="#64748b"
                     keyboardType="numeric"
                   />
