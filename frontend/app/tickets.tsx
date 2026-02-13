@@ -875,6 +875,9 @@ export default function Tickets() {
                 
                 <View style={styles.receiptFooter}>
                   <Text style={styles.receiptSellerName}>{selectedTicket.seller_name}</Text>
+                  {companyProfile?.receipt_footer && (
+                    <Text style={styles.receiptCustomFooter}>{companyProfile.receipt_footer}</Text>
+                  )}
                 </View>
               </View>
             )}
