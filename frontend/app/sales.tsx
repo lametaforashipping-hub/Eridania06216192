@@ -1368,10 +1368,10 @@ export default function Sales() {
                   key={lot.id}
                   style={[
                     styles.lotteryOption,
-                    selectedLottery === lot.id && styles.lotteryOptionSelected,
+                    selectedLotteries.includes(lot.id) && styles.lotteryOptionSelected,
                     !lot.is_open && styles.lotteryOptionClosed,
                   ]}
-                  onPress={() => { handleSelectLottery(lot.id); setShowLotteryModal(false); }}
+                  onPress={() => { handleSelectLottery(lot.id); }}
                 >
                   <View style={styles.lotteryOptionContent}>
                     <Text style={styles.lotteryOptionFlag}>
@@ -1384,9 +1384,11 @@ export default function Sales() {
                       </Text>
                     </View>
                   </View>
-                  {selectedLottery === lot.id && (
-                    <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
-                  )}
+                  <Ionicons 
+                    name={selectedLotteries.includes(lot.id) ? "checkbox" : "square-outline"} 
+                    size={24} 
+                    color={selectedLotteries.includes(lot.id) ? "#22c55e" : "#64748b"} 
+                  />
                   {!lot.is_open && (
                     <View style={styles.closedBadge}>
                       <Text style={styles.closedBadgeText}>CERRADA</Text>
