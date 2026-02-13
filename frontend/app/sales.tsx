@@ -137,7 +137,11 @@ export default function Sales() {
   const [editAmount, setEditAmount] = useState('');
   const [editNumbers, setEditNumbers] = useState<number[]>([]);
   const [editNumberInput, setEditNumberInput] = useState('');
-
+  // Keyboard shortcuts state
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  // Input refs for keyboard navigation
+  const numberInputRef = useRef<TextInput>(null);
+  const amountInputRef = useRef<TextInput>(null);
   useEffect(() => {
     fetchLotteries();
     fetchFavorites();
