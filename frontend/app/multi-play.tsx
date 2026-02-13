@@ -729,14 +729,18 @@ const showAlert = (title: string, message: string) => {
                   ))}
                 </View>
                 
-                <ModalButton 
+                <TouchableOpacity 
                   style={styles.addButton} 
-                  onPress={addPlay} 
+                  onPress={() => {
+                    console.log('Add play button pressed');
+                    addPlay();
+                  }} 
                   testID="add-play-btn"
+                  activeOpacity={0.8}
                 >
                   <Ionicons name="add-circle" size={22} color="#ffffff" />
                   <Text style={styles.addButtonText}>Agregar Jugada</Text>
-                </ModalButton>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
