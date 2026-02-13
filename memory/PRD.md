@@ -68,6 +68,28 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `frontend/app/tickets.tsx`: Botón "Duplicar" + navegación
   - `frontend/app/sales.tsx`: Hook `useLocalSearchParams` + función `handleDuplicateTicket`
 
+### ✅ Feature: Editar Jugadas del Carrito (COMPLETADO 15 Feb 2026)
+- **Nuevos botones en cada jugada del carrito:**
+  - Botón de lápiz (azul) para editar
+  - Botón de basura (rojo) para eliminar (ya existía)
+- **Modal de edición** con:
+  - Info de lotería (read-only)
+  - Números editables (agregar/eliminar con clicks)
+  - Monto editable con input y botones rápidos (20, 25, 50, 100, 200)
+  - Validación según tipo de jugada (ej: Quiniela=1 número, Pale=2)
+  - Recálculo automático del premio potencial
+- **Flujo de edición:**
+  1. Click en icono de lápiz en jugada del carrito
+  2. Modal muestra datos actuales
+  3. Modificar números (click para eliminar, input para agregar)
+  4. Modificar monto
+  5. Guardar - actualiza el carrito con nuevos valores
+- **Archivo modificado:** `frontend/app/sales.tsx`
+  - Estados: `editingCartItem`, `showEditCartModal`, `editAmount`, `editNumbers`
+  - Funciones: `openEditCartItem`, `addEditNumber`, `removeEditNumber`, `saveEditedCartItem`
+  - Modal: "Editar Jugada" con UI completa
+  - Estilos: 20+ nuevos estilos para modal y botones
+
 ## Cambios Recientes (13 Feb 2026)
 
 ### ✅ Historial de Jugadas Recientes (COMPLETADO 13 Feb 2026)
