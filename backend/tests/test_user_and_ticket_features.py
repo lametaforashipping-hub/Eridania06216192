@@ -11,7 +11,7 @@ import os
 import uuid
 import time
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://play-types-feature.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ticket-creation-fix.preview.emergentagent.com')
 
 class TestUserCreationAndEdit:
     """Test user creation and editing functionality"""
