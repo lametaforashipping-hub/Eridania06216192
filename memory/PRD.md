@@ -155,7 +155,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - "ABIERTA" (barra verde cuando está operando)
   - Horarios de sorteos del día
 
-### Sesión 9 - Impersonación Completa y Recibos con Logo (13 Feb 2026)
+### Sesión 9 - Impersonación Completa, Recibos con Logo y Push Notifications (13 Feb 2026)
 - ✅ **Logo de Empresa en Recibos**
   - El recibo del boleto ahora muestra información completa de la empresa
   - Incluye: Nombre, slogan, dirección, teléfono, RNC
@@ -174,6 +174,13 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ✅ **Botón "+" de Sorteos Mejorado**
   - Usa elemento `<button>` HTML nativo en web para mejor compatibilidad
   - Soluciona problemas de TouchableOpacity en React Native Web
+- ✅ **Push Notifications para Ganadores**
+  - Servicio de notificaciones push con expo-notifications
+  - Registro automático de tokens al iniciar sesión (solo dispositivos nativos)
+  - Notificaciones enviadas al vendedor y super admin cuando hay ganadores
+  - Notificaciones de sorteo completado para super admins
+  - Integración con Expo Push API
+  - Canal dedicado "lottery-winners" con sonido y vibración
 - ✅ **Testing Completado** - iteration_19.json: 100% backend, 100% frontend
 
 ### Sesión 8 - Correcciones y Sorteos Mejorados (13 Feb 2026)
