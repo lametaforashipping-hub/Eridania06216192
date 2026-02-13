@@ -370,3 +370,185 @@ async def get_daily_chart_data(
         },
         "country_filter": filter_country
     }
+
+
+@router.get("/detailed-seller-report")
+async def get_detailed_seller_report(
+    period: str = "daily",
+    seller_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get detailed seller report with breakdown and ticket details"""
+    db = get_db()
+    now = datetime.utcnow()
+    
+    # Determine period boundaries
+    if period == "daily":
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_label = f"Hoy - {now.strftime('%d/%m/%Y')}"
+    elif period == "weekly":
+        start_date = now - timedelta(days=7)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_label = f"Últimos 7 días ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m/%Y')})"
+    elif period == "biweekly":
+        start_date = now - timedelta(days=15)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_label = f"Últimos 15 días ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m/%Y')})"
+    elif period == "monthly":
+        start_date = now - timedelta(days=30)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_label = f"Últimos 30 días ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m/%Y')})"
+    else:
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_label = f"Hoy - {now.strftime('%d/%m/%Y')}"
+    
+    # Determine which seller to report on
+    target_seller = None
+    if seller_id and current_user["role"] in [UserRole.SUPER_ADMIN.value, UserRole.ADMIN.value]:
+        target_seller = await db.users.find_one({"id": seller_id})
+    
+    if not target_seller:
+        target_seller = current_user
+    
+    seller_info = {
+        "id": target_seller["id"],
+        "name": target_seller.get("name", "N/A"),
+        "commission_rate": target_seller.get("commission_rate", 10.0),
+        "currency": target_seller.get("currency", "RD$"),
+        "country": target_seller.get("country", "RD")
+    }
+    
+    # Get tickets for this seller in the period
+    ticket_query = {
+        "seller_id": target_seller["id"],
+        "created_at": {"$gte": start_date, "$lte": now}
+    }
+    
+    tickets = await db.tickets.find(ticket_query).sort("created_at", -1).to_list(1000)
+    
+    # Calculate summary statistics
+    total_sales = 0
+    total_wins = 0
+    total_paid = 0
+    total_pending_wins = 0
+    
+    ticket_counts = {
+        "total": 0,
+        "pending": 0,
+        "won": 0,
+        "paid": 0,
+        "lost": 0,
+        "cancelled": 0
+    }
+    
+    ticket_details = []
+    
+    for ticket in tickets:
+        amount = ticket.get("amount") or ticket.get("total_amount", 0)
+        potential_win = ticket.get("potential_win") or ticket.get("total_potential_win", 0)
+        status = ticket.get("status", "pending")
+        is_multi_play = ticket.get("is_multi_play", False) or "plays" in ticket
+        
+        # Count by status
+        ticket_counts["total"] += 1
+        if status == TicketStatus.PENDING.value:
+            ticket_counts["pending"] += 1
+            total_pending_wins += potential_win
+        elif status == TicketStatus.WON.value:
+            ticket_counts["won"] += 1
+            total_wins += ticket.get("prize", potential_win)
+        elif status == TicketStatus.PAID.value:
+            ticket_counts["paid"] += 1
+            total_paid += ticket.get("prize", potential_win)
+        elif status == TicketStatus.LOST.value:
+            ticket_counts["lost"] += 1
+        elif status == TicketStatus.CANCELLED.value:
+            ticket_counts["cancelled"] += 1
+        
+        # Add to sales if not cancelled
+        if status != TicketStatus.CANCELLED.value:
+            total_sales += amount
+        
+        # Get lottery name
+        lottery_name = ticket.get("lottery_name")
+        if not lottery_name and ticket.get("lottery_id"):
+            lottery = await db.lotteries.find_one({"id": ticket.get("lottery_id")})
+            lottery_name = lottery.get("name") if lottery else "N/A"
+        
+        # Add to ticket details
+        ticket_detail = {
+            "id": ticket.get("id"),
+            "ticket_number": ticket.get("ticket_number"),
+            "is_multi_play": is_multi_play,
+            "lottery_name": lottery_name or "N/A",
+            "numbers": ticket.get("numbers", []),
+            "plays": ticket.get("plays", []),
+            "amount": amount if not is_multi_play else None,
+            "total_amount": amount if is_multi_play else None,
+            "potential_win": potential_win if not is_multi_play else None,
+            "total_potential_win": potential_win if is_multi_play else None,
+            "status": status,
+            "created_at": ticket.get("created_at").isoformat() if ticket.get("created_at") else "",
+            "customer_name": ticket.get("customer_name"),
+            "currency": ticket.get("currency", seller_info["currency"])
+        }
+        ticket_details.append(ticket_detail)
+    
+    # Calculate commission and profit
+    commission_rate = seller_info["commission_rate"]
+    total_commission = total_sales * (commission_rate / 100)
+    total_actual_wins = total_wins + total_paid
+    net_profit = total_sales - total_actual_wins
+    net_after_commission = net_profit - total_commission
+    
+    summary = {
+        "total_sales": total_sales,
+        "total_wins": total_actual_wins,
+        "total_paid": total_paid,
+        "total_pending_wins": total_pending_wins,
+        "total_commission": total_commission,
+        "commission_rate": commission_rate,
+        "net_profit": net_profit,
+        "net_after_commission": net_after_commission,
+        "currency": seller_info["currency"]
+    }
+    
+    # Calculate daily breakdown (only for weekly, biweekly, monthly)
+    daily_breakdown = []
+    if period in ["weekly", "biweekly", "monthly"]:
+        days_count = 7 if period == "weekly" else (15 if period == "biweekly" else 30)
+        day_names_es = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+        
+        for i in range(days_count - 1, -1, -1):
+            day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            
+            day_tickets = [t for t in tickets 
+                          if t.get("created_at") and day_start <= t.get("created_at") < day_end]
+            
+            day_sales = sum(t.get("amount") or t.get("total_amount", 0) 
+                           for t in day_tickets if t.get("status") != TicketStatus.CANCELLED.value)
+            day_wins = sum(t.get("prize") or t.get("potential_win") or t.get("total_potential_win", 0) 
+                          for t in day_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
+            
+            day_name = day_names_es[day_start.weekday()]
+            
+            daily_breakdown.append({
+                "date": day_start.strftime("%Y-%m-%d"),
+                "label": day_start.strftime("%d/%m"),
+                "day_name": day_name,
+                "sales": day_sales,
+                "wins": day_wins,
+                "profit": day_sales - day_wins,
+                "tickets": len([t for t in day_tickets if t.get("status") != TicketStatus.CANCELLED.value])
+            })
+    
+    return {
+        "period": period,
+        "period_label": period_label,
+        "seller": seller_info,
+        "summary": summary,
+        "ticket_counts": ticket_counts,
+        "daily_breakdown": daily_breakdown,
+        "tickets": ticket_details
+    }
