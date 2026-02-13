@@ -1141,21 +1141,22 @@ export default function Sales() {
               placeholderTextColor="#64748b"
             />
             <TouchableOpacity
-              style={[styles.addToCartButton, (!ref || selectedNumbers.length !== ref.numbers_to_pick) && styles.buttonDisabled]}
+              style={[styles.addToCartButton, (selectedNumbers.length !== playTypeConfig.numbers_count) && styles.buttonDisabled]}
               onPress={addToCart}
-              disabled={!ref || selectedNumbers.length !== ref.numbers_to_pick}
+              disabled={selectedNumbers.length !== playTypeConfig.numbers_count}
             >
               <Ionicons name="cart" size={20} color="#ffffff" />
-              <Text style={styles.addToCartText}>Agregar al Carrito</Text>
+              <Text style={styles.addToCartText}>Agregar {playTypeConfig.name}</Text>
             </TouchableOpacity>
           </View>
         </View>
+        )}
 
         {/* Cart Section */}
         <View style={styles.section}>
           <View style={styles.cartHeader}>
             <Text style={styles.sectionTitle}>
-              <Text style={styles.stepNumber}>4</Text> Carrito ({cart.length} jugadas)
+              <Text style={styles.stepNumber}>5</Text> Carrito ({cart.length} jugadas)
             </Text>
             <View style={styles.cartHeaderButtons}>
               <TouchableOpacity 
