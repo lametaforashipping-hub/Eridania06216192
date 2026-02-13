@@ -416,6 +416,56 @@ export default function ImpersonateScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Deposit Modal */}
+      <Modal visible={showDepositModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Depositar Balance</Text>
+              <TouchableOpacity onPress={() => setShowDepositModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.modalLabel}>
+                Ingrese el monto a depositar para {sellerName}:
+              </Text>
+              <View style={styles.depositInputContainer}>
+                <Text style={styles.currencyPrefix}>{seller?.currency || 'RD$'}</Text>
+                <TextInput
+                  style={styles.depositInput}
+                  value={depositAmount}
+                  onChangeText={setDepositAmount}
+                  keyboardType="numeric"
+                  placeholder="0.00"
+                  placeholderTextColor="#64748b"
+                  autoFocus
+                />
+              </View>
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelModalBtn}
+                  onPress={() => setShowDepositModal(false)}
+                >
+                  <Text style={styles.cancelModalBtnText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.confirmModalBtn, processingDeposit && styles.btnDisabled]}
+                  onPress={confirmDeposit}
+                  disabled={processingDeposit}
+                >
+                  {processingDeposit ? (
+                    <ActivityIndicator color="#ffffff" size="small" />
+                  ) : (
+                    <Text style={styles.confirmModalBtnText}>Depositar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
