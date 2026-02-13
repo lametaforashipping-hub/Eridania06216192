@@ -1098,6 +1098,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e293b',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    maxHeight: '80%',
   },
   modalContentDesktop: {
     maxWidth: 500,
@@ -1121,6 +1122,18 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 20,
+  },
+  modalBodyScroll: {
+    maxHeight: 350,
+  },
+  modalBodyContent: {
+    padding: 20,
+  },
+  modalFooter: {
+    padding: 20,
+    paddingTop: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
   },
   modalHint: {
     color: '#94a3b8',
