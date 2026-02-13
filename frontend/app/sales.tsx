@@ -1731,11 +1731,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+    flexWrap: 'wrap',
+    gap: 4,
   },
   cartItemLottery: {
     fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  cartItemPlayType: {
+    fontSize: 12,
+    color: '#22c55e',
+    backgroundColor: '#14532d',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    fontWeight: '500',
   },
   cartItemCountry: {
     fontSize: 16,
@@ -1774,6 +1785,55 @@ const styles = StyleSheet.create({
   cartRemoveButton: {
     padding: 8,
     justifyContent: 'center',
+  },
+  // Play type styles
+  playTypeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  playTypeChip: {
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    padding: 14,
+    minWidth: '45%',
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#334155',
+  },
+  playTypeChipSelected: {
+    borderColor: '#22c55e',
+    backgroundColor: '#14532d20',
+  },
+  playTypeName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  playTypeNameSelected: {
+    color: '#22c55e',
+  },
+  playTypeNumbers: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  playTypeMultipliers: {
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    paddingTop: 8,
+    marginTop: 4,
+  },
+  playTypeMultiplier: {
+    fontSize: 11,
+    color: '#64748b',
+    marginBottom: 2,
+  },
+  playTypeCheck: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   customerSection: {
     marginTop: 12,
