@@ -674,16 +674,29 @@ export default function Tickets() {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.key}
-          renderItem={({ item: f }) => (
-            <TouchableOpacity
-              style={[styles.filterButton, filter === f.key && styles.filterButtonActive]}
-              onPress={() => setFilter(f.key)}
-            >
-              <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item: f }) => {
+            const count = statusCounts[f.key] || 0;
+            return (
+              <TouchableOpacity
+                style={[styles.filterButton, filter === f.key && styles.filterButtonActive]}
+                onPress={() => setFilter(f.key)}
+                data-testid={`filter-${f.key}`}
+              >
+                <View style={styles.filterContent}>
+                  <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
+                    {f.label}
+                  </Text>
+                  {count > 0 && (
+                    <View style={[styles.filterCountBadge, filter === f.key && styles.filterCountBadgeActive]}>
+                      <Text style={[styles.filterCountText, filter === f.key && styles.filterCountTextActive]}>
+                        {count}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          }}
           contentContainerStyle={styles.filtersContent}
         />
       </View>
