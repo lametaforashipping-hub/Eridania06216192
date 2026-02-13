@@ -138,12 +138,27 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Modal para editar multiplicadores por lotería (1ro, 2do, 3ro lugar)
   - Menú "Configuración" agregado al dashboard
 
-### Chequeo General Completo (12 Feb 2026) - TODAS LAS FUNCIONALIDADES ✅
-**Testing Agent:** iteration_17.json - Backend: 100% (25/25), Frontend: 100% (23/23 páginas)
+### Chequeo General Completo (12-13 Feb 2026) - TODAS LAS FUNCIONALIDADES ✅
+**Testing Agent:** iteration_17.json - Backend: 100% (25/25), Frontend: 100% (25/25 páginas)
+
+**Nuevas Funcionalidades Implementadas:**
+1. ✅ **Pago de Premios** (`pay-prizes.tsx`)
+   - Resumen de premios por pagar vs pagados
+   - Búsqueda por ticket, vendedor o cliente
+   - Filtros: Por Pagar | Pagados
+   - Modal de confirmación de pago
+   - Endpoint: POST /api/tickets/{id}/pay
+
+2. ✅ **Perfil de Empresa** (`company-profile.tsx`)
+   - Subir logo de la empresa
+   - Campos: Nombre, RNC, Dirección, Teléfono, Email, Slogan
+   - Pie de recibo personalizable
+   - Vista previa del recibo
+   - Endpoints: GET/PUT /api/company-profile
 
 **Bugs Corregidos:**
-1. ✅ **favorites.tsx** - La página de favoritos crasheaba por mismatch de datos (plays vs numbers)
-2. ✅ **server.py** - Endpoint sellers-report fallaba con tickets multi-play (amount vs total_amount)
+1. ✅ **favorites.tsx** - La página de favoritos crasheaba por mismatch de datos
+2. ✅ **server.py** - Endpoint sellers-report fallaba con tickets multi-play
 
 **Pantallas Verificadas (23/23):**
 - ✅ Login, Dashboard, Usuarios (Nuevo + Editar + Depositar)
