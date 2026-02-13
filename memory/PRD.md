@@ -27,6 +27,19 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (13 Feb 2026)
 
+### ✅ Interfaz Unificada de Ventas (COMPLETADO 13 Feb 2026)
+- ✅ **Fusión de Vender y Multi-Jugada en una sola pantalla**
+  - Checkboxes para seleccionar múltiples loterías simultáneamente
+  - Botón "Todas" para seleccionar/deseleccionar todas las loterías abiertas
+  - Badge mostrando "X lotería(s) seleccionada(s)"
+  - Al agregar jugada, se aplica a TODAS las loterías seleccionadas
+  - Cada lotería seleccionada genera una entrada separada en el carrito
+- ✅ **Eliminado "Multi-Jugada" del menú del vendedor**
+  - Solo queda el botón "Vender" que ahora incluye toda la funcionalidad
+- ✅ **Testing Completado**: iteration_26.json - 100% backend, 100% frontend (6/6 casos)
+- ✅ **Archivo modificado**: `/app/frontend/app/sales.tsx` (lógica de selección múltiple)
+- ✅ **Archivo modificado**: `/app/frontend/app/_layout.tsx` (eliminado link Multi-Jugada)
+
 ### ✅ Exportar Reportes a Excel (COMPLETADO 13 Feb 2026)
 - ✅ **Nueva funcionalidad de exportar a Excel** en la pantalla de Reporte Detallado
   - Botón de Excel en el header (icono grid-outline)
