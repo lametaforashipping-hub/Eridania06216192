@@ -155,7 +155,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - "ABIERTA" (barra verde cuando está operando)
   - Horarios de sorteos del día
 
-### Sesión 9 - Impersonación Completa, Recibos con Logo y Push Notifications (13 Feb 2026)
+### Sesión 9 - Impersonación Completa, Recibos con Logo, Push Notifications y Reportes de Comisiones (13 Feb 2026)
 - ✅ **Logo de Empresa en Recibos**
   - El recibo del boleto ahora muestra información completa de la empresa
   - Incluye: Nombre, slogan, dirección, teléfono, RNC
@@ -181,6 +181,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Notificaciones de sorteo completado para super admins
   - Integración con Expo Push API
   - Canal dedicado "lottery-winners" con sonido y vibración
+- ✅ **Reporte Detallado de Comisiones** (NEW)
+  - Nueva pantalla `/commission-report` con desglose completo
+  - Filtros por período: Hoy, Semana, Mes
+  - Fórmula visual: Ventas × Tasa = Comisión
+  - Desglose por vendedor (solo Super Admin)
+  - Detalle por venta con ticket, lotería, monto, tasa y comisión ganada
+  - Estadísticas: total boletos, promedio de venta, comisión total
+  - Backend endpoint: `/api/accounting/commissions`
 - ✅ **Testing Completado** - iteration_19.json: 100% backend, 100% frontend
 
 ### Sesión 8 - Correcciones y Sorteos Mejorados (13 Feb 2026)
