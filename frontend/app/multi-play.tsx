@@ -184,25 +184,6 @@ const showAlert = (title: string, message: string) => {
   }
 };
 
-// Cross-platform button for modals
-const ModalButton = ({ onPress, style, children, testID }: any) => {
-  const handlePress = () => {
-    console.log('ModalButton pressed');
-    onPress();
-  };
-
-  return (
-    <Pressable 
-      style={({ pressed }) => [style, pressed && { opacity: 0.8 }]}
-      onPress={handlePress}
-      testID={testID}
-      accessibilityRole="button"
-    >
-      {children}
-    </Pressable>
-  );
-};
-
   const addPlay = () => {
     const numbers = parseNumbers(numbersInput);
     const amount = parseFloat(amountInput);
