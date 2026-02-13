@@ -1771,6 +1771,176 @@ async def get_draw(draw_id: str):
         raise HTTPException(status_code=404, detail="Sorteo no encontrado")
     return serialize_doc(draw)
 
+@api_router.put("/draws/{draw_id}")
+async def update_draw(draw_id: str, draw_data: dict, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
+    """Update an existing draw - Super Admin only"""
+    draw = await db.draws.find_one({"id": draw_id})
+    if not draw:
+        raise HTTPException(status_code=404, detail="Sorteo no encontrado")
+    
+    update_data = {}
+    if "winning_numbers" in draw_data:
+        update_data["winning_numbers"] = draw_data["winning_numbers"]
+    if "first_prize" in draw_data:
+        update_data["first_prize"] = draw_data["first_prize"]
+    if "second_prize" in draw_data:
+        update_data["second_prize"] = draw_data["second_prize"]
+    if "third_prize" in draw_data:
+        update_data["third_prize"] = draw_data["third_prize"]
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        update_data["updated_by"] = current_user["id"]
+        await db.draws.update_one({"id": draw_id}, {"$set": update_data})
+    
+    updated_draw = await db.draws.find_one({"id": draw_id})
+    return serialize_doc(updated_draw)
+
+# Create draw with multiple prizes (1st, 2nd, 3rd)
+class DrawCreateMultiPrize(BaseModel):
+    lottery_id: str
+    first_prize: int  # Primer premio
+    second_prize: Optional[int] = None  # Segundo premio
+    third_prize: Optional[int] = None  # Tercer premio
+    draw_date: Optional[str] = None  # Format: YYYY-MM-DD
+    draw_time: Optional[str] = None  # Format: HH:MM
+
+@api_router.post("/draws/multi-prize")
+async def create_draw_multi_prize(draw_data: DrawCreateMultiPrize, current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
+    """Create a draw with 1st, 2nd, and 3rd place prizes"""
+    lottery = await db.lotteries.find_one({"id": draw_data.lottery_id})
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lotería no encontrada")
+    
+    # Validate numbers
+    for prize_name, prize_value in [("Primer", draw_data.first_prize), ("Segundo", draw_data.second_prize), ("Tercer", draw_data.third_prize)]:
+        if prize_value is not None:
+            if prize_value < lottery["min_number"] or prize_value > lottery["max_number"]:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"{prize_name} premio ({prize_value}) fuera de rango ({lottery['min_number']}-{lottery['max_number']})"
+                )
+    
+    # Parse draw datetime if provided
+    draw_datetime = datetime.utcnow()
+    if draw_data.draw_date:
+        try:
+            date_part = datetime.strptime(draw_data.draw_date, "%Y-%m-%d")
+            if draw_data.draw_time:
+                time_parts = draw_data.draw_time.split(":")
+                draw_datetime = date_part.replace(
+                    hour=int(time_parts[0]), 
+                    minute=int(time_parts[1]) if len(time_parts) > 1 else 0
+                )
+            else:
+                draw_datetime = date_part
+        except ValueError:
+            pass  # Use current time if parsing fails
+    
+    draw = {
+        "id": str(uuid.uuid4()),
+        "lottery_id": lottery["id"],
+        "lottery_name": lottery["name"],
+        "winning_numbers": [draw_data.first_prize],  # Main winning number
+        "first_prize": draw_data.first_prize,
+        "second_prize": draw_data.second_prize,
+        "third_prize": draw_data.third_prize,
+        "position": "primera",
+        "draw_time": draw_datetime,
+        "total_tickets": 0,
+        "total_winners": 0,
+        "total_paid": 0.0,
+        "currency": lottery["currency"],
+        "is_manual": True,
+        "created_by": current_user["id"],
+        "created_by_name": current_user["name"]
+    }
+    
+    # Find and process tickets for each prize position
+    total_winners = 0
+    total_paid = 0.0
+    
+    # Process tickets for each prize
+    prize_tiers = lottery.get("prize_tiers", {"first": 70, "second": 15, "third": 5})
+    
+    for position, prize_number, tier_key in [
+        ("primera", draw_data.first_prize, "first"),
+        ("segunda", draw_data.second_prize, "second"),
+        ("tercera", draw_data.third_prize, "third")
+    ]:
+        if prize_number is None:
+            continue
+            
+        # Find tickets matching this number
+        ticket_query = {
+            "lottery_id": lottery["id"],
+            "status": TicketStatus.PENDING.value,
+            "numbers": prize_number
+        }
+        
+        matching_tickets = await db.tickets.find(ticket_query).to_list(10000)
+        
+        multiplier = prize_tiers.get(tier_key, lottery.get("prize_multiplier", 70))
+        
+        for ticket in matching_tickets:
+            prize = ticket.get("amount", 0) * multiplier
+            
+            await db.tickets.update_one(
+                {"id": ticket["id"]},
+                {"$set": {
+                    "status": TicketStatus.WON.value, 
+                    "draw_id": draw["id"], 
+                    "potential_win": prize,
+                    "won_position": position
+                }}
+            )
+            total_winners += 1
+            total_paid += prize
+            
+            await db.transactions.insert_one({
+                "id": str(uuid.uuid4()),
+                "user_id": ticket["seller_id"],
+                "user_name": ticket["seller_name"],
+                "transaction_type": TransactionType.WIN.value,
+                "amount": prize,
+                "currency": ticket["currency"],
+                "description": f"Premio {position} - {lottery['name']} - {ticket['numbers']}",
+                "reference_id": ticket["id"],
+                "created_at": datetime.utcnow()
+            })
+    
+    # Mark remaining tickets as lost
+    await db.tickets.update_many(
+        {
+            "lottery_id": lottery["id"],
+            "status": TicketStatus.PENDING.value
+        },
+        {"$set": {"status": TicketStatus.LOST.value, "draw_id": draw["id"]}}
+    )
+    
+    draw["total_winners"] = total_winners
+    draw["total_paid"] = total_paid
+    
+    await db.draws.insert_one(draw)
+    
+    # Create notification
+    notification = {
+        "id": str(uuid.uuid4()),
+        "type": "draw_result",
+        "lottery_id": lottery["id"],
+        "lottery_name": lottery["name"],
+        "winning_numbers": [draw_data.first_prize, draw_data.second_prize, draw_data.third_prize],
+        "first_prize": draw_data.first_prize,
+        "second_prize": draw_data.second_prize,
+        "third_prize": draw_data.third_prize,
+        "total_winners": total_winners,
+        "created_at": datetime.utcnow(),
+        "read_by": []
+    }
+    await db.notifications.insert_one(notification)
+    
+    return serialize_doc(draw)
+
 # ==================== NOTIFICATIONS ====================
 @api_router.get("/notifications")
 async def get_notifications(limit: int = 50, current_user: dict = Depends(get_current_user)):
