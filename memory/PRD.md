@@ -155,7 +155,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - "ABIERTA" (barra verde cuando está operando)
   - Horarios de sorteos del día
 
-### Sesión 10 - Fix de Multi-Jugada y Validación de Horarios (13 Feb 2026)
+### Sesión 10 - Fix de Multi-Jugada, Validación de Horarios y Haptic Feedback (13 Feb 2026)
 - ✅ **Fix Crítico: Botón "Agregar Jugada" en Multi-Jugada**
   - El botón no respondía a clicks en la versión web
   - Solución: Componente `ModalButton` usando `Pressable` con `accessibilityRole="button"`
@@ -167,6 +167,12 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - ✅ **Alert Cross-Platform**
   - Nueva función `showAlert` que usa `window.alert()` en web y `Alert.alert()` en móvil
   - Mejora la experiencia de usuario mostrando errores de validación en todas las plataformas
+- ✅ **Haptic Feedback al Agregar Jugadas** (NEW)
+  - Vibración de confirmación cuando se agrega una jugada en Multi-Jugada
+  - Vibración cuando se agrega item al carrito en Vender
+  - Vibración cuando se agregan favoritos al carrito
+  - Solo funciona en dispositivos móviles (iOS/Android)
+  - Usa `expo-haptics` con `NotificationFeedbackType.Success`
 
 ### Sesión 9 - Impersonación Completa, Recibos con Logo, Push Notifications y Reportes de Comisiones (13 Feb 2026)
 - ✅ **Logo de Empresa en Recibos**
