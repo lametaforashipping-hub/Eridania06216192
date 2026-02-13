@@ -72,6 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setToken(data.token);
       setUser(data.user);
+      
+      // Register for push notifications (only on native platforms)
+      if (Platform.OS !== 'web') {
+        try {
+          const pushToken = await registerForPushNotificationsAsync();
+          if (pushToken && data.user?.id) {
+            await saveTokenToServer(pushToken, data.user.id, data.token);
+            console.log('Push notification token registered');
+          }
+        } catch (pushError) {
+          console.log('Push notification registration skipped:', pushError);
+        }
+      }
     } catch (error) {
       throw error;
     }
