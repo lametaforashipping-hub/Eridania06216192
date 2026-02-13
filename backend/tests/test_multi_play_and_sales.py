@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-admin-2.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ticket-verify-6.preview.emergentagent.com')
 
 class TestMultiPlayEndpoint:
     """Tests for POST /api/tickets/multi endpoint"""
