@@ -155,6 +155,25 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - "ABIERTA" (barra verde cuando está operando)
   - Horarios de sorteos del día
 
+### Sesión 8 - Correcciones y Sorteos Mejorados (13 Feb 2026)
+- ✅ **Bug Fix: Verificar Boleto**
+  - Botón "Verificar Boleto" ahora funciona en web
+  - Solución: Uso de elemento `<button>` HTML nativo para React Native Web
+  - El modal de resultados muestra correctamente el estado del ticket
+- ✅ **Iconos del Dashboard Más Grandes**
+  - Iconos aumentados de 28px a 32px
+  - Texto de labels aumentado de 11px a 13px con peso 500
+  - Mejor legibilidad en dispositivos móviles
+- ✅ **Sistema de Sorteos con 3 Premios**
+  - Nueva pantalla de sorteos con soporte para 1er, 2do, 3er premio
+  - Formulario con campos de Fecha y Hora del sorteo
+  - Iconos diferenciados: 🥇 Trofeo dorado (1ro), 🥈 Trofeo gris (2do), 🥉 Medalla bronce (3ro)
+  - Nuevo endpoint: POST `/api/draws/multi-prize`
+  - Endpoint para actualizar sorteos: PUT `/api/draws/{draw_id}`
+  - Validación de números dentro del rango permitido
+  - * Primer premio obligatorio, 2do y 3ro opcionales
+- ✅ **Testing Completado** - iteration_18.json: 100% backend, 95% frontend
+
 ### Chequeo General Completo (12-13 Feb 2026) - TODAS LAS FUNCIONALIDADES ✅
 **Testing Agent:** iteration_17.json - Backend: 100% (25/25), Frontend: 100% (25/25 páginas)
 
