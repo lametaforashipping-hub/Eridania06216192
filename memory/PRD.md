@@ -178,6 +178,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `frontend/app/tickets.tsx` - función generateTicketHTML
 - ✅ **Testing Completado** - iteration_23.json: 100% backend, 100% frontend
 
+### Verificación de Tickets con QR (Ya Implementado)
+- **🔍 Pantalla de Verificar** (`/scanner`)
+  - Entrada manual del número de ticket
+  - Escaneo de QR con cámara (solo en dispositivos móviles con expo-camera)
+  - El QR del ticket contiene solo el ticket_number (TKT-xxxxxx)
+  - Modal con resultado completo: estado, jugadas, montos, premio potencial
+  - Compatible con todos los tipos de tickets (simples y multi-jugada)
+
 ### Sesión 11 - Fix Token Expirado y Multi-Jugada en Web (13 Feb 2026)
 - ✅ **Fix Crítico: Error "Token Expirado"**
   - Nuevo endpoint POST `/api/auth/refresh` para renovar tokens JWT
