@@ -1481,9 +1481,20 @@ export default function Sales() {
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Vender Números</Text>
-        <TouchableOpacity onPress={() => setShowLotteryModal(true)}>
-          <Ionicons name="list" size={24} color="#22c55e" />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          {Platform.OS === 'web' && (
+            <TouchableOpacity 
+              onPress={() => setShowShortcutsHelp(true)} 
+              style={styles.shortcutsHelpButton}
+              data-testid="shortcuts-help-btn"
+            >
+              <Ionicons name="help-circle-outline" size={22} color="#94a3b8" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => setShowLotteryModal(true)}>
+            <Ionicons name="list" size={24} color="#22c55e" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={[styles.contentContainer, isDesktop && styles.contentDesktop]}>
