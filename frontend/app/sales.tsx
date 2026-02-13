@@ -404,6 +404,11 @@ export default function Sales() {
       if (newItems.length > 0) {
         setCart([...cart, ...newItems]);
         
+        // Haptic feedback when favorites are added (mobile only)
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        
         // Increment use count
         await fetch(`${API_URL}/api/favorites/${favorite.id}/use`, {
           method: 'POST',
