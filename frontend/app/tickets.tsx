@@ -23,6 +23,17 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
 const isDesktop = width > 768;
 
+interface CompanyProfile {
+  company_name?: string;
+  logo_url?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  rnc?: string;
+  slogan?: string;
+  receipt_footer?: string;
+}
+
 interface Ticket {
   id: string;
   ticket_number: string;
