@@ -39,10 +39,10 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Detecta si la lotería está abierta o cerrada
   - Ofrece buscar lotería abierta del mismo tipo si está cerrada
   - Haptic feedback en dispositivos móviles
+- ✅ **Fix Click en Web**: Cambio de Pressable a View+TouchableOpacity para compatibilidad
 - ✅ **Archivos modificados**:
   - `backend/routes/tickets.py`: Nuevo endpoint recent-plays
-  - `frontend/app/sales.tsx`: Estado, fetch, modal y handler
-- ⚠️ **Nota**: Click en web puede tener issues dentro del modal de RN Web
+  - `frontend/app/sales.tsx`: Estado, fetch, modal, handler y estilos
 
 ### ✅ Interfaz Unificada de Ventas (COMPLETADO 13 Feb 2026)
 - ✅ **Fusión de Vender y Multi-Jugada en una sola pantalla**
