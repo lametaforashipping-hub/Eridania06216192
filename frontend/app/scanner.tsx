@@ -165,8 +165,12 @@ export default function Scanner() {
             autoCorrect={false}
           />
 
-          <TouchableOpacity
-            style={[styles.verifyButton, verifying && styles.verifyButtonDisabled]}
+          <Pressable
+            style={({ pressed }) => [
+              styles.verifyButton, 
+              verifying && styles.verifyButtonDisabled,
+              pressed && { opacity: 0.8 }
+            ]}
             onPress={() => {
               console.log('Button pressed with value:', manualInput);
               verifyTicket(manualInput);
@@ -174,7 +178,6 @@ export default function Scanner() {
             disabled={verifying}
             testID="verify-button"
             accessibilityRole="button"
-            activeOpacity={0.7}
           >
             {verifying ? (
               <ActivityIndicator color="#ffffff" />
@@ -184,7 +187,7 @@ export default function Scanner() {
                 <Text style={styles.verifyButtonText}>Verificar Boleto</Text>
               </>
             )}
-          </TouchableOpacity>
+          </Pressable>
 
           {!isWeb && (
             <TouchableOpacity
