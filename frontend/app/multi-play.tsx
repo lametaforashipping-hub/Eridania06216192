@@ -253,11 +253,13 @@ const showAlert = (title: string, message: string) => {
       </div>
     `).join('');
 
-    // Generate QR code URL
-    const qrData = encodeURIComponent(`TICKET:${ticket.ticket_number}|TYPE:MULTI|DATE:${date.toISOString()}`);
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}`;
+    // Generate QR code URL - Contains only ticket ID for system lookup
+    const qrData = encodeURIComponent(ticket.ticket_number);
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}&bgcolor=ffffff&color=1e3a5f`;
 
-    // NOTE: Commission is NOT shown on the printed ticket - only in seller's view
+    // Company Logo URL
+    const logoUrl = 'https://customer-assets.emergentagent.com/job_0d52222c-173f-46ac-b2b0-ffceca2336e1/artifacts/cql3117b_loteria.jpg';
+
     return `
       <!DOCTYPE html>
       <html>
@@ -265,55 +267,128 @@ const showAlert = (title: string, message: string) => {
         <meta charset="utf-8">
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Arial', sans-serif; padding: 8px; max-width: 320px; margin: 0 auto; background: #fff; }
-          .ticket { border: 3px solid #1e3a5f; border-radius: 12px; overflow: hidden; }
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 0; 
+            max-width: 320px; 
+            margin: 0 auto; 
+            background: #fff; 
+          }
+          .ticket { 
+            border: 3px solid #1a365d; 
+            border-radius: 16px; 
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          
+          /* Header con Logo */
           .header { 
-            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-            color: white; padding: 16px 12px; text-align: center;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f4f8 100%);
+            padding: 20px 15px 15px; 
+            text-align: center;
+            border-bottom: 3px solid #1a365d;
           }
-          .company-logo { 
-            width: 50px; 
-            height: 50px; 
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            border-radius: 50%;
-            margin: 0 auto 8px;
+          .logo-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 10px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #1a365d;
+          }
+          .logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .brand-name { 
+            font-size: 22px; 
+            font-weight: 800; 
+            color: #1a365d;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+          }
+          .brand-tagline {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+            font-style: italic;
+          }
+          
+          /* Ticket Number Section */
+          .ticket-number-section { 
+            background: linear-gradient(135deg, #1a365d 0%, #2d4a6f 100%);
+            color: white; 
+            padding: 12px 15px; 
+            text-align: center;
+          }
+          .ticket-label { 
+            font-size: 11px; 
+            opacity: 0.85;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+          }
+          .ticket-number { 
+            font-size: 20px; 
+            font-weight: 800; 
+            letter-spacing: 2px; 
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
+          }
+          
+          /* Date and Customer Info */
+          .info-section {
+            background: #f8fafc;
+            padding: 12px 15px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            border: 2px solid #fff;
+            border-bottom: 1px solid #e2e8f0;
           }
-          .company-logo span { font-size: 26px; }
-          .brand { font-size: 20px; font-weight: bold; letter-spacing: 2px; }
-          .company-info { font-size: 10px; color: #94a3b8; margin-top: 6px; line-height: 1.5; }
-          
-          .ticket-number-section { background: #8b5cf6; color: white; padding: 10px; text-align: center; }
-          .ticket-label { font-size: 12px; opacity: 0.9; }
-          .ticket-number { font-size: 16px; font-weight: bold; letter-spacing: 1px; margin-top: 4px; }
-          
-          .body { padding: 14px; }
-          .customer { 
-            background: #f1f5f9; 
-            border-radius: 8px; 
-            padding: 10px; 
-            margin-bottom: 12px; 
-            text-align: center; 
-            font-size: 14px;
-            color: #334155;
+          .date-info {
+            font-size: 13px;
+            color: #475569;
+            font-weight: 600;
           }
-          .plays { margin: 12px 0; }
+          .customer-info {
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+          }
+          
+          /* Plays Section */
+          .body { padding: 15px; background: #fff; }
+          .plays-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1a365d;
+          }
           .plays-title { 
-            font-weight: bold; 
-            font-size: 16px; 
-            margin-bottom: 10px; 
-            color: #1e3a5f; 
-            border-bottom: 2px solid #1e3a5f; 
-            padding-bottom: 6px; 
+            font-weight: 700; 
+            font-size: 14px; 
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .plays-count {
+            background: #1a365d;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
           }
           .play-row { 
             display: flex; 
             justify-content: space-between; 
-            padding: 10px 6px; 
-            border-bottom: 1px solid #e2e8f0; 
+            padding: 10px 8px; 
+            margin-bottom: 6px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
             align-items: center; 
           }
           .play-type { 
@@ -321,83 +396,177 @@ const showAlert = (title: string, message: string) => {
             color: white; 
             padding: 4px 10px; 
             border-radius: 6px; 
-            font-size: 12px; 
-            font-weight: bold; 
+            font-size: 11px; 
+            font-weight: 700;
+            text-transform: uppercase;
           }
-          .play-numbers { font-weight: bold; font-size: 20px; color: #1e3a5f; letter-spacing: 3px; }
-          .play-amount { color: #22c55e; font-weight: bold; font-size: 14px; }
+          .play-numbers { 
+            font-weight: 800; 
+            font-size: 22px; 
+            color: #1a365d; 
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+          }
+          .play-amount { 
+            color: #22c55e; 
+            font-weight: 700; 
+            font-size: 14px; 
+          }
           
+          /* Totals Section */
           .totals { 
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
-            border-radius: 10px; 
-            padding: 14px; 
-            margin: 14px 0;
+            border-radius: 12px; 
+            padding: 16px; 
+            margin: 15px 0;
             text-align: center;
           }
-          .total-label { color: rgba(255,255,255,0.9); font-size: 13px; }
-          .total-amount { font-size: 28px; font-weight: bold; color: #fff; margin-top: 4px; }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          }
+          .total-row:last-child { margin-bottom: 0; }
+          .total-label { 
+            color: rgba(255,255,255,0.9); 
+            font-size: 13px;
+            font-weight: 500;
+          }
+          .total-amount { 
+            font-size: 24px; 
+            font-weight: 800; 
+            color: #fff;
+          }
+          .potential-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 11px;
+          }
+          .potential-amount {
+            color: #fef08a;
+            font-size: 16px;
+            font-weight: 700;
+          }
           
-          .footer { background: #f1f5f9; padding: 14px; text-align: center; border-top: 2px dashed #94a3b8; }
+          /* QR Footer Section */
+          .footer { 
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 20px 15px; 
+            text-align: center; 
+            border-top: 2px dashed #94a3b8;
+          }
           .qr-container { 
             background: #fff; 
-            padding: 10px; 
-            margin: 0 auto 10px; 
-            border-radius: 8px;
+            padding: 12px; 
+            margin: 0 auto 12px; 
+            border-radius: 12px;
             display: inline-block;
-            border: 2px solid #e2e8f0;
+            border: 3px solid #1a365d;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
           }
-          .qr-code { width: 120px; height: 120px; }
-          .qr-label { font-size: 11px; color: #64748b; margin-top: 6px; }
-          .footer-text { font-size: 12px; color: #475569; margin: 4px 0; font-weight: 500; }
+          .qr-code { 
+            width: 130px; 
+            height: 130px; 
+            display: block;
+          }
+          .qr-label { 
+            font-size: 10px; 
+            color: #64748b; 
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .scan-text {
+            font-size: 12px;
+            color: #1a365d;
+            font-weight: 600;
+            margin-top: 10px;
+          }
+          .footer-notes { 
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #cbd5e1;
+          }
+          .footer-text { 
+            font-size: 10px; 
+            color: #64748b; 
+            margin: 3px 0;
+          }
           
-          .promo { background: #1e3a5f; color: #fbbf24; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; }
+          /* Promo Bar */
+          .promo { 
+            background: linear-gradient(135deg, #1a365d 0%, #2d4a6f 100%);
+            color: #fbbf24; 
+            padding: 12px; 
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: 700;
+            letter-spacing: 2px;
+          }
         </style>
       </head>
       <body>
         <div class="ticket">
+          <!-- Header con Logo de Empresa -->
           <div class="header">
-            <div class="company-logo">
-              <span>🎰</span>
+            <div class="logo-container">
+              <img class="logo-img" src="${logoUrl}" alt="Loteria Magic" />
             </div>
-            <div class="brand">LOTERÍA NACIONAL</div>
-            <div class="company-info">
-              RNC: 000-00000-0 | Tel: (809) 555-0000<br>
-              Av. Principal #123, Santo Domingo, RD
-            </div>
+            <div class="brand-name">Loteria Magic</div>
+            <div class="brand-tagline">Tu suerte comienza aqui</div>
           </div>
           
+          <!-- Numero de Ticket -->
           <div class="ticket-number-section">
-            <div class="ticket-label">MULTI-JUGADA #</div>
+            <div class="ticket-label">Boleto No.</div>
             <div class="ticket-number">${ticket.ticket_number}</div>
           </div>
           
+          <!-- Info de Fecha y Cliente -->
+          <div class="info-section">
+            <div class="date-info">
+              ${date.toLocaleDateString('es-DO', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+              <br>${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
+            </div>
+            ${ticket.customer_name ? `<div class="customer-info">Cliente:<br><strong>${ticket.customer_name}</strong></div>` : ''}
+          </div>
+          
+          <!-- Jugadas -->
           <div class="body">
-            <div class="customer">
-              ${date.toLocaleDateString('es-DO')} | ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
-              ${ticket.customer_name ? `<br>Cliente: ${ticket.customer_name}` : ''}
+            <div class="plays-header">
+              <span class="plays-title">Jugadas</span>
+              <span class="plays-count">${ticket.plays.length}</span>
             </div>
+            ${playsHTML}
             
-            <div class="plays">
-              <div class="plays-title">JUGADAS (${ticket.plays.length})</div>
-              ${playsHTML}
-            </div>
-            
+            <!-- Totales -->
             <div class="totals">
-              <div class="total-label">TOTAL JUGADO</div>
-              <div class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</div>
+              <div class="total-row">
+                <span class="total-label">Total Jugado:</span>
+                <span class="total-amount">${ticket.currency} ${ticket.total_amount.toLocaleString()}</span>
+              </div>
+              <div class="total-row">
+                <span class="potential-label">Premio Potencial:</span>
+                <span class="potential-amount">${ticket.currency} ${ticket.total_potential_win.toLocaleString()}</span>
+              </div>
             </div>
           </div>
           
+          <!-- Footer con QR -->
           <div class="footer">
             <div class="qr-container">
               <img class="qr-code" src="${qrCodeUrl}" alt="QR Code" />
-              <div class="qr-label">Escanear para verificar</div>
+              <div class="qr-label">ID: ${ticket.ticket_number}</div>
             </div>
-            <div class="footer-text">✓ Conserve este boleto para cobrar</div>
-            <div class="footer-text">✓ Válido solo con boleto original</div>
+            <div class="scan-text">Escanea para verificar tu boleto</div>
+            <div class="footer-notes">
+              <div class="footer-text">Conserve este boleto para cobrar su premio</div>
+              <div class="footer-text">Valido solo con boleto original</div>
+            </div>
           </div>
           
-          <div class="promo">🍀 ¡BUENA SUERTE! 🍀</div>
+          <!-- Promo -->
+          <div class="promo">BUENA SUERTE!</div>
         </div>
       </body>
       </html>
