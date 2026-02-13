@@ -640,7 +640,7 @@ const showAlert = (title: string, message: string) => {
         >
           <ScrollView 
             contentContainerStyle={styles.modalScrollContent}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps="always"
           >
             <View style={[styles.modalContent, isDesktop && styles.modalContentDesktop]}>
               <View style={styles.modalHeader}>
