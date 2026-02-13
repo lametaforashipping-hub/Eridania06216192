@@ -950,11 +950,7 @@ export default function Sales() {
 
   // Get filtered lotteries
   const getFilteredLotteries = () => {
-    let filtered = lotteries.filter(l => l.is_open);
-    if (lotteryTypeFilter) {
-      filtered = filtered.filter(l => l.lottery_type === lotteryTypeFilter);
-    }
-    return filtered;
+    return lotteries.filter(l => l.is_open);
   };
 
   if (loading) {
@@ -965,7 +961,8 @@ export default function Sales() {
     );
   }
 
-  const ref = getReferenceLottery();
+  const lottery = getSelectedLottery();
+  const playTypeConfig = getSelectedPlayTypeConfig();
   const { totalAmount, totalPotentialWin, currency } = getCartTotals();
 
   return (
@@ -981,81 +978,104 @@ export default function Sales() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={[styles.contentContainer, isDesktop && styles.contentDesktop]}>
-        {/* Step 1: Select Lotteries */}
+        {/* Step 1: Select Lottery */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            <Text style={styles.stepNumber}>1</Text> Seleccionar Loterías
+            <Text style={styles.stepNumber}>1</Text> Seleccionar Lotería
           </Text>
           <Text style={styles.sectionSubtitle}>
-            Toca para seleccionar una o varias loterías
+            Toca para seleccionar una lotería
           </Text>
           
-          {/* Lottery Type Filter */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typeFilter}>
-            <TouchableOpacity
-              style={[styles.typeButton, !lotteryTypeFilter && styles.typeButtonActive]}
-              onPress={() => setLotteryTypeFilter(null)}
-            >
-              <Text style={[styles.typeButtonText, !lotteryTypeFilter && styles.typeButtonTextActive]}>
-                Todas
-              </Text>
-            </TouchableOpacity>
-            {getLotteryTypes().map(type => (
-              <TouchableOpacity
-                key={type}
-                style={[styles.typeButton, lotteryTypeFilter === type && styles.typeButtonActive]}
-                onPress={() => setLotteryTypeFilter(type)}
-              >
-                <Text style={[styles.typeButtonText, lotteryTypeFilter === type && styles.typeButtonTextActive]}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
           {/* Lottery Grid */}
           <View style={styles.lotteryGrid}>
-            {getFilteredLotteries().map(lottery => (
+            {getFilteredLotteries().map(lot => (
               <TouchableOpacity
-                key={lottery.id}
+                key={lot.id}
                 style={[
                   styles.lotteryChip,
-                  selectedLotteries.includes(lottery.id) && styles.lotteryChipSelected,
+                  selectedLottery === lot.id && styles.lotteryChipSelected,
                 ]}
-                onPress={() => toggleLotterySelection(lottery.id)}
+                onPress={() => handleSelectLottery(lot.id)}
               >
                 <View style={styles.lotteryChipContent}>
                   <Text style={styles.lotteryChipFlag}>
-                    {lottery.country === 'RD' ? '🇩🇴' : '🇺🇸'}
+                    {lot.country === 'RD' ? '🇩🇴' : '🇺🇸'}
                   </Text>
                   <Text style={[
                     styles.lotteryChipName,
-                    selectedLotteries.includes(lottery.id) && styles.lotteryChipNameSelected
+                    selectedLottery === lot.id && styles.lotteryChipNameSelected
                   ]} numberOfLines={1}>
-                    {lottery.name}
+                    {lot.name}
                   </Text>
-                  {selectedLotteries.includes(lottery.id) && (
+                  {selectedLottery === lot.id && (
                     <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
                   )}
                 </View>
                 <Text style={styles.lotteryChipInfo}>
-                  x{lottery.prize_multiplier} • {lottery.numbers_to_pick}N
+                  {lot.schedule?.join(', ') || ''}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          {selectedLotteries.length > 0 && (
+          {selectedLottery && lottery && (
             <View style={styles.selectionSummary}>
               <Text style={styles.selectionText}>
-                {selectedLotteries.length} lotería(s) seleccionada(s)
+                ✓ {lottery.name}
               </Text>
-              <TouchableOpacity onPress={() => setSelectedLotteries([])}>
-                <Text style={styles.clearSelectionText}>Limpiar</Text>
+              <TouchableOpacity onPress={() => { setSelectedLottery(null); setSelectedPlayType(null); setSelectedNumbers([]); }}>
+                <Text style={styles.clearSelectionText}>Cambiar</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
+
+        {/* Step 2: Select Play Type */}
+        {selectedLottery && lottery && lottery.play_types && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              <Text style={styles.stepNumber}>2</Text> Tipo de Jugada
+            </Text>
+            <Text style={styles.sectionSubtitle}>
+              Selecciona el tipo de jugada para {lottery.name}
+            </Text>
+            
+            <View style={styles.playTypeGrid}>
+              {Object.entries(lottery.play_types).map(([key, pt]) => {
+                if (!pt.enabled) return null;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[
+                      styles.playTypeChip,
+                      selectedPlayType === key && styles.playTypeChipSelected,
+                    ]}
+                    onPress={() => handleSelectPlayType(key)}
+                  >
+                    <Text style={[
+                      styles.playTypeName,
+                      selectedPlayType === key && styles.playTypeNameSelected
+                    ]}>
+                      {pt.name}
+                    </Text>
+                    <Text style={styles.playTypeNumbers}>
+                      {pt.numbers_count} número{pt.numbers_count > 1 ? 's' : ''}
+                    </Text>
+                    <View style={styles.playTypeMultipliers}>
+                      <Text style={styles.playTypeMultiplier}>1ro: x{pt.multipliers.first}</Text>
+                      <Text style={styles.playTypeMultiplier}>2do: x{pt.multipliers.second}</Text>
+                      <Text style={styles.playTypeMultiplier}>3ro: x{pt.multipliers.third}</Text>
+                    </View>
+                    {selectedPlayType === key && (
+                      <Ionicons name="checkmark-circle" size={20} color="#22c55e" style={styles.playTypeCheck} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         {/* Step 2: Enter Numbers */}
         <View style={styles.section}>
