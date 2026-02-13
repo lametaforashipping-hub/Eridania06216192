@@ -490,14 +490,16 @@ export default function Sales() {
 
     setSubmitting(true);
     try {
-      // Group plays for the API using lottery_type
+      // Group plays for the API using play_type from cart item
       const plays = cart.map(item => {
-        const lottery = lotteries.find(l => l.id === item.lotteryId);
         return {
-          lottery_type: lottery?.lottery_type || 'quiniela',
+          lottery_id: item.lotteryId,
+          lottery_name: item.lotteryName,
+          play_type: item.playType,
+          play_type_name: item.playTypeName,
           numbers: item.numbers,
           amount: item.amount,
-          position: null,
+          potential_win: item.potentialWin,
         };
       });
 
