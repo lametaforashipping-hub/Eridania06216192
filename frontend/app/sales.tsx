@@ -471,7 +471,7 @@ export default function Sales() {
         body: JSON.stringify({
           plays,
           customer_name: customerName || null,
-          currency: cart[0].currency === 'RD$' ? 'RD' : 'USD',
+          currency: cart[0].currency,
         }),
       });
 
