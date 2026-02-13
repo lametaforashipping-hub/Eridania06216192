@@ -106,6 +106,7 @@ interface Favorite {
 export default function Sales() {
   const { token, user } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ duplicate?: string }>();
   const [lotteries, setLotteries] = useState<Lottery[]>([]);
   const [selectedLotteries, setSelectedLotteries] = useState<string[]>([]); // Multi-select loterías
   const [selectedPlayType, setSelectedPlayType] = useState<string | null>(null);
@@ -128,6 +129,8 @@ export default function Sales() {
   const [recentPlays, setRecentPlays] = useState<any[]>([]);
   const [showRecentModal, setShowRecentModal] = useState(false);
   const [loadingRecent, setLoadingRecent] = useState(false);
+  // Track if duplicate has been processed
+  const [duplicateProcessed, setDuplicateProcessed] = useState(false);
 
   useEffect(() => {
     fetchLotteries();
