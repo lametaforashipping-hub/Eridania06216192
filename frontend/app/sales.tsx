@@ -1360,6 +1360,18 @@ export default function Sales() {
                 <Ionicons name="star" size={18} color="#f59e0b" />
                 <Text style={styles.favoritesButtonText}>Favoritos</Text>
               </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.favoritesButton, { backgroundColor: 'rgba(99, 102, 241, 0.2)', marginLeft: 8 }]} 
+                onPress={() => setShowRecentModal(true)}
+              >
+                <Ionicons name="time" size={18} color="#6366f1" />
+                <Text style={[styles.favoritesButtonText, { color: '#6366f1' }]}>Recientes</Text>
+                {recentPlays.length > 0 && (
+                  <View style={styles.recentBadge}>
+                    <Text style={styles.recentBadgeText}>{recentPlays.length}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               {cart.length > 0 && (
                 <TouchableOpacity onPress={clearCart}>
                   <Text style={styles.clearCartText}>Vaciar</Text>
