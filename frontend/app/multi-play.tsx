@@ -183,6 +183,30 @@ const showAlert = (title: string, message: string) => {
   }
 };
 
+// Cross-platform button for modals
+const ModalButton = ({ onPress, style, children, testID }: any) => {
+  if (Platform.OS === 'web') {
+    return (
+      <View 
+        style={[style, { cursor: 'pointer' }]}
+        onClick={(e: any) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onPress();
+        }}
+        data-testid={testID}
+      >
+        {children}
+      </View>
+    );
+  }
+  return (
+    <TouchableOpacity style={style} onPress={onPress} testID={testID} activeOpacity={0.8}>
+      {children}
+    </TouchableOpacity>
+  );
+};
+
   const addPlay = () => {
     const numbers = parseNumbers(numbersInput);
     const amount = parseFloat(amountInput);
