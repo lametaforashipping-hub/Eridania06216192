@@ -929,6 +929,9 @@ export default function DetailedSellerReport() {
           <TouchableOpacity onPress={() => setShowShareModal(true)} style={styles.headerButton}>
             <Ionicons name="share-social" size={22} color="#22c55e" />
           </TouchableOpacity>
+          <TouchableOpacity onPress={exportToExcel} style={styles.headerButton}>
+            <Ionicons name="grid-outline" size={22} color="#22c55e" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={generatePDF} style={styles.headerButton}>
             <Ionicons name="document-text" size={22} color="#22c55e" />
           </TouchableOpacity>
@@ -965,6 +968,20 @@ export default function DetailedSellerReport() {
                 <Ionicons name="mail" size={24} color="#ffffff" />
               </View>
               <Text style={styles.shareOptionText}>Correo Electrónico</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.shareOption} onPress={exportToExcel}>
+              <View style={[styles.shareIconBox, { backgroundColor: '#217346' }]}>
+                <Ionicons name="grid-outline" size={24} color="#ffffff" />
+              </View>
+              <Text style={styles.shareOptionText}>Exportar Excel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.shareOption} onPress={generatePDF}>
+              <View style={[styles.shareIconBox, { backgroundColor: '#DC2626' }]}>
+                <Ionicons name="document-text" size={24} color="#ffffff" />
+              </View>
+              <Text style={styles.shareOptionText}>Exportar PDF</Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.shareOption} onPress={shareGeneric}>
