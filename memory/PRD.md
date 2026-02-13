@@ -8,6 +8,32 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Frontend:** React Native / Expo
 - **Base de datos:** MongoDB
 
+### Estructura Backend Modular (Refactorizado 13 Feb 2026)
+```
+/app/backend/
+├── server.py              # Archivo principal (legacy, contiene rutas complejas)
+├── routes/                # Routers modulares
+│   ├── auth.py           # Autenticación (login, register, me, refresh)
+│   ├── users.py          # Gestión de usuarios
+│   ├── terminals.py      # Gestión de terminales
+│   ├── favorites.py      # Números favoritos
+│   ├── lotteries.py      # Gestión de loterías
+│   ├── notifications.py  # Notificaciones
+│   ├── statistics.py     # Estadísticas
+│   ├── admin.py          # Configuración sistema
+│   └── company.py        # Perfil de empresa
+├── services/             # Lógica de negocio
+│   └── notifications.py  # Push notifications
+├── models/               # Modelos Pydantic y Enums
+│   ├── schemas.py        # Modelos de request/response
+│   └── enums.py          # Enumeraciones (roles, estados, etc.)
+└── utils/                # Utilidades
+    ├── auth.py           # Dependencias de autenticación
+    ├── database.py       # Conexión MongoDB
+    └── helpers.py        # Funciones auxiliares
+```
+
+
 ## Funcionalidades Implementadas
 
 ### Autenticación y Usuarios
