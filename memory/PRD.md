@@ -163,7 +163,30 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Ver Recibo:** Botón para ver el recibo sin imprimir
 - **Acciones:** Ver, Imprimir, Compartir, Cancelar
 
-## Cambios Recientes (12 Feb 2026)
+## Cambios Recientes (13 Feb 2026)
+
+### ✅ Implementado Sesión 7 - Play Types Admin & Ticket Redesign
+- ✅ **Bug Fix: Creación de Tickets**
+  - Frontend enviaba `play_type` pero backend esperaba `lottery_type`
+  - Corregido en `sales.tsx` línea ~489 para enviar `lottery_type` correctamente
+  - Ticket creation ahora funciona con todos los tipos de jugada
+- ✅ **Nuevo Diseño de Ticket - Blanco y Negro**
+  - Diseño simplificado: solo colores #000 (negro) y #fff (blanco)
+  - Texto en negrita para mejor legibilidad
+  - Eliminada sección "Premio Potencial"
+  - Información detallada de cada jugada: tipo, lotería, números, monto
+  - Header: Logo + "LOTERIA MAGIC" + Número de boleto
+  - Body: Detalle de jugadas en tarjetas individuales
+  - Footer: QR code + instrucciones de conservación
+  - Compatible con impresión térmica
+- ✅ **Interfaz Admin para Tipos de Jugada**
+  - Nueva pantalla `/play-types-admin` para Super Admin
+  - Lista todas las loterías con sus tipos de jugada
+  - Muestra multiplicadores: 1er, 2do, 3er premio
+  - Modal de edición para cambiar multiplicadores
+  - Toggle para habilitar/deshabilitar tipos de jugada
+  - Endpoint `PUT /api/lotteries/{id}/play-types/{type}` actualizado
+- ✅ **Testing:** 100% backend (9/9), 90% frontend (iteration_24.json)
 
 ### ✅ Implementado Sesión 6 - Multi-Lotto y Ver Recibo
 - ✅ **Multi-Lotto para Multi-Play**
