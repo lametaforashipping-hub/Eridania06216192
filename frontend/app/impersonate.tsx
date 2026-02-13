@@ -266,15 +266,16 @@ export default function ImpersonateScreen() {
         </View>
 
         {/* Action Cards */}
+        <Text style={styles.sectionTitleHeader}>Acciones como Vendedor</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity 
             style={[styles.actionCard, styles.actionCardGreen]} 
             onPress={handleCreateTicket}
             data-testid="create-ticket-btn"
           >
-            <Ionicons name="cart" size={32} color="#22c55e" />
+            <Ionicons name="cart" size={28} color="#22c55e" />
             <Text style={styles.actionCardTitle}>Vender</Text>
-            <Text style={styles.actionCardSubtitle}>Crear boleto simple</Text>
+            <Text style={styles.actionCardSubtitle}>Boleto simple</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -282,9 +283,53 @@ export default function ImpersonateScreen() {
             onPress={handleCreateMultiPlay}
             data-testid="create-multiplay-btn"
           >
-            <Ionicons name="layers" size={32} color="#3b82f6" />
+            <Ionicons name="layers" size={28} color="#3b82f6" />
             <Text style={styles.actionCardTitle}>Multi-Jugada</Text>
             <Text style={styles.actionCardSubtitle}>Múltiples jugadas</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.actionsGrid}>
+          <TouchableOpacity 
+            style={[styles.actionCard, styles.actionCardPurple]} 
+            onPress={handleViewTickets}
+            data-testid="view-tickets-btn"
+          >
+            <Ionicons name="ticket" size={28} color="#a855f7" />
+            <Text style={styles.actionCardTitle}>Ver Boletos</Text>
+            <Text style={styles.actionCardSubtitle}>Historial de ventas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionCard, styles.actionCardYellow]} 
+            onPress={handlePayPrizes}
+            data-testid="pay-prizes-btn"
+          >
+            <Ionicons name="cash" size={28} color="#eab308" />
+            <Text style={styles.actionCardTitle}>Pagar Premios</Text>
+            <Text style={styles.actionCardSubtitle}>Boletos ganadores</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.actionsGrid}>
+          <TouchableOpacity 
+            style={[styles.actionCard, styles.actionCardCyan]} 
+            onPress={handleViewReport}
+            data-testid="view-report-btn"
+          >
+            <Ionicons name="stats-chart" size={28} color="#06b6d4" />
+            <Text style={styles.actionCardTitle}>Ver Reporte</Text>
+            <Text style={styles.actionCardSubtitle}>Estadísticas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionCard, styles.actionCardOrange]} 
+            onPress={handleDeposit}
+            data-testid="deposit-btn"
+          >
+            <Ionicons name="wallet" size={28} color="#f97316" />
+            <Text style={styles.actionCardTitle}>Depositar</Text>
+            <Text style={styles.actionCardSubtitle}>Agregar balance</Text>
           </TouchableOpacity>
         </View>
 
