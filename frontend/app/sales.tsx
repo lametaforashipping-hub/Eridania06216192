@@ -1933,6 +1933,116 @@ export default function Sales() {
           </View>
         </View>
       </Modal>
+
+      {/* Edit Cart Item Modal */}
+      <Modal visible={showEditCartModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Editar Jugada</Text>
+              <TouchableOpacity onPress={() => setShowEditCartModal(false)}>
+                <Ionicons name="close" size={24} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            {editingCartItem && (
+              <ScrollView style={styles.editCartModalBody}>
+                {/* Lottery Info (read-only) */}
+                <View style={styles.editCartInfo}>
+                  <Text style={styles.editCartLabel}>Lotería</Text>
+                  <View style={styles.editCartInfoRow}>
+                    <Text style={styles.editCartLottery}>{editingCartItem.lotteryName}</Text>
+                    <Text style={styles.editCartPlayType}>{editingCartItem.playTypeName}</Text>
+                  </View>
+                </View>
+
+                {/* Editable Numbers */}
+                <View style={styles.editCartSection}>
+                  <Text style={styles.editCartLabel}>Números</Text>
+                  <View style={styles.editCartNumbersRow}>
+                    {editNumbers.map((num, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        style={styles.editCartNumberBall}
+                        onPress={() => removeEditNumber(idx)}
+                      >
+                        <Text style={styles.editCartNumberText}>{num.toString().padStart(2, '0')}</Text>
+                        <View style={styles.editCartNumberRemove}>
+                          <Ionicons name="close" size={12} color="#ffffff" />
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <View style={styles.editCartNumberInput}>
+                    <TextInput
+                      style={styles.editCartInput}
+                      value={editNumberInput}
+                      onChangeText={setEditNumberInput}
+                      placeholder="0-99"
+                      placeholderTextColor="#64748b"
+                      keyboardType="numeric"
+                      maxLength={2}
+                      onSubmitEditing={addEditNumber}
+                    />
+                    <TouchableOpacity style={styles.editCartAddBtn} onPress={addEditNumber}>
+                      <Ionicons name="add" size={20} color="#ffffff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Editable Amount */}
+                <View style={styles.editCartSection}>
+                  <Text style={styles.editCartLabel}>Monto ({editingCartItem.currency})</Text>
+                  <TextInput
+                    style={styles.editCartAmountInput}
+                    value={editAmount}
+                    onChangeText={setEditAmount}
+                    placeholder="Monto"
+                    placeholderTextColor="#64748b"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                {/* Quick amount buttons */}
+                <View style={styles.editCartQuickAmounts}>
+                  {[20, 25, 50, 100, 200].map((amt) => (
+                    <TouchableOpacity
+                      key={amt}
+                      style={[
+                        styles.editCartQuickBtn,
+                        editAmount === amt.toString() && styles.editCartQuickBtnActive
+                      ]}
+                      onPress={() => setEditAmount(amt.toString())}
+                    >
+                      <Text style={[
+                        styles.editCartQuickText,
+                        editAmount === amt.toString() && styles.editCartQuickTextActive
+                      ]}>{amt}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+
+            {/* Action buttons */}
+            <View style={styles.editCartActions}>
+              <TouchableOpacity
+                style={styles.editCartCancelBtn}
+                onPress={() => setShowEditCartModal(false)}
+              >
+                <Text style={styles.editCartCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editCartSaveBtn}
+                onPress={saveEditedCartItem}
+              >
+                <Ionicons name="checkmark" size={20} color="#ffffff" />
+                <Text style={styles.editCartSaveText}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
