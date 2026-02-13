@@ -453,19 +453,7 @@ async def get_tickets(
     db = get_db()
     query = {}
     
-    user_country = current_user.get("country", "RD")
-    if current_user["role"] == UserRole.SUPER_ADMIN.value:
-        if country:
-            country_lotteries = await db.lotteries.find({"country": country}).to_list(1000)
-            lottery_ids = [l["id"] for l in country_lotteries]
-            if lottery_ids:
-                query["lottery_id"] = {"$in": lottery_ids}
-    else:
-        country_lotteries = await db.lotteries.find({"country": user_country}).to_list(1000)
-        lottery_ids = [l["id"] for l in country_lotteries]
-        if lottery_ids:
-            query["lottery_id"] = {"$in": lottery_ids}
-    
+    # Build seller filter first
     if current_user["role"] == UserRole.VENDEDOR.value:
         query["seller_id"] = current_user["id"]
     elif current_user["role"] == UserRole.ADMIN.value:
@@ -477,8 +465,31 @@ async def get_tickets(
         query["seller_id"] = seller_id
     if status:
         query["status"] = status.value
+    
+    # Handle lottery filtering - must account for multi_play tickets
+    user_country = current_user.get("country", "RD")
+    lottery_filter_ids = None
+    
     if lottery_id:
-        query["lottery_id"] = lottery_id
+        # Specific lottery filter
+        lottery_filter_ids = [lottery_id]
+    elif current_user["role"] == UserRole.SUPER_ADMIN.value:
+        if country:
+            country_lotteries = await db.lotteries.find({"country": country}).to_list(1000)
+            lottery_filter_ids = [l["id"] for l in country_lotteries]
+    else:
+        # Non-super-admin users filter by their country's lotteries
+        country_lotteries = await db.lotteries.find({"country": user_country}).to_list(1000)
+        lottery_filter_ids = [l["id"] for l in country_lotteries]
+    
+    # Apply lottery filter that works for both simple and multi_play tickets
+    if lottery_filter_ids:
+        query["$or"] = [
+            # Simple tickets with lottery_id at root level
+            {"lottery_id": {"$in": lottery_filter_ids}},
+            # Multi-play tickets with lottery_id inside plays array
+            {"ticket_type": "multi_play", "plays.lottery_id": {"$in": lottery_filter_ids}}
+        ]
     
     tickets = await db.tickets.find(query).sort("created_at", -1).to_list(500)
     return serialize_doc(tickets)
