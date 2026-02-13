@@ -717,17 +717,28 @@ const showAlert = (title: string, message: string) => {
                 </View>
                 
                 {Platform.OS === 'web' ? (
-                  <Pressable 
-                    style={styles.addButton}
-                    onPress={() => {
-                      console.log('Web button pressed');
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Web div button clicked');
                       addPlay();
+                    }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#22c55e',
+                      height: 52,
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      userSelect: 'none',
                     }}
                     data-testid="add-play-btn"
                   >
                     <Ionicons name="add-circle" size={22} color="#ffffff" />
-                    <Text style={styles.addButtonText}>Agregar Jugada</Text>
-                  </Pressable>
+                    <Text style={[styles.addButtonText, { marginLeft: 8 }]}>Agregar Jugada</Text>
+                  </div>
                 ) : (
                   <TouchableOpacity style={styles.addButton} onPress={addPlay} testID="add-play-btn">
                     <Ionicons name="add-circle" size={22} color="#ffffff" />
