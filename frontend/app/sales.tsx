@@ -490,16 +490,13 @@ export default function Sales() {
 
     setSubmitting(true);
     try {
-      // Group plays for the API using play_type from cart item
+      // Group plays for the API - backend expects lottery_type not play_type
       const plays = cart.map(item => {
         return {
           lottery_id: item.lotteryId,
-          lottery_name: item.lotteryName,
-          play_type: item.playType,
-          play_type_name: item.playTypeName,
+          lottery_type: item.playType, // Backend expects lottery_type (quiniela, pale, etc)
           numbers: item.numbers,
           amount: item.amount,
-          potential_win: item.potentialWin,
         };
       });
 
