@@ -2605,6 +2605,69 @@ async def get_detailed_seller_report(
     }
 
 
+# ==================== COMPANY PROFILE ====================
+class CompanyProfileUpdate(BaseModel):
+    company_name: str
+    logo_url: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    rnc: Optional[str] = None
+    slogan: Optional[str] = None
+    receipt_footer: Optional[str] = None
+
+@api_router.get("/company-profile")
+async def get_company_profile(current_user: dict = Depends(get_current_user)):
+    """Get company profile settings"""
+    profile = await db.company_profile.find_one({}, {"_id": 0})
+    if not profile:
+        # Return default profile
+        return {
+            "id": None,
+            "company_name": "Sistema de Lotería",
+            "logo_url": None,
+            "address": None,
+            "phone": None,
+            "email": None,
+            "rnc": None,
+            "slogan": None,
+            "receipt_footer": "Gracias por su preferencia"
+        }
+    return profile
+
+@api_router.put("/company-profile")
+async def update_company_profile(
+    profile_data: CompanyProfileUpdate,
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
+):
+    """Update company profile settings"""
+    existing = await db.company_profile.find_one({})
+    
+    profile_dict = profile_data.dict()
+    profile_dict["updated_at"] = datetime.utcnow()
+    profile_dict["updated_by"] = current_user["id"]
+    
+    if existing:
+        await db.company_profile.update_one({}, {"$set": profile_dict})
+    else:
+        profile_dict["id"] = str(uuid.uuid4())
+        profile_dict["created_at"] = datetime.utcnow()
+        await db.company_profile.insert_one(profile_dict)
+    
+    return {"message": "Perfil actualizado correctamente"}
+
+@api_router.post("/company-profile/logo")
+async def upload_company_logo(
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
+):
+    """
+    Upload company logo - For now, this endpoint expects a base64 image in the request body
+    In production, you'd want to use proper file uploads with cloud storage
+    """
+    # Note: This is a simplified version. In production, implement proper file upload
+    # For now, the frontend will need to convert to base64 and send via PUT to /company-profile
+    return {"message": "Use PUT /company-profile with logo_url field for now"}
+
 
 # ==================== INITIALIZATION ====================
 @api_router.post("/init/super-admin")
