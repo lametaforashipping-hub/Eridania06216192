@@ -414,32 +414,17 @@ export default function Draws() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sorteos</Text>
         {canExecuteDraw ? (
-          Platform.OS === 'web' ? (
-            <button
-              onClick={() => !creating && setShowLotteryModal(true)}
-              disabled={creating}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: creating ? 'not-allowed' : 'pointer',
-                padding: 0,
-              }}
-            >
-              {creating ? (
-                <ActivityIndicator size="small" color="#22c55e" />
-              ) : (
-                <Ionicons name="add-circle" size={28} color="#22c55e" />
-              )}
-            </button>
-          ) : (
-            <TouchableOpacity onPress={() => setShowLotteryModal(true)} disabled={creating}>
-              {creating ? (
-                <ActivityIndicator size="small" color="#22c55e" />
-              ) : (
-                <Ionicons name="add-circle" size={28} color="#22c55e" />
-              )}
-            </TouchableOpacity>
-          )
+          <View 
+            style={{ cursor: 'pointer' }}
+            onClick={() => !creating && setShowLotteryModal(true)}
+            onTouchEnd={() => !creating && setShowLotteryModal(true)}
+          >
+            {creating ? (
+              <ActivityIndicator size="small" color="#22c55e" />
+            ) : (
+              <Ionicons name="add-circle" size={28} color="#22c55e" />
+            )}
+          </View>
         ) : (
           <View style={{ width: 28 }} />
         )}
