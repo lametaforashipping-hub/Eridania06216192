@@ -1259,6 +1259,38 @@ async def create_ticket(ticket: TicketCreate, current_user: dict = Depends(get_c
     }
     await db.tickets.insert_one(ticket_doc)
     
+    # === HIGH RISK ALERT NOTIFICATION (Simple Tickets) ===
+    # Check if this ticket exceeds high-risk thresholds and notify admins
+    config = await db.system_config.find_one({"type": "global"})
+    threshold_rd = config.get("high_risk_threshold_rd", 10000.0) if config else 10000.0
+    threshold_usd = config.get("high_risk_threshold_usd", 200.0) if config else 200.0
+    
+    is_high_risk = False
+    if ticket.currency.value == "RD$" and ticket.amount >= threshold_rd:
+        is_high_risk = True
+    elif ticket.currency.value == "USD" and ticket.amount >= threshold_usd:
+        is_high_risk = True
+    
+    if is_high_risk:
+        # Create high-risk alert notification for all super_admins
+        super_admins = await db.users.find({"role": "super_admin", "active": True}).to_list(100)
+        for admin in super_admins:
+            notification_doc = {
+                "id": str(uuid.uuid4()),
+                "user_id": admin["id"],
+                "title": "⚠️ ALERTA: Ticket de Alto Riesgo",
+                "message": f"Vendedor {current_user['name']} creó un ticket de {ticket.currency.value} {ticket.amount:,.2f} (#{ticket_doc['ticket_number']})",
+                "type": "high_risk_alert",
+                "reference_id": ticket_doc["id"],
+                "ticket_number": ticket_doc["ticket_number"],
+                "seller_name": current_user["name"],
+                "amount": ticket.amount,
+                "currency": ticket.currency.value,
+                "read": False,
+                "created_at": datetime.utcnow()
+            }
+            await db.notifications.insert_one(notification_doc)
+    
     # Update seller stats and commission
     commission_rate = current_user.get("commission_rate", 10.0)
     commission = ticket.amount * (commission_rate / 100)
