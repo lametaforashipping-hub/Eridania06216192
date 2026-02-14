@@ -1070,4 +1070,24 @@ const styles = StyleSheet.create({
   editButton: {
     backgroundColor: '#3b82f6',
   },
+  statusProtected: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  protectedNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  protectedNoticeText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginLeft: 8,
+    fontStyle: 'italic',
+  },
 });
