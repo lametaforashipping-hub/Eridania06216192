@@ -4060,4 +4060,19 @@ const styles = StyleSheet.create({
     color: '#000000',
     letterSpacing: 0.5,
   },
+  ticketQRPlaceholder: {
+    width: 80,
+    height: 80,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  ticketQRPlaceholderText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#000000',
+    textAlign: 'center',
+  },
 });
