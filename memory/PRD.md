@@ -8,51 +8,43 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Frontend:** React Native / Expo
 - **Base de datos:** MongoDB
 
-### Loterías Reales Implementadas (14 Dic 2025)
-**21 loterías reales de RD con soporte multi-jugada:**
-- Gana Más, Lotería Nacional, Pega 3 Más, Quiniela Leidsa, Quiniela Real, Quiniela Loteka
-- Florida Día, Florida Noche, New York Tarde, New York Noche
-- La Primera Día, Primera Noche, La Suerte 12:30, La Suerte 18:00
-- Quiniela LoteDom
-- Anguila Mañana, Anguila Medio Día, Anguila Tarde, Anguila Noche
-- King Lottery 12:30, King Lottery 7:30
-
-**Cada lotería soporta 4 tipos de jugada con 3 premios cada uno:**
-| Tipo de Jugada | Números | 1er Premio | 2do Premio | 3er Premio |
-|----------------|---------|------------|------------|------------|
-| Quiniela       | 1       | 70x        | 20x        | 10x        |
-| Pale           | 2       | 1000x      | 100x       | 50x        |
-| Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
-| Super Pale     | 2       | 2500x      | 250x       | 125x       |
-
-## Cambios Recientes (15 Feb 2026)
-
-### ✅ Bug Fix: Error de Despliegue a Producción (COMPLETADO 15 Feb 2026)
-- **Problema:** El despliegue a producción estaba fallando
-- **Causa Raíz:** Existía un archivo `package-lock.json` junto con `yarn.lock`, causando conflictos en el proceso de build
-- **Solución:** Eliminado el archivo `/app/frontend/package-lock.json`
-- **Verificación:** 
-  - Solo `yarn.lock` presente en el proyecto
-  - `packageManager` en package.json correctamente configurado para yarn
-  - Backend y frontend funcionando correctamente
-
-### ✅ Bug Fix: Endpoint /api/accounting/report no existía (COMPLETADO 15 Feb 2026)
-- **Problema:** La página de Contabilidad mostraba pantalla vacía porque el endpoint no existía
-- **Solución:** Creado nuevo endpoint `GET /api/accounting/report` en `backend/routes/accounting.py`
-- **Funcionalidad:** Retorna reporte completo con:
-  - Período (Hoy, Última Semana, Último Mes)
-  - Total ventas y premios pagados
-  - Comisión calculada (10%)
-  - Ganancia neta
-  - ROI
-  - Últimas 50 transacciones
-
-### ✅ Mejora: Mostrar loterías cerradas en pantalla de ventas (COMPLETADO 15 Feb 2026)
-- **Problema:** La pantalla de ventas solo mostraba loterías abiertas, quedando vacía fuera de horario
-- **Solución:** Modificada función `getFilteredLotteries()` en `sales.tsx` para mostrar todas las loterías activas
-- **Comportamiento:** Las loterías cerradas se muestran con estilo visual diferente (deshabilitadas)
-
 ## Cambios Recientes (14 Feb 2026)
+
+### ✅ Refactorización: sales.tsx Modularizado (COMPLETADO 14 Feb 2026)
+- **Archivo original:** 4079 líneas → **Archivo nuevo:** 878 líneas (-78%)
+- **Nueva estructura modular en** `/app/frontend/app/components/sales/`:
+  ```
+  /app/frontend/app/components/sales/
+  ├── index.ts              # Barrel exports
+  ├── types.ts              # Interfaces y tipos compartidos
+  ├── constants.ts          # Constantes de configuración
+  ├── styles.ts             # Estilos centralizados (~900 líneas)
+  └── components/
+      ├── index.ts          # Exports de componentes
+      ├── TicketModal.tsx   # Modal de ticket con QR y compartir
+      ├── FavoritesModal.tsx # Modal de favoritos
+      ├── SaveFavoriteModal.tsx # Modal para guardar favoritos
+      ├── RecentPlaysModal.tsx  # Modal de jugadas recientes
+      ├── EditCartModal.tsx     # Modal de edición del carrito
+      ├── ShortcutsHelpModal.tsx # Modal de atajos de teclado
+      ├── LotterySelector.tsx   # Selector de loterías
+      ├── PlayTypeSelector.tsx  # Selector de tipos de jugada
+      ├── NumberInput.tsx       # Input de números
+      └── CartSection.tsx       # Sección del carrito
+  ```
+- **Beneficios:**
+  - Mejor mantenibilidad y legibilidad
+  - Componentes reutilizables
+  - Separación de responsabilidades
+  - Más fácil de testear
+  - Reducción del riesgo de regresiones
+
+### ✅ Bug Fix: Error de Despliegue a Producción (REPORTADO 14 Feb 2026)
+- **Estado:** BLOQUEADO - Requiere acción del usuario
+- **Error:** `Your account (emergent003) has reached its limit of 2000 projects`
+- **Solución requerida:** 
+  1. Eliminar proyectos no usados en https://expo.dev
+  2. O contactar soporte para aumentar límite
 
 ### ✅ Feature: Rediseño Profesional del Ticket de Venta (COMPLETADO 14 Feb 2026)
 - **Nuevo diseño compacto y profesional** para el ticket de confirmación de venta
@@ -65,257 +57,19 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   6. **Código QR:** Centrado en la parte inferior con el número de ticket
   7. **Footer:** Mensaje "CONSERVE ESTE BOLETO" y "¡BUENA SUERTE!"
 - **Líneas divisorias simples:** Reemplazadas todas las cajas y bordes por líneas simples (1px negro)
-- **Sin efecto de sombra:** Eliminada la sombra del contenedor para imagen más limpia
-- **QR Code:** Implementado usando `react-qr-code` que funciona en web y móvil
-- **Datos de empresa:** Se muestran automáticamente desde el perfil de empresa (address, rnc)
-
-**Implementación Técnica:**
-- Librería QR: `react-qr-code` (compatible con web)
-- Interface actualizada: `CompanyProfile` ahora incluye `address` y `rnc`
-- Nuevos estilos: `ticketHeaderCentered`, `ticketNumberSection`, `ticketDateSection`, etc.
-
-**Archivos Modificados:**
-- `frontend/app/sales.tsx`: Nuevo diseño del ticket en ViewShot
-- `frontend/package.json`: Añadido `react-qr-code`
-
-### ✅ Feature: Logo y Datos de Empresa en Ticket (COMPLETADO 14 Feb 2026)
-- El ticket ahora muestra automáticamente la información de la empresa:
-  - **Logo** de la empresa (si está configurado)
-  - **Nombre de la empresa** (en lugar de "LOTERIA MAGIC")
-  - **Slogan** de la empresa
-  - **Teléfono** de contacto
-- Los datos se obtienen de `/api/company-profile` al cargar la pantalla de ventas
-
-### ✅ Feature: Compartir Ticket como Imagen por WhatsApp (COMPLETADO 14 Feb 2026)
-- **Nuevo diseño de ticket profesional** para captura como imagen
-- **Botón "Enviar Imagen"** para compartir el ticket como imagen PNG
-- **Botón "Compartir como texto"** mantiene la funcionalidad anterior
-- **Diseño del ticket incluye:**
-  - Header con branding "LOTERIA MAGIC"
-  - Número de boleto destacado
-  - Fecha y cliente
-  - Lista de jugadas con números en "bolas" verdes
-  - Totales y premio potencial
-  - Footer con mensaje de buena suerte
-
-**Implementación Técnica:**
-- Usa `react-native-view-shot` para capturar la vista como imagen
-- En web: descarga la imagen como PNG
-- En móvil: usa `expo-sharing` para compartir directamente
-
-**Archivos Modificados:**
-- `frontend/app/sales.tsx`: 
-  - Nuevos imports: ViewShot, Sharing, FileSystem
-  - Nueva función `handleShareWhatsAppImage()`
-  - Nuevo componente ViewShot con diseño de ticket profesional
-  - Nuevos estilos para el ticket de imagen
-
-## Cambios Recientes (13-14 Feb 2026)
-
-### ✅ Feature: Atajos de Teclado en Pantalla de Ventas (COMPLETADO 14 Feb 2026)
-- **Sistema completo de atajos de teclado** para acelerar el proceso de ventas
-- **Solo funciona en web** (Platform.OS === 'web')
-- **Ignora atajos** cuando el usuario está escribiendo en un campo de texto
-
-**Atajos de Tipo de Jugada:**
-| Tecla | Acción | Requisito |
-|-------|--------|-----------|
-| F1 | Seleccionar Quiniela | Loterías seleccionadas |
-| F2 | Seleccionar Pale | Loterías seleccionadas |
-| F3 | Seleccionar Tripleta | Loterías seleccionadas |
-| F4 | Seleccionar Super Pale | Loterías seleccionadas |
-
-**Atajos de Navegación:**
-| Tecla | Acción |
-|-------|--------|
-| N | Enfocar campo de número |
-| M | Enfocar campo de monto |
-| A | Seleccionar/Deseleccionar todas las loterías |
-
-**Atajos de Números:**
-| Tecla | Acción |
-|-------|--------|
-| R | Generar números aleatorios (Quick Pick) |
-| Backspace | Borrar último número seleccionado |
-| Esc | Limpiar números / Cerrar modal |
-
-**Atajos de Acciones:**
-| Tecla | Acción | Requisito |
-|-------|--------|-----------|
-| Enter | Agregar jugada al carrito | Números completos |
-| Ctrl+Enter | Procesar venta | Carrito con jugadas |
-| X / Delete | Vaciar carrito | Carrito con jugadas |
-
-**Atajos de Acceso Rápido:**
-| Tecla | Acción |
-|-------|--------|
-| F | Abrir favoritos |
-| H | Abrir jugadas recientes |
-| ? | Mostrar ayuda de atajos |
-
-**Implementación:**
-- **Archivo modificado:** `frontend/app/sales.tsx`
-- **Líneas 151-276:** useEffect con event listener de keydown
-- **Líneas 2220-2304:** Modal de ayuda de atajos
-- **Botón de ayuda (?)** en el header, visible solo en web
-- **Testing:** 100% de atajos verificados en iteration_27.json
-
-## Cambios Recientes (15 Feb 2026)
-
-### ✅ Bug Fix: GET /api/tickets retornaba lista vacía (COMPLETADO 15 Feb 2026)
-- **Problema:** El endpoint `GET /api/tickets` retornaba 0 tickets mientras que `/api/tickets/today` retornaba los tickets correctamente
-- **Causa Raíz:** Los tickets tipo `multi_play` tienen `lottery_id=None` a nivel raíz, ya que las loterías están dentro del array `plays`. El filtro original solo buscaba por `lottery_id` directo, excluyendo todos los tickets multi-play.
-- **Solución:** Modificar la query MongoDB para usar `$or` que incluya:
-  1. Tickets simples con `lottery_id` directo
-  2. Tickets multi-play con `plays.lottery_id` dentro del array
-- **Archivo modificado:** `backend/routes/tickets.py` - función `get_tickets()`
-- **Testing:** Verificado con curl - vendedor ve 14 tickets, super_admin ve 154 tickets
-
-### ✅ Mejora: Pantalla de Boletos con Expand/Collapse (COMPLETADO 15 Feb 2026)
-- **Filtros con contadores:** Cada filtro muestra el número de tickets (Todos 14, Pendientes 14, etc.)
-- **Badge de cantidad de jugadas:** Tickets multi-play muestran badge púrpura con número de jugadas
-- **Vista previa de jugadas:** Muestra las primeras 2 jugadas con:
-  - Badge circular de color por tipo (Q=Quiniela/azul, P=Pale/púrpura, T=Tripleta/rosa, S=Super Pale/naranja)
-  - Nombre de la lotería
-  - Números jugados
-  - Monto en verde
-- **Expandir/Colapsar:** Botón "Ver X jugadas" para expandir todas las jugadas con diseño de tarjeta:
-  - Header con tipo de jugada y número de índice
-  - Nombre de lotería centrado
-  - Números en círculos con borde de color
-  - Monto y premio potencial
-  - Botón "Colapsar" para cerrar
-- **Archivo modificado:** `frontend/app/tickets.tsx`
-
-### ✅ Feature: Duplicar Ticket (COMPLETADO 15 Feb 2026)
-- **Nuevo botón "Duplicar Ticket"** en el modal de acciones de boletos (color púrpura)
-- **Flujo de duplicación:**
-  1. Desde la pantalla de Boletos, abrir modal de un ticket
-  2. Click en "Duplicar Ticket"
-  3. Navega a pantalla de Ventas con parámetro `?duplicate=ticketId`
-  4. Las jugadas del ticket original se agregan automáticamente al carrito
-  5. Alerta de confirmación: "Se agregaron X jugada(s) al carrito"
-- **Soporte para:**
-  - Tickets multi-play: extrae todas las jugadas del array `plays`
-  - Tickets simples: extrae la jugada individual
-- **Haptic feedback** en dispositivos móviles
-- **Archivos modificados:**
-  - `frontend/app/tickets.tsx`: Botón "Duplicar" + navegación
-  - `frontend/app/sales.tsx`: Hook `useLocalSearchParams` + función `handleDuplicateTicket`
-
-### ✅ Feature: Editar Jugadas del Carrito (COMPLETADO 15 Feb 2026)
-- **Nuevos botones en cada jugada del carrito:**
-  - Botón de lápiz (azul) para editar
-  - Botón de basura (rojo) para eliminar (ya existía)
-- **Modal de edición** con:
-  - Info de lotería (read-only)
-  - Números editables (agregar/eliminar con clicks)
-  - Monto editable con input y botones rápidos (20, 25, 50, 100, 200)
-  - Validación según tipo de jugada (ej: Quiniela=1 número, Pale=2)
-  - Recálculo automático del premio potencial
-- **Flujo de edición:**
-  1. Click en icono de lápiz en jugada del carrito
-  2. Modal muestra datos actuales
-  3. Modificar números (click para eliminar, input para agregar)
-  4. Modificar monto
-  5. Guardar - actualiza el carrito con nuevos valores
-- **Archivo modificado:** `frontend/app/sales.tsx`
-  - Estados: `editingCartItem`, `showEditCartModal`, `editAmount`, `editNumbers`
-  - Funciones: `openEditCartItem`, `addEditNumber`, `removeEditNumber`, `saveEditedCartItem`
-  - Modal: "Editar Jugada" con UI completa
-  - Estilos: 20+ nuevos estilos para modal y botones
-
-## Cambios Recientes (13 Feb 2026)
-
-### ✅ Historial de Jugadas Recientes (COMPLETADO 13 Feb 2026)
-- ✅ **Nuevo endpoint backend**: `GET /api/tickets/recent-plays?limit=15`
-  - Devuelve las últimas jugadas únicas del vendedor
-  - Filtra duplicados por combinación números + tipo
-  - Incluye: lottery_type, lottery_id, lottery_name, numbers, amount, created_at
-- ✅ **Botón "Recientes"** junto a "Favoritos" en pantalla de ventas
-  - Badge púrpura/índigo mostrando cantidad de jugadas recientes
-  - Modal con lista scrollable de jugadas
-- ✅ **Funcionalidad un-click**: Tocar jugada para agregarla al carrito
-  - Detecta si la lotería está abierta o cerrada
-  - Ofrece buscar lotería abierta del mismo tipo si está cerrada
-  - Haptic feedback en dispositivos móviles
-- ✅ **Fix Click en Web**: Cambio de Pressable a View+TouchableOpacity para compatibilidad
-- ✅ **Archivos modificados**:
-  - `backend/routes/tickets.py`: Nuevo endpoint recent-plays
-  - `frontend/app/sales.tsx`: Estado, fetch, modal, handler y estilos
-
-### ✅ Interfaz Unificada de Ventas (COMPLETADO 13 Feb 2026)
-- ✅ **Fusión de Vender y Multi-Jugada en una sola pantalla**
-  - Checkboxes para seleccionar múltiples loterías simultáneamente
-  - Botón "Todas" para seleccionar/deseleccionar todas las loterías abiertas
-  - Badge mostrando "X lotería(s) seleccionada(s)"
-  - Al agregar jugada, se aplica a TODAS las loterías seleccionadas
-  - Cada lotería seleccionada genera una entrada separada en el carrito
-- ✅ **Eliminado "Multi-Jugada" del menú del vendedor**
-  - Solo queda el botón "Vender" que ahora incluye toda la funcionalidad
-- ✅ **Testing Completado**: iteration_26.json - 100% backend, 100% frontend (6/6 casos)
-- ✅ **Archivo modificado**: `/app/frontend/app/sales.tsx` (lógica de selección múltiple)
-- ✅ **Archivo modificado**: `/app/frontend/app/_layout.tsx` (eliminado link Multi-Jugada)
-
-### ✅ Exportar Reportes a Excel (COMPLETADO 13 Feb 2026)
-- ✅ **Nueva funcionalidad de exportar a Excel** en la pantalla de Reporte Detallado
-  - Botón de Excel en el header (icono grid-outline)
-  - Opción "Exportar Excel" en modal de compartir
-  - Genera archivo .xlsx con 3 hojas: Resumen, Desglose Diario, Boletos
-  - Compatible con web (descarga directa) y móvil (expo-sharing)
-  - Librería: xlsx v0.18.5
-- ✅ **Endpoint Backend Implementado**: `GET /api/accounting/detailed-seller-report`
-  - Parámetros: `period` (daily|weekly|biweekly|monthly), `seller_id` (opcional)
-  - Retorna: resumen financiero, conteo de boletos, desglose diario, lista de tickets
-  - Archivo: `/app/backend/routes/accounting.py` (líneas 375-542)
-
-### Archivos Modificados
-- `frontend/app/detailed-seller-report.tsx`: Agregada función exportToExcel y botón en UI
-- `backend/routes/accounting.py`: Nuevo endpoint /detailed-seller-report
-- `frontend/package.json`: Agregada dependencia xlsx v0.18.5
-
-### Estructura Backend Modular (COMPLETADO 14 Dic 2025)
-```
-/app/backend/
-├── server.py              # Archivo principal refactorizado (79 líneas, -97.6%)
-├── routes/                # 14 Routers modulares
-│   ├── __init__.py        # Exporta todos los routers
-│   ├── auth.py           # Autenticación (login, register, me, refresh)
-│   ├── users.py          # Gestión de usuarios
-│   ├── terminals.py      # Gestión de terminales
-│   ├── favorites.py      # Números favoritos
-│   ├── lotteries.py      # Gestión de loterías + play-types + multipliers
-│   ├── tickets.py        # Ventas de boletos (simple + multi-play)
-│   ├── draws.py          # Sorteos y multi-prize
-│   ├── notifications.py  # Notificaciones
-│   ├── monitoring.py     # Monitoreo en tiempo real
-│   ├── accounting.py     # Contabilidad y reportes + detailed-seller-report
-│   ├── statistics.py     # Estadísticas de números
-│   ├── admin.py          # Configuración sistema + seller-profile + act-as-seller
-│   ├── company.py        # Perfil de empresa
-│   └── system.py         # Inicialización, reset-lotteries y health checks
-├── services/             # Lógica de negocio
-│   └── notifications.py  # Push notifications (Expo)
-├── models/               # Modelos Pydantic y Enums
-│   ├── schemas.py        # Modelos + DEFAULT_PLAY_TYPES
-│   └── enums.py          # Enumeraciones (roles, estados, etc.)
-└── utils/                # Utilidades
-    ├── auth.py           # Dependencias de autenticación JWT
-    ├── database.py       # Conexión MongoDB
-    └── helpers.py        # Funciones auxiliares
-```
-
-**Logro de Refactorización (14 Dic 2025):**
-- server.py reducido de 3347 líneas a 79 líneas (-97.6%)
-- 14 routers modulares organizados por funcionalidad
-- 21 loterías reales de RD con nombres correctos
-- Sistema multi-jugada: cada lotería soporta Quiniela, Pale, Tripleta, Super Pale
-- Multiplicadores configurables por tipo de jugada y por premio (1ro, 2do, 3ro)
-- Frontend actualizado con nueva pantalla de ventas mostrando tipos de jugada
-- Endpoint `/api/accounting/summary` corregido para devolver today/week/month stats
-
+- **QR Code:** Implementado usando `react-qr-code`
+- **Pendiente verificación:** Crear ticket nuevo cuando loterías estén abiertas
 
 ## Funcionalidades Implementadas
+
+### Sistema de Ventas Completo
+- **Selección Múltiple de Loterías:** Checkboxes para seleccionar varias loterías
+- **Sistema de Carrito:** Agregar múltiples jugadas antes de crear el ticket
+- **Tipos de Jugada:** Quiniela, Pale, Tripleta, Super Pale con multiplicadores
+- **Favoritos:** Guardar y usar combinaciones frecuentes
+- **Jugadas Recientes:** Historial de últimas jugadas
+- **Edición del Carrito:** Modificar jugadas antes de comprar
+- **Atajos de Teclado:** F1-F4 para tipos, N/M para campos, Enter para agregar
 
 ### Autenticación y Usuarios
 - Login con JWT
@@ -323,495 +77,34 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Creación de usuarios con país (RD/US) y moneda automática
 - Límite de crédito y comisiones
 
-### Loterías
-- Múltiples tipos: Quiniela, Pale, Tripleta, Super Pale, Loto, Powerball, etc.
+### Loterías (21 loterías reales de RD)
+- Gana Más, Lotería Nacional, Pega 3 Más, Quiniela Leidsa, Quiniela Real, etc.
 - Horarios de apertura/cierre configurables
-- Horarios especiales por día de la semana
-- Feriados con horarios especiales
-- Límite de boletos por número
+- Múltiples tipos de jugada con multiplicadores configurables
 
-### Ventas - Sistema de Carrito con Favoritos
-- **Selección Múltiple de Loterías:** Seleccionar varias loterías del mismo tipo
-- **Sistema de Carrito:** Agregar múltiples jugadas antes de crear el ticket
-- **Flujo de 4 Pasos:**
-  1. Seleccionar Loterías (con filtro por tipo)
-  2. Ingresar Números (manual o aleatorio)
-  3. Monto y Agregar al Carrito
-  4. Ver Carrito y Crear Ticket
-- **⭐ Jugadas Favoritas:**
-  - Guardar combinaciones frecuentes
-  - Usar favoritos con un clic para agregar al carrito
-  - Contador de uso (los más usados primero)
-  - Eliminar favoritos no usados
-- **Un solo recibo:** Todas las jugadas en un único ticket
-- Validación de límites por número
-- **🎫 Nuevo Diseño de Ticket/Recibo (13 Feb 2026):**
-  - Logo de "Loteria Magic" en la cabecera
-  - Código QR que contiene solo el ID del ticket para búsqueda en sistema
-  - Diseño profesional con gradientes y mejor estructura visual
-  - Sección de jugadas con detalles de lotería, números y montos
-  - Totales destacados con premio potencial
-  - Pie con instrucciones de conservación del boleto
-  - Compatible con impresión (expo-print) y WhatsApp (Share)
-
-### Multi-Jugada con Selector de Lotería (12 Feb 2026)
-- **🎰 Multi-Lotto:** Seleccionar lotería específica para cada jugada
-- **Selector de lotería:** Dropdown en modal de agregar jugada
-- **Filtrado por tipo:** Lista muestra loterías compatibles con el tipo de jugada
-- **Estado de lotería:** Muestra si está abierta o cerrada
-- **Nombre en jugada:** Cada jugada muestra el nombre de la lotería seleccionada
-- **Backend actualizado:** Acepta `lottery_id` por jugada
-
-### Suplantación de Super Admin (NUEVO - 12 Feb 2026)
-- **🎭 Modo Suplantación:** Super Admin puede actuar como vendedor
-- **Botón en Perfil:** "Actuar como [Nombre]" aparece en perfil del vendedor
-- **Pantalla de Suplantación:** Hub con acciones disponibles (Vender, Multi-Jugada)
-- **Banner de Advertencia:** Banner naranja visible durante suplantación
-- **Crear Tickets:** Tickets se crean a nombre del vendedor
-- **Auditoría:** Campo `impersonated_by` registra qué admin creó el ticket
-- **Seguridad:** Solo super_admin puede suplantar (403 para otros roles)
-
-### Sorteos
-- Creación de sorteos con números ganadores
-- Sorteos manuales (ingreso manual de números ganadores)
-- Procesamiento automático de tickets ganadores/perdedores
-
-### Pagos de Tickets Ganadores
-- **Vendedores pueden pagar tickets ganadores**
-- Botón "Pagar Premio" en pantalla de tickets
-- Validación de status (solo tickets "won" pueden pagarse)
-- Registro de transacción de pago
-- Estado actualizado a "paid" con timestamp
-
-### Reportes con Filtro de País
-- **Filtro de País:** Botones "Todos", "RD", "USA" para super_admin
-- **Banderas de Moneda:** 🇩🇴 para RD$ y 🇺🇸 para USD
-- Reportes por vendedor con país del vendedor
-- Estadísticas de números
-- Monitoreo en tiempo real
-- Panel de límites
-
-### 📊 Reporte Detallado por Vendedor
-- **Períodos de tiempo:** Diario, Semanal, Quincenal, Mensual
-- **Resumen completo:**
-  - Total de ventas
-  - Total de premios
-  - Comisión calculada (%)
-  - Ganancia neta
-- **Conteo de boletos:** Total, Pendientes, Ganadores, Pagados, Perdidos, Cancelados
-- **Desglose diario:** Gráfico de barras con ventas por día (para períodos semanal+)
-- **Detalle de boletos:** Lista expandible con todos los tickets del período
-- **📄 Exportar PDF:** Botón para generar e imprimir reporte en formato PDF
-- **📤 Compartir Reporte:** Opciones para compartir por WhatsApp, Email o cualquier otra app
-- **Acceso:** Click en vendedor desde "Reporte por Vendedores" o ir a "Mi Reporte Detallado"
-
-### 🎫 Lista de Boletos Mejorada
-- **Soporte Multi-jugada:** Muestra "Multi-jugada (X jugadas)" con detalle de plays
-- **Soporte boletos simples:** Muestra nombre de lotería y números jugados
-- **Filtros:** Todos, Pendientes, Ganadores, Pagados, Perdidos, Cancelados
-- **Ver Recibo:** Botón para ver el recibo sin imprimir
-- **Acciones:** Ver, Imprimir, Compartir, Cancelar
-
-## Cambios Recientes (13 Feb 2026)
-
-### ✅ Implementado Sesión 7 - Play Types Admin & Ticket Redesign
-- ✅ **Bug Fix: Creación de Tickets**
-  - Frontend enviaba `play_type` pero backend esperaba `lottery_type`
-  - Corregido en `sales.tsx` línea ~489 para enviar `lottery_type` correctamente
-  - Ticket creation ahora funciona con todos los tipos de jugada
-- ✅ **Nuevo Diseño de Ticket - Blanco y Negro**
-  - Diseño simplificado: solo colores #000 (negro) y #fff (blanco)
-  - Texto en negrita para mejor legibilidad
-  - Eliminada sección "Premio Potencial"
-  - Información detallada de cada jugada: tipo, lotería, números, monto
-  - Header: Logo + "LOTERIA MAGIC" + Número de boleto
-  - Body: Detalle de jugadas en tarjetas individuales
-  - Footer: QR code + instrucciones de conservación
-  - Compatible con impresión térmica
-- ✅ **Interfaz Admin para Tipos de Jugada**
-  - Nueva pantalla `/play-types-admin` para Super Admin
-  - Lista todas las loterías con sus tipos de jugada
-  - Muestra multiplicadores: 1er, 2do, 3er premio
-  - Modal de edición para cambiar multiplicadores
-  - Toggle para habilitar/deshabilitar tipos de jugada
-  - Endpoint `PUT /api/lotteries/{id}/play-types/{type}` actualizado
-- ✅ **Testing:** 100% backend (9/9), 90% frontend (iteration_24.json)
-
-### ✅ Implementado Sesión 6 - Multi-Lotto y Ver Recibo
-- ✅ **Multi-Lotto para Multi-Play**
-  - Selector de lotería en modal de agregar jugada
-  - Dropdown con lista de loterías compatibles por tipo
-  - Estado de lotería visible (abierta/cerrada)
-  - Nombre de lotería mostrado en cada jugada
-  - Backend acepta `lottery_id` por jugada en `/api/tickets/multi`
-- ✅ **Ver Recibo sin Imprimir**
-  - Botón "Ver" funcional en modal de acciones
-  - Modal con vista previa completa del recibo
-  - Botones Imprimir y Compartir desde la vista
-- ✅ **Testing Completado** - 100% backend tests passed (iteration_14.json)
-
-### Implementado Sesión 5 - Ver Recibo y Validación Loterías
-- ✅ **Validación de Horario en Multi-Play**
-  - Backend valida si hay loterías abiertas antes de crear multi-play
-  - Muestra error si todas las loterías están cerradas
-  - Protege contra jugadas fuera de horario
-
-### Implementado Sesión 4 - Alertas y Configuración de Premios
-- ✅ **Alertas de Tickets de Alto Riesgo**
-  - Endpoint `GET /api/admin/high-risk-tickets` identifica tickets con premio potencial alto
-  - Umbral configurable: RD$ 10,000 / USD 200 por defecto
-  - Endpoint `GET /api/admin/config` para obtener configuración
-  - Endpoint `PUT /api/admin/config` para actualizar configuración
-  - Badge "ALTO RIESGO" en pantalla En Vivo (color rojo pulsante)
-- ✅ **Configuración de Premios por Lotería**
-  - Campo `prize_tiers` agregado a modelo de lotería
-  - Endpoint `PUT /api/lotteries/{lottery_id}/prize-tiers` para Super Admin
-  - Permite configurar multiplicadores: {"first": 70, "second": 15, "third": 5}
-- ✅ **Pantalla de Configuración del Sistema**
-  - Nueva pantalla `/system-settings` solo para Super Admin
-  - Editar umbrales de alto riesgo (RD$ y USD)
-  - Editar intervalo de auto-refresh
-  - Lista de loterías con multiplicadores actuales
-  - Modal para editar multiplicadores por lotería (1ro, 2do, 3ro lugar)
-  - Menú "Configuración" agregado al dashboard
-
-### Mejoras en Gestión de Loterías (13 Feb 2026)
-- ✅ **Vista Detallada de Horarios por Lotería**
-  - Sección "Horario de Operación" con ícono y título
-  - Badge "Hoy (día): HH:MM - HH:MM" con estado abierto/cerrado
-  - Tabla de "Horarios por Día" mostrando todos los días de la semana
-  - Día actual resaltado en verde
-  - Horarios diferentes para sábado y domingo
-  - Horario fijo para loterías sin configuración semanal
-- ✅ **Modal de Edición Mejorado**
-  - Información explicativa sobre el bloqueo automático de ventas
-  - Campos claros: Apertura (🟢) y Cierre (🔴)
-  - Switch para usar horarios diferentes por día
-- ✅ **Información Visible**
-  - "Abre hoy a las XX:XX" (barra naranja cuando está cerrada)
-  - "ABIERTA" (barra verde cuando está operando)
-  - Horarios de sorteos del día
-
-### Sesión 12 - Rediseño de Ticket/Recibo con Logo y QR (13 Feb 2026)
-- ✅ **Nuevo Diseño de Ticket/Recibo**
-  - Logo de "Loteria Magic" en la cabecera del ticket
-  - Diseño profesional con gradientes azul oscuro (#1a365d)
-  - Sección de número de ticket con fuente monoespaciada
-  - QR code contiene solo el ID del ticket (TKT-xxxxxx) para búsqueda en sistema
-  - Sección de jugadas con tipo, números y monto
-  - Totales destacados con premio potencial en amarillo
-  - Instrucciones de conservación del boleto
-  - Compatible con impresión (expo-print) y compartir por WhatsApp
-- ✅ **Archivos Actualizados:**
-  - `frontend/app/multi-play.tsx` - función generateTicketHTML
-  - `frontend/app/sales.tsx` - función generateTicketHTML  
-  - `frontend/app/tickets.tsx` - función generateTicketHTML
-- ✅ **Testing Completado** - iteration_23.json: 100% backend, 100% frontend
-
-### Sesión 13 - Alertas de Alto Riesgo + Refactorización Backend (13 Feb 2026)
-- ✅ **(P2) Alertas de Alto Riesgo en Tiempo Real**
-  - Cuando se crea un ticket que excede el umbral (RD$10,000 o USD$200)
-  - Se crea automáticamente una notificación para todos los Super Admins
-  - Notificación incluye: vendedor, monto, número de ticket, tipo "high_risk_alert"
-  - Funciona tanto para tickets simples como multi-jugada
-- ✅ **(P3) Refactorización del Backend**
-  - Nueva estructura modular creada:
-    - `/backend/models/` - Enums (enums.py) y Schemas Pydantic (schemas.py)
-    - `/backend/utils/` - Helpers (helpers.py) y Database connection (database.py)
-    - `/backend/routes/` - Preparado para migración incremental de rutas
-    - `/backend/services/` - Preparado para lógica de negocio
-  - El server.py original sigue funcionando mientras se migra gradualmente
-
-### Verificación de Tickets con QR (Ya Implementado)
-- **🔍 Pantalla de Verificar** (`/scanner`)
-  - Entrada manual del número de ticket
-  - Escaneo de QR con cámara (solo en dispositivos móviles con expo-camera)
-  - El QR del ticket contiene solo el ticket_number (TKT-xxxxxx)
-  - Modal con resultado completo: estado, jugadas, montos, premio potencial
-  - Compatible con todos los tipos de tickets (simples y multi-jugada)
-
-### Sesión 11 - Fix Token Expirado y Multi-Jugada en Web (13 Feb 2026)
-- ✅ **Fix Crítico: Error "Token Expirado"**
-  - Nuevo endpoint POST `/api/auth/refresh` para renovar tokens JWT
-  - Auto-renovación de token al iniciar la app (si está guardado)
-  - Auto-renovación periódica cada 20 horas (token expira en 24h)
-  - Manejo de error 401 con logout automático y alerta al usuario
-  - AuthContext actualizado con funciones `refreshToken()` y `handleAuthError()`
-  - Mensaje claro "Tu sesión ha expirado. Por favor, inicia sesión nuevamente."
-- ✅ **Fix Crítico: Botón "Agregar Jugada" en Multi-Jugada (Web)**
-  - El botón no respondía a clicks dentro del Modal con ScrollView
-  - Solución: Usar elemento HTML nativo `<div onClick>` para plataforma web
-  - `TouchableOpacity` se mantiene para plataformas nativas (iOS/Android)
-  - Estructura del Modal reorganizada: botón fuera del ScrollView
-  - Nuevos estilos: `modalBodyScroll`, `modalBodyContent`, `modalFooter`
-- ✅ **Testing Completado**
-  - Backend: 11/11 tests de auth/refresh passed
-  - Vender page: 100% funcional
-  - Multi-Jugada: 100% funcional (agregar jugada + crear boleto)
-  - iteration_22.json: Backend 100%, Frontend 100%
-
-### Sesión 10 - Fix de Multi-Jugada, Validación de Horarios y Haptic Feedback (13 Feb 2026)
-- ✅ **Fix Crítico: Botón "Agregar Jugada" en Multi-Jugada**
-  - El botón no respondía a clicks en la versión web
-  - Solución: Componente `ModalButton` usando `Pressable` con `accessibilityRole="button"`
-  - Testing confirmado: 100% funcional (iteration_21.json)
-- ✅ **Fix Backend: Validación de Horas Inválidas**
-  - Función `parse_time_string` ahora maneja horas fuera de rango (ej: "24:00")
-  - Previene `ValueError: hour must be in 0..23` al cargar loterías
-  - Horas >= 24 se convierten a 23:59, horas < 0 a 00:00
-- ✅ **Alert Cross-Platform**
-  - Nueva función `showAlert` que usa `window.alert()` en web y `Alert.alert()` en móvil
-  - Mejora la experiencia de usuario mostrando errores de validación en todas las plataformas
-- ✅ **Haptic Feedback al Agregar Jugadas** (NEW)
-  - Vibración de confirmación cuando se agrega una jugada en Multi-Jugada
-  - Vibración cuando se agrega item al carrito en Vender
-  - Vibración cuando se agregan favoritos al carrito
-  - Solo funciona en dispositivos móviles (iOS/Android)
-  - Usa `expo-haptics` con `NotificationFeedbackType.Success`
-
-### Sesión 9 - Impersonación Completa, Recibos con Logo, Push Notifications y Reportes de Comisiones (13 Feb 2026)
-- ✅ **Logo de Empresa en Recibos**
-  - El recibo del boleto ahora muestra información completa de la empresa
-  - Incluye: Nombre, slogan, dirección, teléfono, RNC
-  - Se obtiene automáticamente del perfil de empresa (company-profile)
-  - Funciona tanto en vista previa como en impresión
-- ✅ **Impersonación Completa del Super Admin**
-  - Pantalla de suplantación ahora tiene 6 acciones:
-    1. Vender (Boleto simple)
-    2. Multi-Jugada (Múltiples jugadas)  
-    3. Ver Boletos (Historial de ventas)
-    4. Pagar Premios (Boletos ganadores)
-    5. Ver Reporte (Estadísticas)
-    6. Depositar (Agregar balance)
-  - Modal de depósito funcional con input numérico
-  - Navegación a las diferentes pantallas con contexto del vendedor
-- ✅ **Botón "+" de Sorteos Mejorado**
-  - Usa elemento `<button>` HTML nativo en web para mejor compatibilidad
-  - Soluciona problemas de TouchableOpacity en React Native Web
-- ✅ **Push Notifications para Ganadores**
-  - Servicio de notificaciones push con expo-notifications
-  - Registro automático de tokens al iniciar sesión (solo dispositivos nativos)
-  - Notificaciones enviadas al vendedor y super admin cuando hay ganadores
-  - Notificaciones de sorteo completado para super admins
-  - Integración con Expo Push API
-  - Canal dedicado "lottery-winners" con sonido y vibración
-- ✅ **Reporte Detallado de Comisiones** (NEW)
-  - Nueva pantalla `/commission-report` con desglose completo
-  - Filtros por período: Hoy, Semana, Mes
-  - Fórmula visual: Ventas × Tasa = Comisión
-  - Desglose por vendedor (solo Super Admin)
-  - Detalle por venta con ticket, lotería, monto, tasa y comisión ganada
-  - Estadísticas: total boletos, promedio de venta, comisión total
-  - Backend endpoint: `/api/accounting/commissions`
-- ✅ **Testing Completado** - iteration_19.json: 100% backend, 100% frontend
-
-### Sesión 8 - Correcciones y Sorteos Mejorados (13 Feb 2026)
-- ✅ **Bug Fix: Verificar Boleto**
-  - Botón "Verificar Boleto" ahora funciona en web
-  - Solución: Uso de elemento `<button>` HTML nativo para React Native Web
-  - El modal de resultados muestra correctamente el estado del ticket
-- ✅ **Iconos del Dashboard Más Grandes**
-  - Iconos aumentados de 28px a 32px
-  - Texto de labels aumentado de 11px a 13px con peso 500
-  - Mejor legibilidad en dispositivos móviles
-- ✅ **Sistema de Sorteos con 3 Premios**
-  - Nueva pantalla de sorteos con soporte para 1er, 2do, 3er premio
-  - Formulario con campos de Fecha y Hora del sorteo
-  - Iconos diferenciados: 🥇 Trofeo dorado (1ro), 🥈 Trofeo gris (2do), 🥉 Medalla bronce (3ro)
-  - Nuevo endpoint: POST `/api/draws/multi-prize`
-  - Endpoint para actualizar sorteos: PUT `/api/draws/{draw_id}`
-  - Validación de números dentro del rango permitido
-  - * Primer premio obligatorio, 2do y 3ro opcionales
-- ✅ **Testing Completado** - iteration_18.json: 100% backend, 95% frontend
-
-### Chequeo General Completo (12-13 Feb 2026) - TODAS LAS FUNCIONALIDADES ✅
-**Testing Agent:** iteration_17.json - Backend: 100% (25/25), Frontend: 100% (25/25 páginas)
-
-**Nuevas Funcionalidades Implementadas:**
-1. ✅ **Pago de Premios** (`pay-prizes.tsx`)
-   - Resumen de premios por pagar vs pagados
-   - Búsqueda por ticket, vendedor o cliente
-   - Filtros: Por Pagar | Pagados
-   - Modal de confirmación de pago
-   - Endpoint: POST /api/tickets/{id}/pay
-
-2. ✅ **Perfil de Empresa** (`company-profile.tsx`)
-   - Subir logo de la empresa
-   - Campos: Nombre, RNC, Dirección, Teléfono, Email, Slogan
-   - Pie de recibo personalizable
-   - Vista previa del recibo
-   - Endpoints: GET/PUT /api/company-profile
-
-**Bugs Corregidos:**
-1. ✅ **favorites.tsx** - La página de favoritos crasheaba por mismatch de datos
-2. ✅ **server.py** - Endpoint sellers-report fallaba con tickets multi-play
-
-**Pantallas Verificadas (23/23):**
-- ✅ Login, Dashboard, Usuarios (Nuevo + Editar + Depositar)
-- ✅ Boletos (búsqueda + filtros + ver recibo + cancelar)
-- ✅ Vender Números, Multi-Jugada (multi-lotería)
-- ✅ Verificar Boleto, Favoritos, Resultados/Draws
-- ✅ En Vivo (tiempo real), Monitoreo, Límites
-- ✅ Vendedores, Terminales (10 terminales), Estadísticas
-- ✅ Contabilidad (ROI, comisiones), Loterías (CRUD + horarios)
-- ✅ Configuración del Sistema (alertas + multiplicadores)
-- ✅ Notificaciones, Perfil Vendedor, Suplantación
-
-### Implementado Sesión 4 - Gestión Usuarios y Búsqueda Tickets (12 Feb 2026)
-- ✅ **Creación de Usuarios desde Frontend**
-  - Botón "+ Nuevo" visible y prominente en la pantalla de Usuarios
-  - Modal de creación con todos los campos requeridos
-  - Validación de campos obligatorios (Nombre, Email, Contraseña)
-  - Creación exitosa verificada tanto por curl como por UI
-- ✅ **Edición de Usuarios**
-  - Nuevo botón "Editar" (azul) en cada tarjeta de usuario
-  - Modal de edición con campos: Nombre, Cédula, Terminal ID, Teléfono, Dirección, País, Comisión, Límite de Crédito
-  - Endpoint PUT `/api/users/{user_id}` funcionando correctamente
-  - Pre-llenado de datos existentes del usuario
-- ✅ **Mejoras en Creación de Usuarios**
-  - Mejor manejo de errores con logs de consola
-  - Trim de campos de texto
-  - Normalización de email a minúsculas
-  - Terminal ID convertido a mayúsculas automáticamente
-- ✅ **Buscador de Tickets**
-  - Nueva barra de búsqueda en pantalla de Boletos
-  - Placeholder: "Buscar por # ticket (ej: 1234 o últimos 4 dígitos)"
-  - Búsqueda por número completo de ticket
-  - Búsqueda por últimos 4 dígitos
-  - Contador de resultados encontrados
-  - Botón para limpiar búsqueda (X)
-- ✅ **Testing Completado** - iteration_16.json: 87.5% backend, 100% frontend
-
-### Implementado Sesión 3 - En Vivo y Gestión Vendedores
-- ✅ **Tickets en Tiempo Real (En Vivo)**
-  - Nueva pantalla `/live-tickets` con auto-refresh cada 5 segundos
-  - Stats bar: Total, Ventas, Pendientes, Ganadores, Cancelados
-  - Indicador "EN VIVO" con punto rojo pulsante
-  - Badge "NUEVO" en tickets recientes
-  - Botón pause/play para auto-refresh
-  - Endpoint `GET /api/monitoring/live-tickets`
-- ✅ **Super Admin Cancela Cualquier Ticket**
-  - Sin límite de tiempo de 5 minutos
-  - Puede cancelar tickets de cualquier vendedor
-  - Registra quién canceló (`cancelled_by`)
-- ✅ **Perfil del Vendedor para Admin**
-  - Nueva pantalla `/seller-profile` con estadísticas completas
-  - Botones: Depositar, Editar, Ver Reporte
-  - Lista de boletos recientes con opción de cancelar
-  - Historial de transacciones
-  - Endpoint `GET /api/admin/seller-profile/{seller_id}`
-- ✅ **Testing Completado** - 100% tests passed (iteration_13.json)
-
-### Implementado Sesión 2
-- ✅ **Gestión de Terminales Completada**
-  - Nuevo campo `terminal_id` en modelo de usuario
-  - Endpoint GET `/api/terminals` con búsqueda
-  - Nueva pantalla `/terminals` con búsqueda y lista
-  - Campo "ID de Terminal" en formulario de usuarios
-- ✅ **Ticket HTML Rediseñado con Texto Bold**
-
-### Implementado Sesión 1
-- ✅ **Reporte Detallado por Vendedor** - Nuevo endpoint y pantalla con períodos (diario/semanal/quincenal/mensual)
-- ✅ **Navegación a Reporte Detallado** - Click en vendedor abre su reporte detallado
-- ✅ **Mejora tickets.tsx** - Soporte completo para boletos multi-play y simples
-- ✅ **Ticket HTML Rediseñado** - Más compacto, letra más negrita, números más pequeños
-- ✅ **Exportar PDF** - Implementado en reporte detallado
-- ✅ **Compartir Reporte** - Modal con WhatsApp, Email y otras apps
-
-### Implementado Anteriormente
-- ✅ **Jugadas Favoritas** - Guardar, usar y eliminar combinaciones frecuentes
-- ✅ **Sistema de Carrito en Ventas** - Selección múltiple de loterías
-- ✅ **Banderas de País en Reportes** - 🇩🇴 RD$ y 🇺🇸 $ en Dashboard
-- ✅ **Filtrado de reportes por país** - Endpoints de accounting filtran por país
-- ✅ **Pago de tickets ganadores** - Verificado funcionamiento para vendedores
+### Reportes y Contabilidad
+- Reporte detallado por vendedor (diario/semanal/quincenal/mensual)
+- Exportar a Excel
+- Dashboard con filtro de país (RD/USA)
+- Alertas de alto riesgo
 
 ## Credenciales de Prueba
+- **Vendedor:** vendedor@test.com / 12345678
 - **Super Admin:** admin@loteria.com / admin123
 
-## Endpoints Principales
+## Próximos Pasos (Backlog)
 
-### Autenticación
-- POST /api/auth/login
-- POST /api/auth/register
-- GET /api/auth/me
+### P0 - Bloqueadores
+- [ ] Resolver error de despliegue (límite de proyectos Expo)
 
-### Loterías
-- GET /api/lotteries?country={RD|US}
-- POST /api/lotteries
-- PUT /api/lotteries/{id}
+### P1 - Alta Prioridad
+- [ ] Verificar diseño del ticket creando boleto nuevo
+- [ ] Considerar refactorizar otros archivos grandes (tickets.tsx, multi-play.tsx)
 
-### Tickets
-- GET /api/tickets?country={RD|US}
-- POST /api/tickets
-- **POST /api/tickets/multi** (ticket múltiple con carrito, acepta lottery_id por jugada)
-- **POST /api/tickets/{id}/pay** (pagar ticket ganador)
-- POST /api/tickets/{id}/cancel
-- GET /api/tickets/verify/{ticket_number}
+### P2 - Media Prioridad
+- [ ] Notificaciones push para resultados
+- [ ] Dashboard de estadísticas avanzadas
 
-### Favoritos ⭐
-- **GET /api/favorites** - Lista favoritos del usuario (ordenados por uso)
-- **POST /api/favorites** - Crear favorito con múltiples plays
-- **POST /api/favorites/{id}/use** - Incrementar contador de uso
-- **DELETE /api/favorites/{id}** - Eliminar favorito
-
-### Reportes (con filtro de país)
-- GET /api/accounting/report?country={RD|US}
-- GET /api/accounting/summary?country={RD|US}
-- GET /api/accounting/sellers-report?country={RD|US}
-- GET /api/accounting/daily-chart?country={RD|US}
-- **GET /api/accounting/detailed-seller-report?period={daily|weekly|biweekly|monthly}&seller_id={id}**
-
-## Tareas Pendientes
-
-### P0 - Completado ✅
-- ~~Bug Fix: Modal de boletos crasheaba al ver detalles~~ - **CORREGIDO**
-- ~~Gestión de Terminales~~ - **COMPLETADO**
-- ~~Texto del boleto en negritas~~ - **COMPLETADO**
-- ~~Tickets en tiempo real~~ - **COMPLETADO**
-- ~~Super Admin cancela cualquier ticket~~ - **COMPLETADO**
-- ~~Perfil del vendedor para Admin~~ - **COMPLETADO**
-- ~~Alertas de alto riesgo~~ - **COMPLETADO**
-- ~~Configuración de premios por lotería~~ - **COMPLETADO**
-- ~~Pantalla de configuración del sistema~~ - **COMPLETADO**
-- ~~Ver recibo sin imprimir~~ - **COMPLETADO**
-- ~~Multi-Lotto para Multi-Play~~ - **COMPLETADO**
-- ~~Suplantación de Super Admin~~ - **COMPLETADO** (12 Feb 2026)
-- ~~Bug Fix: Tickets no se creaban desde sales screen~~ - **CORREGIDO** (13 Feb 2026)
-- ~~Rediseño de ticket en blanco y negro~~ - **COMPLETADO** (13 Feb 2026)
-- ~~Admin UI para tipos de jugada~~ - **COMPLETADO** (13 Feb 2026)
-- ~~Exportar reportes a Excel~~ - **COMPLETADO** (13 Feb 2026)
-- ~~Endpoint /api/accounting/detailed-seller-report~~ - **COMPLETADO** (13 Feb 2026)
-- ~~Interfaz Unificada de Ventas (Vender + Multi-Jugada)~~ - **COMPLETADO** (13 Feb 2026)
-
-### P1 - Prioridad Alta
-- **Mejorar Experiencia del Carrito** - Mejorar UI del carrito de compras para mejor visualización y edición/eliminación de jugadas
-- **Refactorizar sales.tsx** - Dividir archivo de 2287 líneas en componentes más pequeños y reutilizables
-
-### P2 - Prioridad Media
-- **Notificaciones Push** - Alertas de resultados de lotería (requiere configuración Expo)
-- **Dashboard de estadísticas avanzadas** - Métricas avanzadas, gráficos y tendencias
-- **Reportes de comisión detallados** - Desglose exacto de cómo se deducen las comisiones por vendedor
-- **Interfaz de Pago de Premios** - Marcar tickets ganadores como "Pagados"
-- **Perfil de empresa con logo personalizable** - Logo en recibos
-
-## Archivos Clave
-- `/app/backend/routes/accounting.py` - Contabilidad y reportes + detailed-seller-report endpoint (MODIFICADO 13 Feb 2026)
-- `/app/frontend/app/detailed-seller-report.tsx` - Reporte detallado con exportar a Excel (MODIFICADO 13 Feb 2026)
-- `/app/frontend/app/sales.tsx` - Sistema de carrito con favoritos
-- `/app/frontend/app/multi-play.tsx` - Multi-Play con selector de lotería
-- `/app/frontend/app/tickets.tsx` - Lista de tickets con Ver Recibo
-- `/app/frontend/app/impersonate.tsx` - Hub de suplantación para Super Admin
-- `/app/frontend/app/seller-profile.tsx` - Perfil vendedor con botón suplantación
-- `/app/frontend/app/dashboard.tsx` - Dashboard con filtro de país
-- `/app/frontend/app/sellers-report.tsx` - Reporte con banderas y navegación a detallado
-
-## Test Reports
-- `/app/test_reports/iteration_26.json` - Interfaz Unificada de Ventas (13 Feb 2026) - **NUEVO** - 100% passed
-- `/app/test_reports/iteration_25.json` - Exportar a Excel verificado (13 Feb 2026)
-- `/app/test_reports/iteration_15.json` - Suplantación de Super Admin verificado (100% frontend, 87.5% backend)
-- `/app/test_reports/iteration_14.json` - Multi-Lotto feature verificado (100% passed)
-- `/app/test_reports/iteration_13.json` - En Vivo, Super Admin, Perfil Vendedor (100% passed)
-- `/app/test_reports/iteration_12.json` - Gestión de terminales verificada (100% passed)
-- `/app/test_reports/iteration_11.json` - Bug fix modal de boletos verificado (100% passed)
-- `/app/backend/tests/test_impersonate.py` - Tests de suplantación
-- `/app/backend/tests/test_multi_lotto.py` - Tests de Multi-Lotto endpoint
+### P3 - Baja Prioridad
+- [ ] Reportes de comisión más detallados
+- [ ] Interfaz de pago de premios mejorada
