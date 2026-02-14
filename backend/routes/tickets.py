@@ -327,6 +327,19 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     
     # Check credit limit
     if effective_user["role"] == UserRole.VENDEDOR.value:
+        # First check if vendor has sufficient balance
+        vendor_balance = effective_user.get("balance", 0)
+        if vendor_balance <= 0:
+            # Block vendor if balance is zero
+            await db.users.update_one(
+                {"id": effective_user["id"]},
+                {"$set": {"active": False, "blocked_reason": "zero_balance"}}
+            )
+            raise HTTPException(
+                status_code=403, 
+                detail="Tu balance es $0. No puedes realizar ventas hasta que deposites fondos. Tu cuenta ha sido bloqueada temporalmente."
+            )
+        
         today_sales = await db.tickets.aggregate([
             {"$match": {
                 "seller_id": effective_user["id"],
