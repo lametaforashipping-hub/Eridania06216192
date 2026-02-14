@@ -25,6 +25,32 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 | Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
 | Super Pale     | 2       | 2500x      | 250x       | 125x       |
 
+## Cambios Recientes (14 Feb 2026)
+
+### ✅ Feature: Compartir Ticket como Imagen por WhatsApp (COMPLETADO 14 Feb 2026)
+- **Nuevo diseño de ticket profesional** para captura como imagen
+- **Botón "Enviar Imagen"** para compartir el ticket como imagen PNG
+- **Botón "Compartir como texto"** mantiene la funcionalidad anterior
+- **Diseño del ticket incluye:**
+  - Header con branding "LOTERIA MAGIC"
+  - Número de boleto destacado
+  - Fecha y cliente
+  - Lista de jugadas con números en "bolas" verdes
+  - Totales y premio potencial
+  - Footer con mensaje de buena suerte
+
+**Implementación Técnica:**
+- Usa `react-native-view-shot` para capturar la vista como imagen
+- En web: descarga la imagen como PNG
+- En móvil: usa `expo-sharing` para compartir directamente
+
+**Archivos Modificados:**
+- `frontend/app/sales.tsx`: 
+  - Nuevos imports: ViewShot, Sharing, FileSystem
+  - Nueva función `handleShareWhatsAppImage()`
+  - Nuevo componente ViewShot con diseño de ticket profesional
+  - Nuevos estilos para el ticket de imagen
+
 ## Cambios Recientes (13-14 Feb 2026)
 
 ### ✅ Feature: Atajos de Teclado en Pantalla de Ventas (COMPLETADO 14 Feb 2026)
