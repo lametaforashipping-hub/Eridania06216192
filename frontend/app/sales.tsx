@@ -73,6 +73,13 @@ interface CartItem {
   playTypeName: string;
 }
 
+interface CompanyProfile {
+  company_name: string;
+  logo_url?: string;
+  slogan?: string;
+  phone?: string;
+}
+
 interface MultiPlayTicketResponse {
   id: string;
   ticket_number: string;
