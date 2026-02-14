@@ -211,9 +211,10 @@ export default function Notifications() {
         <Text style={styles.timeText}>{formatTime(item.created_at)}</Text>
       </View>
 
-      {!item.is_read && <View style={styles.unreadDot} />}
+      {!isRead && <View style={styles.unreadDot} />}
     </TouchableOpacity>
   );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
