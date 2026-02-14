@@ -1042,38 +1042,39 @@ export default function Sales() {
   const generateTicketHTML = (ticket: MultiPlayTicketResponse) => {
     const date = new Date(ticket.created_at);
     
-    // Generate QR code URL - Black & White
+    // Generate QR code URL - Black & White (smaller)
     const qrData = encodeURIComponent(ticket.ticket_number);
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}&bgcolor=ffffff&color=000000`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${qrData}&bgcolor=ffffff&color=000000`;
 
     // Company Logo URL
     const logoUrl = 'https://customer-assets.emergentagent.com/job_0d52222c-173f-46ac-b2b0-ffceca2336e1/artifacts/cql3117b_loteria.jpg';
     
-    // Get play type name from lottery_type
-    const getPlayTypeName = (lotteryType: string) => {
-      const names: {[key: string]: string} = {
-        'quiniela': 'QUINIELA',
-        'pale': 'PALE',
-        'tripleta': 'TRIPLETA',
-        'super_pale': 'SUPER PALE'
+    // Get play type abbreviation
+    const getPlayTypeAbbr = (lotteryType: string) => {
+      const abbr: {[key: string]: string} = {
+        'quiniela': 'Q',
+        'pale': 'P',
+        'tripleta': 'T',
+        'super_pale': 'SP'
       };
-      return names[lotteryType] || lotteryType.toUpperCase();
+      return abbr[lotteryType] || lotteryType.charAt(0).toUpperCase();
     };
     
-    // Generate detailed plays HTML
-    const playsHTML = ticket.plays.map((play, idx) => `
-      <div class="play-card">
-        <div class="play-header">
-          <span class="play-index">${idx + 1}</span>
-          <span class="play-type">${getPlayTypeName(play.lottery_type || 'quiniela')}</span>
+    // Generate compact plays HTML - one line per play with separator between lotteries
+    let lastLottery = '';
+    const playsHTML = ticket.plays.map((play, idx) => {
+      const showSeparator = lastLottery !== '' && lastLottery !== play.lottery_name;
+      lastLottery = play.lottery_name;
+      return `
+        ${showSeparator ? '<div class="lottery-separator"></div>' : ''}
+        ${idx === 0 || showSeparator ? `<div class="lottery-name">${play.lottery_name}</div>` : ''}
+        <div class="play-row">
+          <span class="play-type">${getPlayTypeAbbr(play.lottery_type || 'quiniela')}</span>
+          <span class="play-nums">${play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}</span>
+          <span class="play-amt">${play.amount}</span>
         </div>
-        <div class="play-lottery-name">${play.lottery_name}</div>
-        <div class="play-numbers">${play.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}</div>
-        <div class="play-details">
-          <span class="play-amount">${ticket.currency} ${play.amount.toFixed(2)}</span>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     return `
       <!DOCTYPE html>
@@ -1083,269 +1084,136 @@ export default function Sales() {
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
-            font-family: 'Arial', 'Helvetica', sans-serif; 
-            padding: 0; 
-            max-width: 300px; 
+            font-family: 'Courier New', monospace; 
+            max-width: 280px; 
             margin: 0 auto; 
             background: #fff;
             color: #000;
+            font-size: 11px;
           }
           .ticket { 
-            border: 3px solid #000; 
+            border: 2px solid #000; 
             background: #fff;
           }
           
-          /* Header */
+          /* Header - Compact */
           .header { 
-            background: #fff;
-            padding: 12px 10px 8px; 
+            padding: 6px; 
             text-align: center;
-            border-bottom: 2px solid #000;
-          }
-          .logo-container {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 6px;
-            border: 2px solid #000;
-            overflow: hidden;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
           }
           .logo-img {
-            width: 100%;
-            height: 100%;
+            width: 35px;
+            height: 35px;
             object-fit: cover;
+            border: 1px solid #000;
           }
           .brand-name { 
-            font-size: 18px; 
+            font-size: 14px; 
             font-weight: 900; 
-            color: #000;
             letter-spacing: 1px;
-            text-transform: uppercase;
           }
           
-          /* Ticket Number */
+          /* Ticket Number - BOLD and PROMINENT */
           .ticket-number-section { 
             background: #000;
             color: #fff; 
-            padding: 10px; 
+            padding: 8px 6px; 
             text-align: center;
-          }
-          .ticket-label { 
-            font-size: 10px; 
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
           }
           .ticket-number { 
-            font-size: 16px; 
-            font-weight: 900; 
-            letter-spacing: 1px; 
-            margin-top: 2px;
-            font-family: 'Courier New', monospace;
-          }
-          
-          /* Date Info */
-          .info-section {
-            background: #fff;
-            padding: 8px 10px;
-            border-bottom: 1px dashed #000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .date-info {
-            font-size: 11px;
-            color: #000;
-            font-weight: 700;
-          }
-          .customer-info {
-            font-size: 10px;
-            color: #000;
-            font-weight: 700;
-            text-align: right;
-          }
-          
-          /* Plays Section */
-          .body { 
-            padding: 10px; 
-            background: #fff; 
-          }
-          .plays-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid #000;
-          }
-          .plays-title { 
-            font-weight: 900; 
-            font-size: 12px; 
-            color: #000;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-          .plays-count {
-            background: #000;
-            color: #fff;
-            padding: 2px 8px;
-            font-size: 11px;
-            font-weight: 900;
-          }
-          
-          /* Play Card - Detailed */
-          .play-card { 
-            border: 2px solid #000;
-            margin-bottom: 8px;
-            background: #fff;
-          }
-          .play-header {
-            background: #000;
-            color: #fff;
-            padding: 4px 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .play-index { 
-            font-size: 10px;
-            font-weight: 900;
-          }
-          .play-type {
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 1px;
-          }
-          .play-lottery-name {
-            padding: 6px 8px 2px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #000;
-            text-align: center;
-            border-bottom: 1px dashed #000;
-          }
-          .play-numbers { 
-            font-weight: 900; 
-            font-size: 24px; 
-            color: #000; 
-            letter-spacing: 4px;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            padding: 10px 8px;
-          }
-          .play-details {
-            padding: 6px 8px;
-            border-top: 1px dashed #000;
-            text-align: right;
-          }
-          .play-amount { 
-            color: #000; 
-            font-weight: 900; 
-            font-size: 14px;
-          }
-          
-          /* Totals Section */
-          .totals { 
-            background: #fff;
-            border: 2px solid #000;
-            margin: 8px 0;
-          }
-          .totals-header {
-            background: #000;
-            color: #fff;
-            padding: 6px 10px;
-            font-size: 11px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-          .totals-body {
-            padding: 10px;
-          }
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-            border-bottom: 1px dashed #000;
-          }
-          .total-row:last-child { 
-            border-bottom: none;
-            padding-top: 8px;
-          }
-          .total-label { 
-            color: #000;
-            font-size: 11px;
-            font-weight: 700;
-          }
-          .total-value { 
-            font-size: 12px; 
-            font-weight: 900; 
-            color: #000;
-          }
-          .grand-total-label {
-            font-size: 12px;
-            font-weight: 900;
-            color: #000;
-          }
-          .grand-total-value { 
             font-size: 18px; 
             font-weight: 900; 
-            color: #000;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
           }
           
-          /* QR Footer */
-          .footer { 
-            background: #fff;
-            padding: 12px 10px; 
-            text-align: center; 
-            border-top: 2px dashed #000;
+          /* Date Line */
+          .info-line {
+            padding: 4px 6px;
+            border-bottom: 1px solid #000;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
           }
-          .qr-container { 
-            background: #fff; 
-            padding: 8px; 
-            margin: 0 auto 8px; 
-            display: inline-block;
-            border: 2px solid #000;
+          
+          /* Plays Section - Compact */
+          .plays { 
+            padding: 4px 6px; 
+          }
+          .lottery-name {
+            font-weight: 900;
+            font-size: 10px;
+            padding: 3px 0 2px;
+            text-transform: uppercase;
+          }
+          .lottery-separator {
+            border-top: 1px solid #000;
+            margin: 4px 0;
+          }
+          .play-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 0;
+          }
+          .play-type {
+            font-weight: 900;
+            width: 20px;
+            font-size: 10px;
+          }
+          .play-nums { 
+            font-weight: 900; 
+            font-size: 14px; 
+            letter-spacing: 1px;
+            flex: 1;
+            text-align: center;
+          }
+          .play-amt { 
+            font-weight: 700; 
+            font-size: 11px;
+            width: 40px;
+            text-align: right;
+          }
+          
+          /* Total - Compact */
+          .total-section { 
+            border-top: 1px solid #000;
+            padding: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .total-label { 
+            font-weight: 900;
+            font-size: 12px;
+          }
+          .total-value { 
+            font-size: 16px; 
+            font-weight: 900;
+          }
+          
+          /* Footer - Compact */
+          .footer { 
+            border-top: 1px solid #000;
+            padding: 6px; 
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
           }
           .qr-code { 
-            width: 100px; 
-            height: 100px; 
-            display: block;
-          }
-          .qr-label { 
-            font-size: 9px; 
-            color: #000;
-            font-weight: 700;
-            margin-top: 4px;
-            letter-spacing: 1px;
-          }
-          .scan-text {
-            font-size: 10px;
-            color: #000;
-            font-weight: 700;
-            margin-top: 6px;
-          }
-          .footer-notes { 
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #000;
+            width: 60px; 
+            height: 60px;
           }
           .footer-text { 
-            font-size: 9px; 
-            color: #000; 
-            font-weight: 700;
-            margin: 2px 0;
-          }
-          
-          /* Bottom Bar */
-          .bottom-bar { 
-            background: #000;
-            color: #fff; 
-            padding: 8px; 
-            text-align: center; 
-            font-size: 12px; 
-            font-weight: 900;
-            letter-spacing: 2px;
+            font-size: 8px;
+            text-align: left;
           }
         </style>
       </head>
@@ -1353,51 +1221,33 @@ export default function Sales() {
         <div class="ticket">
           <!-- Header -->
           <div class="header">
-            <div class="logo-container">
-              <img class="logo-img" src="${logoUrl}" alt="Loteria" />
-            </div>
-            <div class="brand-name">LOTERIA MAGIC</div>
+            <img class="logo-img" src="${logoUrl}" alt="Logo" />
+            <span class="brand-name">LOTERIA MAGIC</span>
           </div>
           
-          <!-- Ticket Number -->
+          <!-- Ticket Number - BOLD -->
           <div class="ticket-number-section">
-            <div class="ticket-label">BOLETO No.</div>
             <div class="ticket-number">${ticket.ticket_number}</div>
           </div>
           
-          <!-- Date & Customer Info -->
-          <div class="info-section">
-            <div class="date-info">
-              ${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}
-            </div>
-            ${ticket.customer_name ? `<div class="customer-info">CLIENTE: ${ticket.customer_name.toUpperCase()}</div>` : ''}
+          <!-- Date Line -->
+          <div class="info-line">
+            <span>${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: '2-digit' })} ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}</span>
+            ${ticket.customer_name ? `<span>${ticket.customer_name.toUpperCase()}</span>` : ''}
           </div>
           
-          <!-- Plays -->
-          <div class="body">
-            <div class="plays-header">
-              <span class="plays-title">DETALLE DE JUGADAS</span>
-              <span class="plays-count">${ticket.plays.length}</span>
-            </div>
+          <!-- Plays - Compact -->
+          <div class="plays">
             ${playsHTML}
-            
-            <!-- Totals -->
-            <div class="totals">
-              <div class="totals-header">RESUMEN</div>
-              <div class="totals-body">
-                <div class="total-row">
-                  <span class="total-label">CANTIDAD DE JUGADAS:</span>
-                  <span class="total-value">${ticket.plays.length}</span>
-                </div>
-                <div class="total-row">
-                  <span class="grand-total-label">TOTAL A PAGAR:</span>
-                  <span class="grand-total-value">${ticket.currency} ${ticket.total_amount.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
           </div>
           
-          <!-- Footer with QR -->
+          <!-- Total -->
+          <div class="total-section">
+            <span class="total-label">TOTAL (${ticket.plays.length})</span>
+            <span class="total-value">${ticket.currency} ${ticket.total_amount.toFixed(2)}</span>
+          </div>
+          
+          <!-- Footer -->
           <div class="footer">
             <div class="qr-container">
               <img class="qr-code" src="${qrCodeUrl}" alt="QR" />
