@@ -377,4 +377,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#22c55e',
   },
+  depositTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#f59e0b',
+    marginBottom: 4,
+  },
+  depositAction: {
+    fontSize: 12,
+    color: '#f59e0b',
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
 });
