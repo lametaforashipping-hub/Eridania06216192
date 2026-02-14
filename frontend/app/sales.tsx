@@ -2018,7 +2018,6 @@ export default function Sales() {
                         fgColor="#000000"
                       />
                     </View>
-                    </View>
                     
                     {/* Footer */}
                     <View style={styles.ticketFooterSection}>
