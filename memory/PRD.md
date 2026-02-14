@@ -25,6 +25,17 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 | Tripleta       | 3       | 50000x     | 5000x      | 2500x      |
 | Super Pale     | 2       | 2500x      | 250x       | 125x       |
 
+## Cambios Recientes (15 Feb 2026)
+
+### ✅ Bug Fix: Error de Despliegue a Producción (COMPLETADO 15 Feb 2026)
+- **Problema:** El despliegue a producción estaba fallando
+- **Causa Raíz:** Existía un archivo `package-lock.json` junto con `yarn.lock`, causando conflictos en el proceso de build
+- **Solución:** Eliminado el archivo `/app/frontend/package-lock.json`
+- **Verificación:** 
+  - Solo `yarn.lock` presente en el proyecto
+  - `packageManager` en package.json correctamente configurado para yarn
+  - Backend y frontend funcionando correctamente
+
 ## Cambios Recientes (14 Feb 2026)
 
 ### ✅ Feature: Logo y Datos de Empresa en Ticket (COMPLETADO 14 Feb 2026)
