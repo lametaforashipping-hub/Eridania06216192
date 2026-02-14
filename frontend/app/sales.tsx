@@ -3586,7 +3586,7 @@ const styles = StyleSheet.create({
   // Ticket Image Styles (for WhatsApp sharing)
   ticketViewShot: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 16,
   },
@@ -3595,8 +3595,6 @@ const styles = StyleSheet.create({
     padding: 0,
     minWidth: 280,
     maxWidth: 280,
-    borderWidth: 2,
-    borderColor: '#000',
   },
   ticketImageHeader: {
     alignItems: 'center',
