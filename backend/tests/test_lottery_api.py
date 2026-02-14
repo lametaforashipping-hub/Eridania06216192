@@ -8,7 +8,7 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://loteria-platform.preview.emergentagent.com"
+    BASE_URL = "https://ticket-system-update.preview.emergentagent.com"
 
 # Test credentials
 SUPER_ADMIN_EMAIL = "admin@loteria.com"

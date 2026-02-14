@@ -10,7 +10,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://loteria-platform.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://ticket-system-update.preview.emergentagent.com').rstrip('/')
 
 class TestAuth:
     """Authentication endpoint tests"""
