@@ -235,6 +235,7 @@ async def get_transactions(
     return serialize_doc(transactions)
 
 
+@router.get("/commissions")
 @router.get("/commissions-report")
 async def get_commissions_report(
     period: str = "day",
