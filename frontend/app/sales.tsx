@@ -1900,8 +1900,8 @@ export default function Sales() {
                         <QRCode
                           value={lastTicket.ticket_number}
                           size={80}
-                          backgroundColor="#ffffff"
-                          color="#000000"
+                          bgColor="#ffffff"
+                          fgColor="#000000"
                         />
                       </View>
                       
