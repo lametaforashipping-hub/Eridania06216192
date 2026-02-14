@@ -435,14 +435,21 @@ export default function Lotteries() {
         </Text>
       </View>
 
-      {/* Edit Button */}
-      <TouchableOpacity 
-        style={styles.editLotteryButton}
-        onPress={() => openEditModal(item)}
-      >
-        <Ionicons name="create-outline" size={18} color="#ffffff" />
-        <Text style={styles.editLotteryButtonText}>Editar Lotería</Text>
-      </TouchableOpacity>
+      {/* Edit Button - Solo para Super Admin */}
+      {isSuperAdmin ? (
+        <TouchableOpacity 
+          style={styles.editLotteryButton}
+          onPress={() => openEditModal(item)}
+        >
+          <Ionicons name="create-outline" size={18} color="#ffffff" />
+          <Text style={styles.editLotteryButtonText}>Editar Lotería</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.protectedNotice}>
+          <Ionicons name="shield-checkmark" size={16} color="#f59e0b" />
+          <Text style={styles.protectedNoticeText}>Solo el Super Admin puede editar loterías</Text>
+        </View>
+      )}
     </View>
   );
 
