@@ -78,6 +78,8 @@ interface CompanyProfile {
   logo_url?: string;
   slogan?: string;
   phone?: string;
+  address?: string;
+  rnc?: string;
 }
 
 interface MultiPlayTicketResponse {
