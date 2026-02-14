@@ -123,10 +123,20 @@ export default function Notifications() {
     return date.toLocaleDateString('es-DO');
   };
 
-  const renderNotification = ({ item }: { item: Notification }) => (
+  const handleNotificationPress = (item: Notification) => {
+    markAsRead(item.id);
+    // Navigate to bank accounts if it's a deposit notification
+    if (item.type === 'deposit_request' || item.type === 'deposit_processed') {
+      router.push('/bank-accounts');
+    }
+  };
+
+  const renderNotification = ({ item }: { item: Notification }) => {
+    const isRead = item.is_read ?? item.read ?? false;
+    return (
     <TouchableOpacity
-      style={[styles.notificationCard, !item.is_read && styles.unreadCard]}
-      onPress={() => markAsRead(item.id)}
+      style={[styles.notificationCard, !isRead && styles.unreadCard]}
+      onPress={() => handleNotificationPress(item)}
     >
       <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(item.type) + '20' }]}>
         <Ionicons
@@ -176,6 +186,21 @@ export default function Notifications() {
               </View>
             )}
             <Text style={styles.subtext}>{item.lottery_name}</Text>
+          </>
+        )}
+
+        {item.type === 'deposit_request' && (
+          <>
+            <Text style={styles.depositTitle}>{item.title || '💰 Solicitud de Depósito'}</Text>
+            <Text style={styles.title}>{item.message}</Text>
+            <Text style={styles.depositAction}>Toca para revisar →</Text>
+          </>
+        )}
+
+        {item.type === 'deposit_processed' && (
+          <>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.subtext}>{item.message}</Text>
           </>
         )}
 
