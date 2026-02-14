@@ -90,6 +90,8 @@ export default function Notifications() {
       case 'draw_result': return 'trophy';
       case 'winner_alert': return 'gift';
       case 'winner': return 'cash';
+      case 'deposit_request': return 'cash';
+      case 'deposit_processed': return 'checkmark-circle';
       case 'system': return 'information-circle';
       default: return 'notifications';
     }
@@ -100,6 +102,8 @@ export default function Notifications() {
       case 'draw_result': return '#f59e0b';
       case 'winner_alert': return '#22c55e';
       case 'winner': return '#22c55e';
+      case 'deposit_request': return '#f59e0b';
+      case 'deposit_processed': return '#22c55e';
       case 'system': return '#3b82f6';
       default: return '#94a3b8';
     }
