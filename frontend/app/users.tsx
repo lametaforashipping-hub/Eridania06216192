@@ -292,7 +292,20 @@ export default function Users() {
     }
   };
 
-  const renderUser = ({ item }: { item: User }) => (
+  // Verificar si el usuario actual puede gestionar a otro usuario
+  const canManageUser = (targetUser: User) => {
+    // Super Admin puede gestionar a todos
+    if (currentUser?.role === 'super_admin') return true;
+    // Admin NO puede gestionar a otros admins ni super admins
+    if (targetUser.role === 'admin' || targetUser.role === 'super_admin') return false;
+    // Admin puede gestionar vendedores
+    return true;
+  };
+
+  const renderUser = ({ item }: { item: User }) => {
+    const canManage = canManageUser(item);
+    
+    return (
     <View style={[styles.userCard, !item.active && styles.userCardInactive]}>
       <View style={styles.userHeader}>
         <View style={styles.userAvatar}>
@@ -317,12 +330,19 @@ export default function Users() {
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={[styles.statusToggle, item.active ? styles.statusActive : styles.statusInactive]}
-          onPress={() => toggleUserStatus(item)}
-        >
-          <Text style={styles.statusText}>{item.active ? 'Activo' : 'Inactivo'}</Text>
-        </TouchableOpacity>
+        {canManage ? (
+          <TouchableOpacity
+            style={[styles.statusToggle, item.active ? styles.statusActive : styles.statusInactive]}
+            onPress={() => toggleUserStatus(item)}
+          >
+            <Text style={styles.statusText}>{item.active ? 'Activo' : 'Inactivo'}</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.statusToggle, styles.statusProtected]}>
+            <Ionicons name="shield-checkmark" size={14} color="#f59e0b" />
+            <Text style={[styles.statusText, { color: '#f59e0b', marginLeft: 4 }]}>Protegido</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.userDetails}>
@@ -363,27 +383,36 @@ export default function Users() {
         </View>
       )}
 
-      <View style={styles.userActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => openEditModal(item)}
-        >
-          <Ionicons name="create" size={18} color="#3b82f6" />
-          <Text style={[styles.actionText, { color: '#3b82f6' }]}>Editar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => {
-            setSelectedUser(item);
-            setShowDepositModal(true);
-          }}
-        >
-          <Ionicons name="wallet" size={18} color="#22c55e" />
-          <Text style={styles.actionText}>Depositar</Text>
-        </TouchableOpacity>
-      </View>
+      {canManage ? (
+        <View style={styles.userActions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => openEditModal(item)}
+          >
+            <Ionicons name="create" size={18} color="#3b82f6" />
+            <Text style={[styles.actionText, { color: '#3b82f6' }]}>Editar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              setSelectedUser(item);
+              setShowDepositModal(true);
+            }}
+          >
+            <Ionicons name="wallet" size={18} color="#22c55e" />
+            <Text style={styles.actionText}>Depositar</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.protectedNotice}>
+          <Ionicons name="information-circle" size={16} color="#94a3b8" />
+          <Text style={styles.protectedNoticeText}>
+            Solo el Super Admin puede gestionar este usuario
+          </Text>
+        </View>
+      )}
     </View>
-  );
+  )};
 
   const availableRoles = currentUser?.role === 'super_admin' 
     ? ['admin', 'vendedor'] 
