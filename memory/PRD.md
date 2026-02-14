@@ -11,6 +11,26 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (14 Feb 2026)
 
+### ✅ Sistema de Cuentas Bancarias Virtuales (COMPLETADO 14 Feb 2026)
+**Backend:**
+- Nuevo archivo: `/app/backend/routes/bank_accounts.py`
+- Endpoints para CRUD de cuentas bancarias virtuales
+- Sistema de solicitudes de depósito (vendedor solicita, admin aprueba)
+- Transacciones y historial por cuenta
+- Resumen de totales por moneda
+
+**Frontend:**
+- Nueva página: `/app/frontend/app/bank-accounts.tsx`
+- Crear cuentas tipo: Banco, Zelle, Efectivo
+- Configurar por país (RD/USA) y moneda (RD$/USD)
+- Pestaña de depósitos pendientes para aprobar/rechazar
+- Accesible desde el menú principal (Super Admin/Admin)
+
+### ✅ Bloqueo Automático por Balance $0 (COMPLETADO 14 Feb 2026)
+- Vendedor con balance $0 se bloquea automáticamente al intentar vender
+- Mensaje: "Tu balance es $0. No puedes realizar ventas hasta que deposites fondos."
+- Se reactiva automáticamente cuando el admin aprueba un depósito
+
 ### ✅ Rediseño Página de Login (COMPLETADO 14 Feb 2026)
 - Nuevo diseño moderno con tarjeta centrada
 - Gradiente de fondo con círculos decorativos
