@@ -1951,10 +1951,24 @@ export default function Sales() {
                 style={styles.ticketViewShot}
               >
                 <View style={styles.ticketImageContainer}>
-                  {/* Header */}
+                  {/* Header with Company Branding */}
                   <View style={styles.ticketImageHeader}>
-                    <Text style={styles.ticketImageBrand}>LOTERIA MAGIC</Text>
-                    <Text style={styles.ticketImageSubtitle}>Tu suerte está aquí</Text>
+                    {companyProfile?.logo_url ? (
+                      <Image 
+                        source={{ uri: companyProfile.logo_url }} 
+                        style={styles.ticketImageLogo}
+                        resizeMode="contain"
+                      />
+                    ) : null}
+                    <Text style={styles.ticketImageBrand}>
+                      {companyProfile?.company_name || 'LOTERIA'}
+                    </Text>
+                    <Text style={styles.ticketImageSubtitle}>
+                      {companyProfile?.slogan || 'Tu suerte está aquí'}
+                    </Text>
+                    {companyProfile?.phone && (
+                      <Text style={styles.ticketImagePhone}>Tel: {companyProfile.phone}</Text>
+                    )}
                   </View>
                   
                   {/* Ticket Number */}
