@@ -553,4 +553,23 @@ const styles = StyleSheet.create({
   countryButtonTextActive: {
     color: '#ffffff',
   },
+  menuBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#f59e0b',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#1e293b',
+  },
+  menuBadgeText: {
+    color: '#000000',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
 });
