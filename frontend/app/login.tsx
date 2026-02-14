@@ -359,6 +359,11 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
   },
+  logoImageLocal: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
   logoIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
