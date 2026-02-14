@@ -445,9 +445,9 @@ export default function Tickets() {
       `📋 *Boleto:* ${selectedTicket.ticket_number}\n` +
       `🎲 *Lotería:* ${selectedTicket.lottery_name}\n` +
       `🔢 *Números:* ${(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
-      `💰 *Monto:* ${selectedTicket.currency} ${selectedTicket.amount.toLocaleString()}\n` +
+      `💰 *Monto:* ${selectedTicket.currency} ${(selectedTicket.amount || 0).toLocaleString()}\n` +
       `🏆 *Estado:* ${getStatusText(selectedTicket.status)}\n` +
-      `${selectedTicket.status === 'won' ? `💵 *Premio:* ${selectedTicket.currency} ${selectedTicket.potential_win.toLocaleString()}\n` : ''}`;
+      `${selectedTicket.status === 'won' ? `💵 *Premio:* ${selectedTicket.currency} ${(selectedTicket.potential_win || 0).toLocaleString()}\n` : ''}`;
 
     try {
       await Share.share({ message });

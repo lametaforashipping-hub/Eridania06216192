@@ -181,7 +181,7 @@ export default function Favorites() {
       pathname: '/sales',
       params: {
         lottery_id: favorite.lottery_id,
-        numbers: favorite.numbers.join(','),
+        numbers: (favorite.numbers || []).join(','),
       },
     });
 
