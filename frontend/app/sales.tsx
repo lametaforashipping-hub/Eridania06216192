@@ -1801,64 +1801,79 @@ export default function Sales() {
                     style={{ backgroundColor: '#ffffff' }}
                   >
                     <View style={styles.ticketImageContainer}>
-                      {/* Header Compact */}
-                      <View style={styles.ticketImageHeaderCompact}>
+                      {/* Header - Logo Centrado */}
+                      <View style={styles.ticketHeaderCentered}>
                         {companyProfile?.logo_url ? (
                           <Image 
                             source={{ uri: companyProfile.logo_url }} 
-                            style={styles.ticketImageLogoSmall}
+                            style={styles.ticketLogoCentered}
                             resizeMode="contain"
                           />
                         ) : null}
-                        <Text style={styles.ticketImageBrandCompact}>
+                        <Text style={styles.ticketCompanyName}>
                           {companyProfile?.company_name || 'LOTERIA'}
                         </Text>
+                        {companyProfile?.address && (
+                          <Text style={styles.ticketCompanyAddress}>{companyProfile.address}</Text>
+                        )}
+                        {companyProfile?.rnc && (
+                          <Text style={styles.ticketCompanyRNC}>RNC: {companyProfile.rnc}</Text>
+                        )}
                       </View>
                       
-                      {/* Ticket Number - BOLD */}
-                      <View style={styles.ticketImageNumberBoxBold}>
-                        <Text style={styles.ticketImageNumberBold}>{lastTicket.ticket_number}</Text>
+                      {/* Línea divisoria */}
+                      <View style={styles.ticketDivider} />
+                      
+                      {/* Número de Ticket - BOLD y Grande */}
+                      <View style={styles.ticketNumberSection}>
+                        <Text style={styles.ticketNumberLabel}>TICKET No.</Text>
+                        <Text style={styles.ticketNumberValue}>{lastTicket.ticket_number}</Text>
                       </View>
                       
-                      {/* Date Line */}
-                      <View style={styles.ticketImageInfoLine}>
-                        <Text style={styles.ticketImageDateSmall}>
+                      {/* Línea divisoria */}
+                      <View style={styles.ticketDivider} />
+                      
+                      {/* Fecha y Hora - Más visible */}
+                      <View style={styles.ticketDateSection}>
+                        <Text style={styles.ticketDateLabel}>FECHA Y HORA</Text>
+                        <Text style={styles.ticketDateValue}>
                           {new Date(lastTicket.created_at).toLocaleDateString('es-DO', { 
-                            day: '2-digit', month: '2-digit', year: '2-digit'
-                          })} {new Date(lastTicket.created_at).toLocaleTimeString('es-DO', {
+                            day: '2-digit', month: '2-digit', year: 'numeric'
+                          })} - {new Date(lastTicket.created_at).toLocaleTimeString('es-DO', {
                             hour: '2-digit', minute: '2-digit'
                           })}
                         </Text>
                         {lastTicket.customer_name && (
-                          <Text style={styles.ticketImageCustomerSmall}>{lastTicket.customer_name.toUpperCase()}</Text>
+                          <Text style={styles.ticketCustomerName}>Cliente: {lastTicket.customer_name.toUpperCase()}</Text>
                         )}
                       </View>
                       
-                      {/* Compact Plays */}
-                      <View style={styles.ticketImagePlaysCompact}>
+                      {/* Línea divisoria */}
+                      <View style={styles.ticketDivider} />
+                      
+                      {/* Jugadas */}
+                      <View style={styles.ticketPlaysSection}>
                         {(() => {
                           let lastLottery = '';
                           return lastTicket.plays.map((play, idx) => {
                             const showLottery = lastLottery !== play.lottery_name;
-                            const showSeparator = lastLottery !== '' && showLottery;
                             lastLottery = play.lottery_name;
                             return (
                               <View key={idx}>
-                                {showSeparator && <View style={styles.lotterySeparator} />}
                                 {showLottery && (
-                                  <Text style={styles.lotteryNameText}>{play.lottery_name}</Text>
+                                  <Text style={styles.ticketLotteryName}>{play.lottery_name}</Text>
                                 )}
-                                <View style={styles.playRowCompact}>
-                                  <Text style={styles.playTypeAbbr}>
+                                <View style={styles.ticketPlayRow}>
+                                  <Text style={styles.ticketPlayType}>
                                     {play.lottery_type === 'quiniela' ? 'Q' : 
                                      play.lottery_type === 'pale' ? 'P' : 
                                      play.lottery_type === 'tripleta' ? 'T' : 
                                      play.lottery_type === 'super_pale' ? 'SP' : 'Q'}
                                   </Text>
-                                  <Text style={styles.playNumsCompact}>
+                                  <Text style={styles.ticketPlayNumbers}>
                                     {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
                                   </Text>
-                                  <Text style={styles.playAmtCompact}>{play.amount}</Text>
+                                  <Text style={styles.ticketPlayAmount}>{play.amount}</Text>
                                 </View>
                               </View>
                             );
@@ -1866,81 +1881,113 @@ export default function Sales() {
                         })()}
                       </View>
                       
-                      {/* Total Compact */}
-                      <View style={styles.ticketImageTotalCompact}>
-                        <Text style={styles.totalLabelCompact}>TOTAL ({lastTicket.plays.length})</Text>
-                        <Text style={styles.totalValueCompact}>
+                      {/* Línea divisoria */}
+                      <View style={styles.ticketDivider} />
+                      
+                      {/* Total */}
+                      <View style={styles.ticketTotalSection}>
+                        <Text style={styles.ticketTotalLabel}>TOTAL ({lastTicket.plays.length} jugadas)</Text>
+                        <Text style={styles.ticketTotalValue}>
                           {lastTicket.currency} {lastTicket.total_amount.toFixed(2)}
                         </Text>
                       </View>
                       
-                      {/* Footer Compact */}
-                      <View style={styles.ticketImageFooterCompact}>
-                        <Text style={styles.footerTextCompact}>CONSERVE ESTE BOLETO - ¡BUENA SUERTE!</Text>
+                      {/* Línea divisoria */}
+                      <View style={styles.ticketDivider} />
+                      
+                      {/* QR Code Centrado */}
+                      <View style={styles.ticketQRSection}>
+                        <QRCode
+                          value={lastTicket.ticket_number}
+                          size={80}
+                          backgroundColor="#ffffff"
+                          color="#000000"
+                        />
+                      </View>
+                      
+                      {/* Footer */}
+                      <View style={styles.ticketFooterSection}>
+                        <Text style={styles.ticketFooterText}>CONSERVE ESTE BOLETO</Text>
+                        <Text style={styles.ticketFooterText}>¡BUENA SUERTE!</Text>
                       </View>
                     </View>
                   </ViewShot>
                 ) : (
-                  /* Web version - simplified ticket preview */
+                  /* Web version - mismo diseño */
                   <View style={styles.ticketImageContainer}>
-                    {/* Header Compact */}
-                    <View style={styles.ticketImageHeaderCompact}>
+                    {/* Header - Logo Centrado */}
+                    <View style={styles.ticketHeaderCentered}>
                       {companyProfile?.logo_url ? (
                         <Image 
                           source={{ uri: companyProfile.logo_url }} 
-                          style={styles.ticketImageLogoSmall}
+                          style={styles.ticketLogoCentered}
                           resizeMode="contain"
                         />
                       ) : null}
-                      <Text style={styles.ticketImageBrandCompact}>
+                      <Text style={styles.ticketCompanyName}>
                         {companyProfile?.company_name || 'LOTERIA'}
                       </Text>
+                      {companyProfile?.address && (
+                        <Text style={styles.ticketCompanyAddress}>{companyProfile.address}</Text>
+                      )}
+                      {companyProfile?.rnc && (
+                        <Text style={styles.ticketCompanyRNC}>RNC: {companyProfile.rnc}</Text>
+                      )}
                     </View>
                     
-                    {/* Ticket Number - BOLD */}
-                    <View style={styles.ticketImageNumberBoxBold}>
-                      <Text style={styles.ticketImageNumberBold}>{lastTicket.ticket_number}</Text>
+                    {/* Línea divisoria */}
+                    <View style={styles.ticketDivider} />
+                    
+                    {/* Número de Ticket - BOLD y Grande */}
+                    <View style={styles.ticketNumberSection}>
+                      <Text style={styles.ticketNumberLabel}>TICKET No.</Text>
+                      <Text style={styles.ticketNumberValue}>{lastTicket.ticket_number}</Text>
                     </View>
                     
-                    {/* Date Line */}
-                    <View style={styles.ticketImageInfoLine}>
-                      <Text style={styles.ticketImageDateSmall}>
+                    {/* Línea divisoria */}
+                    <View style={styles.ticketDivider} />
+                    
+                    {/* Fecha y Hora - Más visible */}
+                    <View style={styles.ticketDateSection}>
+                      <Text style={styles.ticketDateLabel}>FECHA Y HORA</Text>
+                      <Text style={styles.ticketDateValue}>
                         {new Date(lastTicket.created_at).toLocaleDateString('es-DO', { 
-                          day: '2-digit', month: '2-digit', year: '2-digit'
-                        })} {new Date(lastTicket.created_at).toLocaleTimeString('es-DO', {
+                          day: '2-digit', month: '2-digit', year: 'numeric'
+                        })} - {new Date(lastTicket.created_at).toLocaleTimeString('es-DO', {
                           hour: '2-digit', minute: '2-digit'
                         })}
                       </Text>
                       {lastTicket.customer_name && (
-                        <Text style={styles.ticketImageCustomerSmall}>{lastTicket.customer_name.toUpperCase()}</Text>
+                        <Text style={styles.ticketCustomerName}>Cliente: {lastTicket.customer_name.toUpperCase()}</Text>
                       )}
                     </View>
                     
-                    {/* Compact Plays */}
-                    <View style={styles.ticketImagePlaysCompact}>
+                    {/* Línea divisoria */}
+                    <View style={styles.ticketDivider} />
+                    
+                    {/* Jugadas */}
+                    <View style={styles.ticketPlaysSection}>
                       {(() => {
                         let lastLottery = '';
                         return lastTicket.plays.map((play, idx) => {
                           const showLottery = lastLottery !== play.lottery_name;
-                          const showSeparator = lastLottery !== '' && showLottery;
                           lastLottery = play.lottery_name;
                           return (
                             <View key={idx}>
-                              {showSeparator && <View style={styles.lotterySeparator} />}
                               {showLottery && (
-                                <Text style={styles.lotteryNameText}>{play.lottery_name}</Text>
+                                <Text style={styles.ticketLotteryName}>{play.lottery_name}</Text>
                               )}
-                              <View style={styles.playRowCompact}>
-                                <Text style={styles.playTypeAbbr}>
+                              <View style={styles.ticketPlayRow}>
+                                <Text style={styles.ticketPlayType}>
                                   {play.lottery_type === 'quiniela' ? 'Q' : 
                                    play.lottery_type === 'pale' ? 'P' : 
                                    play.lottery_type === 'tripleta' ? 'T' : 
                                    play.lottery_type === 'super_pale' ? 'SP' : 'Q'}
                                 </Text>
-                                <Text style={styles.playNumsCompact}>
+                                <Text style={styles.ticketPlayNumbers}>
                                   {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
                                 </Text>
-                                <Text style={styles.playAmtCompact}>{play.amount}</Text>
+                                <Text style={styles.ticketPlayAmount}>{play.amount}</Text>
                               </View>
                             </View>
                           );
@@ -1948,17 +1995,34 @@ export default function Sales() {
                       })()}
                     </View>
                     
-                    {/* Total Compact */}
-                    <View style={styles.ticketImageTotalCompact}>
-                      <Text style={styles.totalLabelCompact}>TOTAL ({lastTicket.plays.length})</Text>
-                      <Text style={styles.totalValueCompact}>
+                    {/* Línea divisoria */}
+                    <View style={styles.ticketDivider} />
+                    
+                    {/* Total */}
+                    <View style={styles.ticketTotalSection}>
+                      <Text style={styles.ticketTotalLabel}>TOTAL ({lastTicket.plays.length} jugadas)</Text>
+                      <Text style={styles.ticketTotalValue}>
                         {lastTicket.currency} {lastTicket.total_amount.toFixed(2)}
                       </Text>
                     </View>
                     
-                    {/* Footer Compact */}
-                    <View style={styles.ticketImageFooterCompact}>
-                      <Text style={styles.footerTextCompact}>CONSERVE ESTE BOLETO - ¡BUENA SUERTE!</Text>
+                    {/* Línea divisoria */}
+                    <View style={styles.ticketDivider} />
+                    
+                    {/* QR Code Centrado */}
+                    <View style={styles.ticketQRSection}>
+                      <QRCode
+                        value={lastTicket.ticket_number}
+                        size={80}
+                        backgroundColor="#ffffff"
+                        color="#000000"
+                      />
+                    </View>
+                    
+                    {/* Footer */}
+                    <View style={styles.ticketFooterSection}>
+                      <Text style={styles.ticketFooterText}>CONSERVE ESTE BOLETO</Text>
+                      <Text style={styles.ticketFooterText}>¡BUENA SUERTE!</Text>
                     </View>
                   </View>
                 )}
