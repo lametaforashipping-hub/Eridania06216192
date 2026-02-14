@@ -11,6 +11,18 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes
 
+### ✅ Notificaciones en Tiempo Real para Depósitos (COMPLETADO 14 Feb 2026)
+**Funcionalidades:**
+- Cuando un vendedor solicita un depósito, el Super Admin recibe una notificación automática
+- Badge naranja en el menú "Cuentas Banco" mostrando cantidad de depósitos pendientes
+- Al tocar la notificación de depósito, navega directamente a `/bank-accounts`
+- Polling cada 30 segundos para actualizar conteo de depósitos pendientes
+- Notificaciones muestran título "💰 Nueva Solicitud de Depósito" con mensaje del monto
+
+**Archivos Modificados:**
+- `/app/frontend/app/notifications.tsx` - Soporte para tipos `deposit_request` y `deposit_processed`
+- `/app/frontend/app/dashboard.tsx` - Badge en menú + polling de depósitos pendientes
+
 ### ✅ Sistema de Cuentas Bancarias Virtuales (COMPLETADO 14 Feb 2026)
 **Backend:**
 - Archivo: `/app/backend/routes/bank_accounts.py`
@@ -26,16 +38,6 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Configurar por país (RD/USA) y moneda (RD$/USD)
 - Pestaña de depósitos pendientes para aprobar/rechazar
 - Modal completo para crear cuentas bancarias
-- Accesible desde el menú principal (Super Admin/Admin)
-
-**Verificado:**
-- GET /api/bank-accounts - Lista cuentas (4 cuentas existen)
-- POST /api/bank-accounts - Crea cuentas (bank, zelle, cash)
-- GET /api/bank-accounts/summary - Totales por moneda
-- POST /api/bank-accounts/deposit-request - Vendedores crean solicitudes
-- GET /api/bank-accounts/deposit-requests?status=pending - Lista pendientes
-- PUT /api/bank-accounts/deposit-requests/{id} - Aprueba/rechaza depósitos
-- Control de autorización - Vendedores bloqueados de acciones admin
 
 ### ✅ Bloqueo Automático por Balance $0 (COMPLETADO)
 - Vendedor con balance $0 se bloquea automáticamente al intentar vender
@@ -45,45 +47,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Nuevo diseño moderno con tarjeta centrada
 - Gradiente de fondo con círculos decorativos
 - Logo de empresa integrado
-- Campos de entrada compactos con íconos
-- Botón con gradiente morado
 
 ### ✅ Sistema de Permisos Super Admin (COMPLETADO)
-**Restricciones implementadas:**
 - Solo Super Admin puede crear/editar/activar/desactivar Administradores
 - Admin NO puede modificar a otros Admins ni al Super Admin
-- Admin solo puede gestionar Vendedores que él creó
 - Solo Super Admin puede crear/editar loterías
 
 ### ✅ Refactorización: sales.tsx Modularizado (COMPLETADO)
 - Archivo original: 4079 líneas → Archivo nuevo: 878 líneas (-78%)
-- Nueva estructura modular en `/app/frontend/app/components/sales/`
-
-## Funcionalidades Implementadas
-
-### Sistema de Ventas Completo
-- Selección Múltiple de Loterías
-- Sistema de Carrito
-- Tipos de Jugada: Quiniela, Pale, Tripleta, Super Pale
-- Favoritos y Jugadas Recientes
-- Edición del Carrito
-- Atajos de Teclado
-- Ticket con QR Code y compartir
-
-### Autenticación y Usuarios
-- Login con JWT
-- Roles: super_admin, admin, vendedor
-- Creación de usuarios con país (RD/US)
-
-### Loterías (21 loterías reales de RD)
-- Gana Más, Lotería Nacional, Pega 3 Más, etc.
-- Horarios configurables
-- Multiplicadores por tipo de jugada
-
-### Reportes y Contabilidad
-- Reporte detallado por vendedor
-- Exportar a Excel
-- Dashboard con filtro de país
 
 ## Credenciales de Prueba
 - **Super Admin:** admin@loteria.com / admin123
@@ -106,34 +77,11 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - [ ] Reportes de comisión más detallados
 - [ ] Interfaz de pago de premios mejorada
 
-## Estructura de Archivos Clave
-```
-/app
-├── backend/
-│   ├── routes/
-│   │   ├── bank_accounts.py    # Sistema bancario completo
-│   │   ├── tickets.py          # Ventas (incluye check de balance)
-│   │   ├── users.py            # RBAC implementado
-│   │   └── lotteries.py        # RBAC implementado
-│   ├── tests/
-│   │   └── test_bank_accounts.py  # 14 tests
-│   └── server.py
-└── frontend/
-    └── app/
-        ├── bank-accounts.tsx   # Página de cuentas bancarias
-        ├── login.tsx           # Login rediseñado
-        ├── dashboard.tsx       # Menu principal
-        ├── sales.tsx           # Ventas (modularizado)
-        └── components/sales/   # Componentes modulares
-```
-
 ## APIs del Sistema Bancario
 - `GET /api/bank-accounts` - Lista cuentas
 - `POST /api/bank-accounts` - Crear cuenta (Super Admin)
 - `GET /api/bank-accounts/summary` - Resumen con totales
-- `GET /api/bank-accounts/public` - Info pública para vendedores
+- `GET /api/bank-accounts/deposit-requests/pending-count` - Conteo de pendientes
 - `POST /api/bank-accounts/deposit-request` - Solicitar depósito
 - `GET /api/bank-accounts/deposit-requests` - Lista solicitudes
 - `PUT /api/bank-accounts/deposit-requests/{id}` - Procesar depósito
-- `POST /api/bank-accounts/{id}/adjust-balance` - Ajuste manual
-- `GET /api/bank-accounts/{id}/transactions` - Historial
