@@ -15,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+
+const cacheDirectory = FileSystem.cacheDirectory || '';
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-qr-code';
 import { styles } from '../styles';
@@ -88,7 +90,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
         document.body.removeChild(link);
       } else {
         // Share on mobile
-        const fileUri = `${FileSystem.cacheDirectory}ticket-${ticket.ticket_number}.png`;
+        const fileUri = `${cacheDirectory}ticket-${ticket.ticket_number}.png`;
         await FileSystem.copyAsync({ from: uri, to: fileUri });
         await Sharing.shareAsync(fileUri);
       }
