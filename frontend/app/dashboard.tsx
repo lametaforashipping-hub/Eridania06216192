@@ -90,16 +90,27 @@ export default function Dashboard() {
   useEffect(() => {
     fetchSummary();
     fetchUnreadCount();
-    fetchPendingDeposits();
     refreshUser();
     
-    // Poll for new notifications and pending deposits every 30 seconds
+    // Poll for new notifications every 30 seconds
     const interval = setInterval(() => {
       fetchUnreadCount();
-      fetchPendingDeposits();
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchSummary, fetchUnreadCount, fetchPendingDeposits]);
+  }, [fetchSummary, fetchUnreadCount]);
+
+  // Separate effect for pending deposits that depends on user being loaded
+  useEffect(() => {
+    if (user && ['super_admin', 'admin'].includes(user.role)) {
+      fetchPendingDeposits();
+      
+      // Poll for pending deposits every 30 seconds
+      const depositInterval = setInterval(() => {
+        fetchPendingDeposits();
+      }, 30000);
+      return () => clearInterval(depositInterval);
+    }
+  }, [user, fetchPendingDeposits]);
 
   const onRefresh = async () => {
     setRefreshing(true);
