@@ -172,6 +172,10 @@ export default function BankAccounts() {
       });
 
       if (response.ok) {
+        // Play success feedback when deposit is approved
+        if (approved) {
+          alertDepositApproved();
+        }
         Alert.alert('Éxito', `Depósito ${approved ? 'aprobado' : 'rechazado'}`);
         setShowDepositModal(false);
         setSelectedDeposit(null);
