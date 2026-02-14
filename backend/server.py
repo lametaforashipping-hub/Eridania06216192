@@ -43,6 +43,7 @@ from routes import (
     accounting_router,
     system_router
 )
+from routes.bank_accounts import router as bank_accounts_router
 
 # Register all routers with the API router
 api_router.include_router(auth_router)
