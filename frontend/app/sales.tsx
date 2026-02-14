@@ -3616,15 +3616,28 @@ const styles = StyleSheet.create({
     borderBottomColor: '#22c55e',
     borderStyle: 'dashed',
   },
+  ticketImageLogo: {
+    width: 80,
+    height: 80,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
   ticketImageBrand: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
     color: '#22c55e',
-    letterSpacing: 2,
+    letterSpacing: 1,
+    textAlign: 'center',
   },
   ticketImageSubtitle: {
     fontSize: 12,
     color: '#64748b',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  ticketImagePhone: {
+    fontSize: 11,
+    color: '#475569',
     marginTop: 4,
   },
   ticketImageNumberBox: {
