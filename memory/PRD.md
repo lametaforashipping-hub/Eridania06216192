@@ -27,6 +27,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (14 Feb 2026)
 
+### ✅ Feature: Logo y Datos de Empresa en Ticket (COMPLETADO 14 Feb 2026)
+- El ticket ahora muestra automáticamente la información de la empresa:
+  - **Logo** de la empresa (si está configurado)
+  - **Nombre de la empresa** (en lugar de "LOTERIA MAGIC")
+  - **Slogan** de la empresa
+  - **Teléfono** de contacto
+- Los datos se obtienen de `/api/company-profile` al cargar la pantalla de ventas
+
 ### ✅ Feature: Compartir Ticket como Imagen por WhatsApp (COMPLETADO 14 Feb 2026)
 - **Nuevo diseño de ticket profesional** para captura como imagen
 - **Botón "Enviar Imagen"** para compartir el ticket como imagen PNG
