@@ -235,7 +235,16 @@ async def get_transactions(
     return serialize_doc(transactions)
 
 
+# Alias for backwards compatibility - frontend calls /commissions
 @router.get("/commissions")
+async def get_commissions_alias(
+    period: str = "day",
+    current_user: dict = Depends(get_current_user)
+):
+    """Alias for commissions report - redirects to main function"""
+    return await get_commissions_report(period=period, current_user=current_user)
+
+
 @router.get("/commissions-report")
 async def get_commissions_report(
     period: str = "day",
