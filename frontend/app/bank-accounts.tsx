@@ -52,6 +52,7 @@ interface DepositRequest {
 export default function BankAccounts() {
   const { token, user } = useAuth();
   const router = useRouter();
+  const { alertDepositApproved } = useNotificationAlert();
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [pendingDeposits, setPendingDeposits] = useState<DepositRequest[]>([]);
   const [loading, setLoading] = useState(true);
