@@ -69,7 +69,7 @@ export default function LiveTickets() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const alertAnim = useRef(new Animated.Value(1)).current;
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const isHighRisk = (ticket: Ticket) => {
     const potentialWin = ticket.potential_win || ticket.total_potential_win || 0;
