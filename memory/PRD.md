@@ -36,6 +36,22 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `packageManager` en package.json correctamente configurado para yarn
   - Backend y frontend funcionando correctamente
 
+### ✅ Bug Fix: Endpoint /api/accounting/report no existía (COMPLETADO 15 Feb 2026)
+- **Problema:** La página de Contabilidad mostraba pantalla vacía porque el endpoint no existía
+- **Solución:** Creado nuevo endpoint `GET /api/accounting/report` en `backend/routes/accounting.py`
+- **Funcionalidad:** Retorna reporte completo con:
+  - Período (Hoy, Última Semana, Último Mes)
+  - Total ventas y premios pagados
+  - Comisión calculada (10%)
+  - Ganancia neta
+  - ROI
+  - Últimas 50 transacciones
+
+### ✅ Mejora: Mostrar loterías cerradas en pantalla de ventas (COMPLETADO 15 Feb 2026)
+- **Problema:** La pantalla de ventas solo mostraba loterías abiertas, quedando vacía fuera de horario
+- **Solución:** Modificada función `getFilteredLotteries()` en `sales.tsx` para mostrar todas las loterías activas
+- **Comportamiento:** Las loterías cerradas se muestran con estilo visual diferente (deshabilitadas)
+
 ## Cambios Recientes (14 Feb 2026)
 
 ### ✅ Feature: Logo y Datos de Empresa en Ticket (COMPLETADO 14 Feb 2026)
