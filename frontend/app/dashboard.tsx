@@ -127,6 +127,7 @@ export default function Dashboard() {
     { icon: 'receipt-outline', emoji: '💰', label: 'Comisiones', route: '/commission-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
     { icon: 'cash-outline', emoji: '💵', label: 'Pagar Premios', route: '/pay-prizes', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: 'person-add-outline', emoji: '👤', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
+    { icon: 'wallet-outline', emoji: '🏦', label: 'Cuentas Banco', route: '/bank-accounts', roles: ['super_admin', 'admin'], color: '#0d9488' },
     { icon: 'grid-outline', emoji: '🎰', label: 'Loterías', route: '/lotteries', roles: ['super_admin'], color: '#a855f7' },
     { icon: 'options-outline', emoji: '🎯', label: 'Tipos Jugada', route: '/play-types-admin', roles: ['super_admin'], color: '#f43f5e' },
     { icon: 'business-outline', emoji: '🏢', label: 'Mi Empresa', route: '/company-profile', roles: ['super_admin'], color: '#6366f1' },
