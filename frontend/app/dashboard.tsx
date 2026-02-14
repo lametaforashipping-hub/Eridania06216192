@@ -36,6 +36,9 @@ export default function Dashboard() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingDepositsCount, setPendingDepositsCount] = useState(0);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  
+  // Hook for sound and vibration alerts
+  const { checkAndAlertNewDeposits } = useNotificationAlert();
 
   const fetchSummary = useCallback(async () => {
     if (!token) return;
@@ -81,12 +84,17 @@ export default function Dashboard() {
       });
       if (response.ok) {
         const data = await response.json();
-        setPendingDepositsCount(data.count || 0);
+        const newCount = data.count || 0;
+        
+        // Check if there are new deposits and alert with sound/vibration
+        checkAndAlertNewDeposits(newCount);
+        
+        setPendingDepositsCount(newCount);
       }
     } catch (error) {
       console.error('Error fetching pending deposits:', error);
     }
-  }, [token, user]);
+  }, [token, user, checkAndAlertNewDeposits]);
 
   useEffect(() => {
     fetchSummary();
