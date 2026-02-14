@@ -54,6 +54,30 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes (14 Feb 2026)
 
+### ✅ Feature: Rediseño Profesional del Ticket de Venta (COMPLETADO 14 Feb 2026)
+- **Nuevo diseño compacto y profesional** para el ticket de confirmación de venta
+- **Estructura del ticket:**
+  1. **Header centrado:** Logo de la empresa centrado, nombre de empresa, dirección y RNC
+  2. **Número de ticket:** En negrita (fontWeight: 900), más grande y visible
+  3. **Fecha y hora:** Sección separada con formato más legible
+  4. **Jugadas:** Formato limpio con tipo abreviado (Q, P, T, SP), números y monto
+  5. **Total:** Línea destacada con número de jugadas y monto total
+  6. **Código QR:** Centrado en la parte inferior con el número de ticket
+  7. **Footer:** Mensaje "CONSERVE ESTE BOLETO" y "¡BUENA SUERTE!"
+- **Líneas divisorias simples:** Reemplazadas todas las cajas y bordes por líneas simples (1px negro)
+- **Sin efecto de sombra:** Eliminada la sombra del contenedor para imagen más limpia
+- **QR Code:** Implementado usando `react-qr-code` que funciona en web y móvil
+- **Datos de empresa:** Se muestran automáticamente desde el perfil de empresa (address, rnc)
+
+**Implementación Técnica:**
+- Librería QR: `react-qr-code` (compatible con web)
+- Interface actualizada: `CompanyProfile` ahora incluye `address` y `rnc`
+- Nuevos estilos: `ticketHeaderCentered`, `ticketNumberSection`, `ticketDateSection`, etc.
+
+**Archivos Modificados:**
+- `frontend/app/sales.tsx`: Nuevo diseño del ticket en ViewShot
+- `frontend/package.json`: Añadido `react-qr-code`
+
 ### ✅ Feature: Logo y Datos de Empresa en Ticket (COMPLETADO 14 Feb 2026)
 - El ticket ahora muestra automáticamente la información de la empresa:
   - **Logo** de la empresa (si está configurado)
