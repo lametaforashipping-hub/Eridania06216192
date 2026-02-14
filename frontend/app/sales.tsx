@@ -25,8 +25,7 @@ import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import ViewShot from 'react-native-view-shot';
-// QRCode only works on mobile, not web
-const QRCode = Platform.OS !== 'web' ? require('react-native-qrcode-svg').default : null;
+import QRCode from 'react-qr-code';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
