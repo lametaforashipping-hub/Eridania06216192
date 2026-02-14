@@ -7,8 +7,31 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Backend:** FastAPI + MongoDB
 - **Frontend:** React Native / Expo
 - **Base de datos:** MongoDB
+- **Dominio:** loteriamagica.com (Hostinger) - pendiente configuración
 
 ## Cambios Recientes (14 Feb 2026)
+
+### ✅ Rediseño Página de Login (COMPLETADO 14 Feb 2026)
+- Nuevo diseño moderno con tarjeta centrada
+- Gradiente de fondo con círculos decorativos
+- Logo con anillos decorativos (usa logo de empresa si existe)
+- Campos de entrada compactos con íconos
+- Botón con gradiente morado
+- Carga el nombre de empresa desde `/api/company-profile`
+
+### ✅ Sistema de Permisos Super Admin (COMPLETADO 14 Feb 2026)
+**Restricciones implementadas:**
+- **Gestión de Usuarios:**
+  - Solo Super Admin puede crear/editar/activar/desactivar Administradores
+  - Admin NO puede modificar a otros Admins ni al Super Admin
+  - Admin solo puede gestionar Vendedores que él creó
+  - UI muestra "Protegido" y mensaje para usuarios que Admin no puede gestionar
+  
+- **Gestión de Loterías:**
+  - Solo Super Admin puede crear nuevas loterías
+  - Solo Super Admin puede editar loterías (horarios, precios, configuración)
+  - Solo Super Admin puede activar/desactivar loterías
+  - Admin puede ver loterías pero sin opciones de edición
 
 ### ✅ Refactorización: sales.tsx Modularizado (COMPLETADO 14 Feb 2026)
 - **Archivo original:** 4079 líneas → **Archivo nuevo:** 878 líneas (-78%)
