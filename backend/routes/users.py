@@ -43,6 +43,11 @@ async def update_user(user_id: str, update: UserUpdate, current_user: dict = Dep
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
+    # RESTRICCIÓN: Solo Super Admin puede modificar Administradores
+    if user.get("role") == UserRole.ADMIN.value and current_user["role"] != UserRole.SUPER_ADMIN.value:
+        raise HTTPException(status_code=403, detail="Solo el Super Admin puede modificar administradores")
+    
+    # Admin solo puede modificar usuarios que él creó (vendedores)
     if current_user["role"] == UserRole.ADMIN.value and user.get("created_by") != current_user["id"]:
         raise HTTPException(status_code=403, detail="No puedes modificar este usuario")
     
