@@ -103,7 +103,7 @@ const LOTTERY_TYPES = [
 ];
 
 export default function Lotteries() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
   const [lotteries, setLotteries] = useState<Lottery[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,6 +113,9 @@ export default function Lotteries() {
   const [editingLottery, setEditingLottery] = useState<Lottery | null>(null);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Solo Super Admin puede editar loterías
+  const isSuperAdmin = user?.role === 'super_admin';
 
   // Form states
   const [formName, setFormName] = useState('');
