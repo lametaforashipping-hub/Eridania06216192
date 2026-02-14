@@ -156,6 +156,26 @@ export default function Sales() {
   // ViewShot ref for capturing ticket as image
   const ticketViewRef = useRef<ViewShot>(null);
   const [sharingImage, setSharingImage] = useState(false);
+  // Company profile for ticket branding
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+
+  // Fetch company profile for ticket branding
+  useEffect(() => {
+    const fetchCompanyProfile = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/company-profile`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCompanyProfile(data);
+        }
+      } catch (error) {
+        console.error('Error fetching company profile:', error);
+      }
+    };
+    if (token) fetchCompanyProfile();
+  }, [token]);
 
   useEffect(() => {
     fetchLotteries();
