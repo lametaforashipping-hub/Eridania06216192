@@ -13,13 +13,15 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("")
 async def get_users(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
-    """Get all users (filtered by permissions)"""
+    """Get all users (filtered by permissions) - optimized with projection"""
     db = get_db()
     query = {}
     if current_user["role"] == UserRole.ADMIN.value:
         query["created_by"] = current_user["id"]
     
-    users = await db.users.find(query).to_list(1000)
+    # Exclude sensitive fields from response
+    projection = {"password": 0, "notification_token": 0}
+    users = await db.users.find(query, projection).to_list(500)
     return serialize_doc(users)
 
 
