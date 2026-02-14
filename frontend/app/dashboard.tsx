@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingDepositsCount, setPendingDepositsCount] = useState(0);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   const fetchSummary = useCallback(async () => {
@@ -71,20 +72,40 @@ export default function Dashboard() {
     }
   }, [token]);
 
+  const fetchPendingDeposits = useCallback(async () => {
+    if (!token || !user || !['super_admin', 'admin'].includes(user.role)) return;
+    try {
+      const response = await fetch(`${API_URL}/api/bank-accounts/deposit-requests/pending-count`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPendingDepositsCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching pending deposits:', error);
+    }
+  }, [token, user]);
+
   useEffect(() => {
     fetchSummary();
     fetchUnreadCount();
+    fetchPendingDeposits();
     refreshUser();
     
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
+    // Poll for new notifications and pending deposits every 30 seconds
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+      fetchPendingDeposits();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchSummary, fetchUnreadCount]);
+  }, [fetchSummary, fetchUnreadCount, fetchPendingDeposits]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchSummary();
     await fetchUnreadCount();
+    await fetchPendingDeposits();
     await refreshUser();
     setRefreshing(false);
   };
