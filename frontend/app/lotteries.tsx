@@ -1340,4 +1340,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  protectedBadge: {
+    padding: 8,
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderRadius: 8,
+  },
+  protectedNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  protectedNoticeText: {
+    fontSize: 12,
+    color: '#f59e0b',
+    marginLeft: 8,
+    fontStyle: 'italic',
+  },
 });
