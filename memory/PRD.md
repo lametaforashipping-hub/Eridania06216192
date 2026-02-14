@@ -11,6 +11,21 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes
 
+### ✅ Alertas Sonoras y Vibración para Depósitos (COMPLETADO 14 Feb 2026)
+**Funcionalidades:**
+- **Sonido de alerta:** Beep de dos tonos (880Hz + 1100Hz) cuando hay nuevo depósito pendiente
+- **Vibración:** Patrón de vibración en dispositivos móviles/navegadores compatibles
+- **Sonido de éxito:** Tono de 523Hz cuando el admin aprueba un depósito
+- **Anti-spam:** Mínimo 3 segundos entre alertas consecutivas
+- **Compatibilidad:** Web Audio API para web, Haptics para iOS, Vibration para Android
+
+**Archivos Creados:**
+- `/app/frontend/src/hooks/useNotificationAlert.ts` - Hook reutilizable con toda la lógica de alertas
+
+**Archivos Modificados:**
+- `/app/frontend/app/dashboard.tsx` - Usa `checkAndAlertNewDeposits` cuando cambia el conteo
+- `/app/frontend/app/bank-accounts.tsx` - Usa `alertDepositApproved` al aprobar depósitos
+
 ### ✅ Notificaciones en Tiempo Real para Depósitos (COMPLETADO 14 Feb 2026)
 **Funcionalidades:**
 - Cuando un vendedor solicita un depósito, el Super Admin recibe una notificación automática
