@@ -1532,7 +1532,9 @@ export default function Sales() {
 
   // Get filtered lotteries
   const getFilteredLotteries = () => {
-    return lotteries.filter(l => l.is_open);
+    // Show all active lotteries, both open and closed
+    // Closed ones will be visually indicated and disabled
+    return lotteries.filter(l => l.active !== false);
   };
 
   if (loading) {
