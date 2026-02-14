@@ -3525,8 +3525,11 @@ const styles = StyleSheet.create({
   },
   ticketImageContainer: {
     backgroundColor: '#ffffff',
-    padding: 20,
-    minWidth: 320,
+    padding: 0,
+    minWidth: 280,
+    maxWidth: 280,
+    borderWidth: 2,
+    borderColor: '#000',
   },
   ticketImageHeader: {
     alignItems: 'center',
