@@ -2009,11 +2009,14 @@ export default function Sales() {
                     {/* Línea divisoria */}
                     <View style={styles.ticketDivider} />
                     
-                    {/* QR Code placeholder for web - shows ticket number as text */}
+                    {/* QR Code Centrado */}
                     <View style={styles.ticketQRSection}>
-                      <View style={styles.ticketQRPlaceholder}>
-                        <Text style={styles.ticketQRPlaceholderText}>{lastTicket.ticket_number}</Text>
-                      </View>
+                      <QRCode
+                        value={lastTicket.ticket_number}
+                        size={80}
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                      />
                     </View>
                     </View>
                     
