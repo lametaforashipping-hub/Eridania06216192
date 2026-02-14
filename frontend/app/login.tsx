@@ -130,9 +130,11 @@ export default function Login() {
                         resizeMode="contain"
                       />
                     ) : (
-                      <View style={styles.logoIconContainer}>
-                        <Ionicons name="diamond" size={36} color="#fbbf24" />
-                      </View>
+                      <Image
+                        source={require('../assets/images/loteria_magica_logo.png')}
+                        style={styles.logoImageLocal}
+                        resizeMode="contain"
+                      />
                     )}
                   </View>
                 </View>
