@@ -1400,6 +1400,44 @@ export default function Sales() {
     }
   };
 
+  // Share ticket as image via WhatsApp
+  const handleShareWhatsAppImage = async () => {
+    if (!lastTicket || !ticketViewRef.current) return;
+    
+    setSharingImage(true);
+    try {
+      // Capture the ticket view as an image
+      const uri = await ticketViewRef.current.capture();
+      
+      if (Platform.OS === 'web') {
+        // For web, download the image
+        const link = document.createElement('a');
+        link.href = uri;
+        link.download = `ticket-${lastTicket.ticket_number}.png`;
+        link.click();
+        Alert.alert('Imagen Descargada', 'La imagen del ticket se descargó. Puedes compartirla manualmente por WhatsApp.');
+      } else {
+        // For mobile, share directly
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'image/png',
+            dialogTitle: 'Compartir Ticket',
+            UTI: 'public.png',
+          });
+        } else {
+          Alert.alert('Error', 'El compartir no está disponible en este dispositivo');
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing image:', error);
+      Alert.alert('Error', 'No se pudo compartir la imagen');
+    } finally {
+      setSharingImage(false);
+    }
+  };
+
+  // Share ticket as text (fallback)
   const handleShareWhatsApp = async () => {
     if (!lastTicket) return;
     const date = new Date(lastTicket.created_at);
