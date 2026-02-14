@@ -146,6 +146,10 @@ export default function Sales() {
   // Input refs for keyboard navigation
   const numberInputRef = useRef<TextInput>(null);
   const amountInputRef = useRef<TextInput>(null);
+  // ViewShot ref for capturing ticket as image
+  const ticketViewRef = useRef<ViewShot>(null);
+  const [sharingImage, setSharingImage] = useState(false);
+
   useEffect(() => {
     fetchLotteries();
     fetchFavorites();
