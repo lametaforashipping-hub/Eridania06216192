@@ -1249,19 +1249,12 @@ export default function Sales() {
           
           <!-- Footer -->
           <div class="footer">
-            <div class="qr-container">
-              <img class="qr-code" src="${qrCodeUrl}" alt="QR" />
-              <div class="qr-label">${ticket.ticket_number}</div>
-            </div>
-            <div class="scan-text">ESCANEA PARA VERIFICAR</div>
-            <div class="footer-notes">
-              <div class="footer-text">CONSERVE ESTE BOLETO</div>
-              <div class="footer-text">VALIDO SOLO CON ORIGINAL</div>
+            <img class="qr-code" src="${qrCodeUrl}" alt="QR" />
+            <div class="footer-text">
+              <div>CONSERVE ESTE BOLETO</div>
+              <div>BUENA SUERTE!</div>
             </div>
           </div>
-          
-          <!-- Bottom -->
-          <div class="bottom-bar">BUENA SUERTE!</div>
         </div>
       </body>
       </html>
