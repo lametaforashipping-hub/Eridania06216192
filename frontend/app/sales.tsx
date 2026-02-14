@@ -1918,36 +1918,88 @@ export default function Sales() {
             </View>
             
             {lastTicket && (
-              <View style={styles.ticketPreview}>
-                <Text style={styles.ticketNumber}>{lastTicket.ticket_number}</Text>
-                <Text style={styles.ticketPlaysCount}>{lastTicket.plays.length} jugada(s)</Text>
-                
-                <ScrollView style={styles.ticketPlaysList} nestedScrollEnabled>
-                  {lastTicket.plays.map((play, idx) => (
-                    <View key={idx} style={styles.ticketPlay}>
-                      <Text style={styles.ticketPlayLottery}>{play.lottery_name}</Text>
-                      <Text style={styles.ticketPlayNumbers}>
-                        {play.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}
+              <ViewShot 
+                ref={ticketViewRef} 
+                options={{ format: 'png', quality: 1 }}
+                style={styles.ticketViewShot}
+              >
+                <View style={styles.ticketImageContainer}>
+                  {/* Header */}
+                  <View style={styles.ticketImageHeader}>
+                    <Text style={styles.ticketImageBrand}>LOTERIA MAGIC</Text>
+                    <Text style={styles.ticketImageSubtitle}>Tu suerte está aquí</Text>
+                  </View>
+                  
+                  {/* Ticket Number */}
+                  <View style={styles.ticketImageNumberBox}>
+                    <Text style={styles.ticketImageLabel}>BOLETO No.</Text>
+                    <Text style={styles.ticketImageNumber}>{lastTicket.ticket_number}</Text>
+                  </View>
+                  
+                  {/* Date & Customer */}
+                  <View style={styles.ticketImageInfo}>
+                    <Text style={styles.ticketImageDate}>
+                      {new Date(lastTicket.created_at).toLocaleDateString('es-DO', { 
+                        day: '2-digit', month: '2-digit', year: 'numeric', 
+                        hour: '2-digit', minute: '2-digit' 
+                      })}
+                    </Text>
+                    {lastTicket.customer_name && (
+                      <Text style={styles.ticketImageCustomer}>Cliente: {lastTicket.customer_name}</Text>
+                    )}
+                  </View>
+                  
+                  {/* Plays */}
+                  <View style={styles.ticketImagePlays}>
+                    <Text style={styles.ticketImagePlaysTitle}>JUGADAS ({lastTicket.plays.length})</Text>
+                    {lastTicket.plays.map((play, idx) => (
+                      <View key={idx} style={styles.ticketImagePlay}>
+                        <View style={styles.ticketImagePlayHeader}>
+                          <Text style={styles.ticketImagePlayIndex}>#{idx + 1}</Text>
+                          <Text style={styles.ticketImagePlayType}>
+                            {play.lottery_type?.toUpperCase() || 'QUINIELA'}
+                          </Text>
+                        </View>
+                        <Text style={styles.ticketImagePlayLottery}>{play.lottery_name}</Text>
+                        <View style={styles.ticketImagePlayNumbersRow}>
+                          {play.numbers.map((n, i) => (
+                            <View key={i} style={styles.ticketImagePlayBall}>
+                              <Text style={styles.ticketImagePlayBallText}>
+                                {n.toString().padStart(2, '0')}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                        <Text style={styles.ticketImagePlayAmount}>
+                          {lastTicket.currency} {play.amount.toFixed(2)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                  
+                  {/* Totals */}
+                  <View style={styles.ticketImageTotals}>
+                    <View style={styles.ticketImageTotalRow}>
+                      <Text style={styles.ticketImageTotalLabel}>TOTAL A PAGAR:</Text>
+                      <Text style={styles.ticketImageTotalValue}>
+                        {lastTicket.currency} {lastTicket.total_amount.toFixed(2)}
                       </Text>
                     </View>
-                  ))}
-                </ScrollView>
-
-                <View style={styles.ticketTotals}>
-                  <View style={styles.ticketTotalRow}>
-                    <Text style={styles.ticketTotalLabel}>Total:</Text>
-                    <Text style={styles.ticketTotalValue}>
-                      {lastTicket.currency} {lastTicket.total_amount.toLocaleString()}
-                    </Text>
+                    <View style={styles.ticketImageTotalRow}>
+                      <Text style={styles.ticketImageTotalLabel}>PREMIO POTENCIAL:</Text>
+                      <Text style={[styles.ticketImageTotalValue, styles.ticketImageWinValue]}>
+                        {lastTicket.currency} {lastTicket.total_potential_win.toLocaleString()}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.ticketTotalRow}>
-                    <Text style={styles.ticketTotalLabel}>Premio Potencial:</Text>
-                    <Text style={[styles.ticketTotalValue, styles.ticketWinValue]}>
-                      {lastTicket.currency} {lastTicket.total_potential_win.toLocaleString()}
-                    </Text>
+                  
+                  {/* Footer */}
+                  <View style={styles.ticketImageFooter}>
+                    <Text style={styles.ticketImageFooterText}>CONSERVE ESTE BOLETO</Text>
+                    <Text style={styles.ticketImageFooterText}>¡BUENA SUERTE!</Text>
                   </View>
                 </View>
-              </View>
+              </ViewShot>
             )}
 
             <View style={styles.ticketActions}>
@@ -1955,11 +2007,29 @@ export default function Sales() {
                 <Ionicons name="print" size={24} color="#ffffff" />
                 <Text style={styles.ticketActionText}>Imprimir</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.ticketActionButton, styles.whatsappButton]} onPress={handleShareWhatsApp}>
-                <Ionicons name="logo-whatsapp" size={24} color="#ffffff" />
-                <Text style={styles.ticketActionText}>WhatsApp</Text>
+              <TouchableOpacity 
+                style={[styles.ticketActionButton, styles.whatsappButton, sharingImage && styles.buttonDisabled]} 
+                onPress={handleShareWhatsAppImage}
+                disabled={sharingImage}
+              >
+                {sharingImage ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="image" size={24} color="#ffffff" />
+                    <Text style={styles.ticketActionText}>Enviar Imagen</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
+
+            <TouchableOpacity 
+              style={styles.textShareButton} 
+              onPress={handleShareWhatsApp}
+            >
+              <Ionicons name="chatbubble-outline" size={18} color="#94a3b8" />
+              <Text style={styles.textShareButtonText}>Compartir como texto</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.closeTicketButton}
