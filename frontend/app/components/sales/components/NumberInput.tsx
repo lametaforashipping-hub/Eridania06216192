@@ -15,8 +15,8 @@ interface NumberInputProps {
   selectedNumbers: number[];
   numberInput: string;
   amount: string;
-  inputRef: RefObject<TextInput>;
-  amountRef: RefObject<TextInput>;
+  inputRef: RefObject<TextInput | null>;
+  amountRef: RefObject<TextInput | null>;
   onNumberInputChange: (value: string) => void;
   onAmountChange: (value: string) => void;
   onAddNumber: () => void;
