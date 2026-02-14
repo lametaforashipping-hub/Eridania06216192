@@ -75,6 +75,93 @@ async def get_accounting_summary(
     }
 
 
+@router.get("/report")
+async def get_accounting_report(
+    period: str = "month",
+    country: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get comprehensive accounting report for the UI"""
+    db = get_db()
+    now = datetime.utcnow()
+    
+    # Determine period
+    if period == "day":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_name = "Hoy"
+    elif period == "week":
+        start = now - timedelta(days=7)
+        period_name = "Última Semana"
+    else:  # month
+        start = now - timedelta(days=30)
+        period_name = "Último Mes"
+    
+    # Build base query
+    query_base = {"created_at": {"$gte": start, "$lte": now}}
+    user_country = current_user.get("country", "RD")
+    
+    if current_user["role"] == UserRole.SUPER_ADMIN.value:
+        filter_country = country
+    else:
+        filter_country = user_country
+        query_base["seller_id"] = current_user["id"]
+    
+    if filter_country:
+        country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
+        lottery_ids = [l["id"] for l in country_lotteries]
+        if lottery_ids:
+            query_base["$or"] = [
+                {"lottery_id": {"$in": lottery_ids}},
+                {"plays.lottery_id": {"$in": lottery_ids}}
+            ]
+    
+    # Get tickets
+    tickets = await db.tickets.find(query_base).to_list(10000)
+    
+    # Calculate stats
+    total_sales = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
+    total_wins = sum(t.get("prize") or t.get("total_prize", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    tickets_sold = len([t for t in tickets if t.get("status") != TicketStatus.CANCELLED.value])
+    tickets_won = len([t for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value]])
+    
+    # Commission (10%)
+    commission_rate = current_user.get("commission_rate", 10) / 100
+    total_commission = total_sales * commission_rate
+    net_profit = total_sales - total_wins - total_commission
+    
+    # Get recent transactions
+    tx_query = {"created_at": {"$gte": start, "$lte": now}}
+    if current_user["role"] != UserRole.SUPER_ADMIN.value:
+        tx_query["user_id"] = current_user["id"]
+    
+    transactions = await db.transactions.find(tx_query).sort("created_at", -1).to_list(50)
+    
+    formatted_transactions = []
+    for tx in transactions:
+        user = await db.users.find_one({"id": tx.get("user_id")})
+        formatted_transactions.append({
+            "id": tx.get("id", str(tx.get("_id", ""))),
+            "user_name": user.get("name", "N/A") if user else "N/A",
+            "transaction_type": tx.get("transaction_type", "other"),
+            "amount": tx.get("amount", 0),
+            "currency": tx.get("currency", current_user.get("currency", "RD$")),
+            "description": tx.get("description", ""),
+            "created_at": tx.get("created_at", now).isoformat() if isinstance(tx.get("created_at"), datetime) else str(tx.get("created_at", ""))
+        })
+    
+    return {
+        "period": period_name,
+        "total_sales": total_sales,
+        "total_wins": total_wins,
+        "total_commission": total_commission,
+        "net_profit": net_profit,
+        "currency": current_user.get("currency", "RD$"),
+        "tickets_sold": tickets_sold,
+        "tickets_won": tickets_won,
+        "transactions": formatted_transactions
+    }
+
+
 @router.get("/transactions")
 async def get_transactions(
     start_date: Optional[str] = None,
