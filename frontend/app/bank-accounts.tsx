@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
+import { useNotificationAlert } from '../src/hooks/useNotificationAlert';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
