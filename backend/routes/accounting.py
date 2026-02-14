@@ -81,7 +81,7 @@ async def get_accounting_report(
     country: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get comprehensive accounting report for the UI"""
+    """Get comprehensive accounting report for the UI - optimized"""
     db = get_db()
     now = datetime.utcnow()
     
@@ -107,7 +107,7 @@ async def get_accounting_report(
         query_base["seller_id"] = current_user["id"]
     
     if filter_country:
-        country_lotteries = await db.lotteries.find({"country": filter_country}).to_list(1000)
+        country_lotteries = await db.lotteries.find({"country": filter_country}, {"id": 1, "_id": 0}).to_list(500)
         lottery_ids = [l["id"] for l in country_lotteries]
         if lottery_ids:
             query_base["$or"] = [
@@ -115,30 +115,71 @@ async def get_accounting_report(
                 {"plays.lottery_id": {"$in": lottery_ids}}
             ]
     
-    # Get tickets
-    tickets = await db.tickets.find(query_base).to_list(10000)
+    # Use aggregation pipeline to calculate stats server-side
+    stats_pipeline = [
+        {"$match": query_base},
+        {
+            "$group": {
+                "_id": None,
+                "total_sales": {
+                    "$sum": {
+                        "$cond": [
+                            {"$ne": ["$status", TicketStatus.CANCELLED.value]},
+                            {"$ifNull": [{"$ifNull": ["$amount", "$total_amount"]}, 0]},
+                            0
+                        ]
+                    }
+                },
+                "total_wins": {
+                    "$sum": {
+                        "$cond": [
+                            {"$in": ["$status", [TicketStatus.WON.value, TicketStatus.PAID.value]]},
+                            {"$ifNull": [{"$ifNull": ["$prize", "$total_prize"]}, 0]},
+                            0
+                        ]
+                    }
+                },
+                "tickets_sold": {
+                    "$sum": {"$cond": [{"$ne": ["$status", TicketStatus.CANCELLED.value]}, 1, 0]}
+                },
+                "tickets_won": {
+                    "$sum": {"$cond": [{"$in": ["$status", [TicketStatus.WON.value, TicketStatus.PAID.value]]}, 1, 0]}
+                }
+            }
+        }
+    ]
     
-    # Calculate stats
-    total_sales = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
-    total_wins = sum(t.get("prize") or t.get("total_prize", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
-    tickets_sold = len([t for t in tickets if t.get("status") != TicketStatus.CANCELLED.value])
-    tickets_won = len([t for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value]])
+    stats_cursor = db.tickets.aggregate(stats_pipeline)
+    stats_result = await stats_cursor.to_list(length=1)
+    stats = stats_result[0] if stats_result else {
+        "total_sales": 0, "total_wins": 0, "tickets_sold": 0, "tickets_won": 0
+    }
+    
+    total_sales = stats.get("total_sales", 0)
+    total_wins = stats.get("total_wins", 0)
+    tickets_sold = stats.get("tickets_sold", 0)
+    tickets_won = stats.get("tickets_won", 0)
     
     # Commission (10%)
     commission_rate = current_user.get("commission_rate", 10) / 100
     total_commission = total_sales * commission_rate
     net_profit = total_sales - total_wins - total_commission
     
-    # Get recent transactions
+    # Get recent transactions with batch user lookup
     tx_query = {"created_at": {"$gte": start, "$lte": now}}
     if current_user["role"] != UserRole.SUPER_ADMIN.value:
         tx_query["user_id"] = current_user["id"]
     
-    transactions = await db.transactions.find(tx_query).sort("created_at", -1).to_list(50)
+    transactions = await db.transactions.find(tx_query).sort("created_at", -1).limit(50).to_list(50)
+    
+    # Batch fetch all users for transactions
+    user_ids = list(set(tx.get("user_id") for tx in transactions if tx.get("user_id")))
+    users_list = await db.users.find({"id": {"$in": user_ids}}, {"id": 1, "name": 1, "_id": 0}).to_list(len(user_ids)) if user_ids else []
+    user_map = {u["id"]: u for u in users_list}
     
     formatted_transactions = []
     for tx in transactions:
-        user = await db.users.find_one({"id": tx.get("user_id")})
+        user = user_map.get(tx.get("user_id"))
         formatted_transactions.append({
             "id": tx.get("id", str(tx.get("_id", ""))),
             "user_name": user.get("name", "N/A") if user else "N/A",
