@@ -2138,60 +2138,6 @@ export default function Sales() {
                 )}
               </View>
             )}
-                  </View>
-                  
-                  {/* Plays */}
-                  <View style={styles.ticketImagePlays}>
-                    <Text style={styles.ticketImagePlaysTitle}>JUGADAS ({lastTicket.plays.length})</Text>
-                    {lastTicket.plays.map((play, idx) => (
-                      <View key={idx} style={styles.ticketImagePlay}>
-                        <View style={styles.ticketImagePlayHeader}>
-                          <Text style={styles.ticketImagePlayIndex}>#{idx + 1}</Text>
-                          <Text style={styles.ticketImagePlayType}>
-                            {play.lottery_type?.toUpperCase() || 'QUINIELA'}
-                          </Text>
-                        </View>
-                        <Text style={styles.ticketImagePlayLottery}>{play.lottery_name}</Text>
-                        <View style={styles.ticketImagePlayNumbersRow}>
-                          {play.numbers.map((n, i) => (
-                            <View key={i} style={styles.ticketImagePlayBall}>
-                              <Text style={styles.ticketImagePlayBallText}>
-                                {n.toString().padStart(2, '0')}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                        <Text style={styles.ticketImagePlayAmount}>
-                          {lastTicket.currency} {play.amount.toFixed(2)}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                  
-                  {/* Totals */}
-                  <View style={styles.ticketImageTotals}>
-                    <View style={styles.ticketImageTotalRow}>
-                      <Text style={styles.ticketImageTotalLabel}>TOTAL A PAGAR:</Text>
-                      <Text style={styles.ticketImageTotalValue}>
-                        {lastTicket.currency} {lastTicket.total_amount.toFixed(2)}
-                      </Text>
-                    </View>
-                    <View style={styles.ticketImageTotalRow}>
-                      <Text style={styles.ticketImageTotalLabel}>PREMIO POTENCIAL:</Text>
-                      <Text style={[styles.ticketImageTotalValue, styles.ticketImageWinValue]}>
-                        {lastTicket.currency} {lastTicket.total_potential_win.toLocaleString()}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  {/* Footer */}
-                  <View style={styles.ticketImageFooter}>
-                    <Text style={styles.ticketImageFooterText}>CONSERVE ESTE BOLETO</Text>
-                    <Text style={styles.ticketImageFooterText}>¡BUENA SUERTE!</Text>
-                  </View>
-                </View>
-              </ViewShot>
-            )}
 
             <View style={styles.ticketActions}>
               <TouchableOpacity style={styles.ticketActionButton} onPress={handlePrintTicket}>
