@@ -323,19 +323,27 @@ export default function Lotteries() {
           </View>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity 
-            style={styles.editButton} 
-            onPress={() => openEditModal(item)}
-            data-testid={`edit-lottery-${item.id}`}
-          >
-            <Ionicons name="create-outline" size={18} color="#ffffff" />
-          </TouchableOpacity>
-          <Switch
-            value={item.active}
-            onValueChange={() => toggleLotteryStatus(item)}
-            trackColor={{ false: '#334155', true: '#14532d' }}
-            thumbColor={item.active ? '#22c55e' : '#94a3b8'}
-          />
+          {isSuperAdmin ? (
+            <>
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={() => openEditModal(item)}
+                data-testid={`edit-lottery-${item.id}`}
+              >
+                <Ionicons name="create-outline" size={18} color="#ffffff" />
+              </TouchableOpacity>
+              <Switch
+                value={item.active}
+                onValueChange={() => toggleLotteryStatus(item)}
+                trackColor={{ false: '#334155', true: '#14532d' }}
+                thumbColor={item.active ? '#22c55e' : '#94a3b8'}
+              />
+            </>
+          ) : (
+            <View style={styles.protectedBadge}>
+              <Ionicons name="lock-closed" size={14} color="#f59e0b" />
+            </View>
+          )}
         </View>
       </View>
 
