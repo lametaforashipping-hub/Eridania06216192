@@ -73,13 +73,19 @@ export default function Dashboard() {
   }, [token]);
 
   const fetchPendingDeposits = useCallback(async () => {
-    if (!token || !user || !['super_admin', 'admin'].includes(user.role)) return;
+    console.log('fetchPendingDeposits called, token:', !!token, 'user:', user?.role);
+    if (!token || !user || !['super_admin', 'admin'].includes(user.role)) {
+      console.log('fetchPendingDeposits skipped - missing auth or wrong role');
+      return;
+    }
     try {
+      console.log('Fetching pending deposits count...');
       const response = await fetch(`${API_URL}/api/bank-accounts/deposit-requests/pending-count`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
         const data = await response.json();
+        console.log('Pending deposits count:', data.count);
         setPendingDepositsCount(data.count || 0);
       }
     } catch (error) {
