@@ -460,9 +460,13 @@ export default function Lotteries() {
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Loterías</Text>
-        <TouchableOpacity onPress={() => setShowCreateModal(true)}>
-          <Ionicons name="add-circle" size={28} color="#22c55e" />
-        </TouchableOpacity>
+        {isSuperAdmin ? (
+          <TouchableOpacity onPress={() => setShowCreateModal(true)}>
+            <Ionicons name="add-circle" size={28} color="#22c55e" />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 28 }} />
+        )}
       </View>
 
       {loading ? (
