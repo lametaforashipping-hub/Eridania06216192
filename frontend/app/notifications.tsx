@@ -21,18 +21,22 @@ const isDesktop = width > 768;
 interface Notification {
   id: string;
   type: string;
+  title?: string;
   lottery_id?: string;
   lottery_name?: string;
   winning_numbers?: number[];
   position?: string;
   total_winners?: number;
   created_at: string;
-  is_read: boolean;
+  is_read?: boolean;
+  read?: boolean;
   // Winner alert specific fields
   ticket_number?: string;
   prize_amount?: number;
   currency?: string;
   message?: string;
+  // Deposit request fields
+  reference_id?: string;
 }
 
 export default function Notifications() {
