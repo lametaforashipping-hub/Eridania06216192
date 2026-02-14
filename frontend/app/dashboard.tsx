@@ -289,6 +289,14 @@ export default function Dashboard() {
                 ) : (
                   <Ionicons name={item.icon as any} size={32} color={item.color} />
                 )}
+                {/* Badge for pending deposits on bank accounts */}
+                {item.route === '/bank-accounts' && pendingDepositsCount > 0 && (
+                  <View style={styles.menuBadge}>
+                    <Text style={styles.menuBadgeText}>
+                      {pendingDepositsCount > 9 ? '9+' : pendingDepositsCount}
+                    </Text>
+                  </View>
+                )}
               </View>
               <Text style={styles.menuLabel}>{item.label}</Text>
             </TouchableOpacity>
