@@ -39,7 +39,7 @@ import {
   PlayTypeSelector,
   NumberInput,
   CartSection,
-} from './components/sales';
+} from '../src/components/sales';
 
 export default function Sales() {
   const { token, user } = useAuth();
