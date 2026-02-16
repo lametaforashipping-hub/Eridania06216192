@@ -21,6 +21,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Validación Cruzada 100%:** Solo procesa resultados confirmados por 2+ fuentes
 - **Scheduler Automático:** Verifica cada 5, 7 o 10 minutos (configurable)
 - **Procesamiento Automático:** Detecta ganadores y envía notificaciones
+- **Notificaciones Push a TODOS:** Cuando salen nuevos resultados, todos los usuarios reciben notificación push
 - **Loterías Soportadas:** Nacional, Leidsa, Loteka, Real, LoteDom y más
 
 **Backend Creado:**
@@ -30,6 +31,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 **Frontend Creado:**
 - `/app/frontend/app/auto-results.tsx` - Panel de control de resultados automáticos
+- `/app/frontend/app/notifications.tsx` - Soporte para tipo `lottery_results`
 
 **APIs Nuevas:**
 - `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
