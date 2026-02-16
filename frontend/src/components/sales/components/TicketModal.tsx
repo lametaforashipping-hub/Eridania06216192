@@ -91,13 +91,31 @@ export const TicketModal: React.FC<TicketModalProps> = ({
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        Alert.alert('Descargado', 'La imagen del ticket se descargó. Ahora puedes enviarla por WhatsApp.');
       } else {
-        // Share on mobile
+        // Share on mobile - opens share sheet with WhatsApp option
         const fileUri = `${cacheDirectory}ticket-${ticket.ticket_number}.png`;
         await FileSystem.copyAsync({ from: uri, to: fileUri });
-        await Sharing.shareAsync(fileUri);
+        
+        // Check if sharing is available
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'image/png',
+            dialogTitle: 'Compartir ticket por WhatsApp',
+            UTI: 'public.png',
+          });
+        } else {
+          Alert.alert('Error', 'No se puede compartir en este dispositivo');
+        }
       }
     } catch (error) {
+      console.error('Error sharing image:', error);
+      Alert.alert('Error', 'No se pudo compartir la imagen. Intenta de nuevo.');
+    } finally {
+      setSharingImage(false);
+    }
+  };
       Alert.alert('Error', 'No se pudo compartir la imagen');
     } finally {
       setSharingImage(false);
