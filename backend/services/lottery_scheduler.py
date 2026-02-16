@@ -196,6 +196,7 @@ async def check_and_process_results():
     global _last_results, _last_fetch_time
     
     from utils.database import get_db
+    from services.notifications import notify_new_lottery_results
     
     logger.info("🔄 Starting automatic lottery results check...")
     
@@ -222,6 +223,9 @@ async def check_and_process_results():
             # Also map by common variations
             for word in name_lower.split():
                 lottery_map[word] = lot
+        
+        # Track new results for push notification
+        new_results_for_notification = []
         
         # Process each result
         for lottery_key, result in current_results.items():
@@ -272,10 +276,23 @@ async def check_and_process_results():
                 try:
                     await process_new_results(db, result, matching_lottery)
                     _last_results[lottery_key] = result
+                    
+                    # Add to list for push notification
+                    new_results_for_notification.append({
+                        "lottery_name": matching_lottery["name"],
+                        "first": result.first_prize,
+                        "second": result.second_prize,
+                        "third": result.third_prize
+                    })
                 except Exception as e:
                     logger.error(f"Error processing result for {lottery_key}: {e}")
             else:
                 logger.debug(f"No change in {lottery_key} results")
+        
+        # Send push notification to all users about new results
+        if new_results_for_notification:
+            logger.info(f"📢 Sending push notifications for {len(new_results_for_notification)} new results")
+            await notify_new_lottery_results(new_results_for_notification)
         
         logger.info(f"✅ Results check completed. {len(current_results)} lotteries checked.")
         
