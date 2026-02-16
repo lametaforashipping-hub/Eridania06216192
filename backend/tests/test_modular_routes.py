@@ -6,7 +6,7 @@ import pytest
 import httpx
 import os
 
-API_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://loteria-magica-bank.preview.emergentagent.com')
+API_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-alerts.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"
