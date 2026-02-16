@@ -23,6 +23,9 @@ import { styles } from '../styles';
 import { isDesktop } from '../constants';
 import { MultiPlayTicketResponse, CompanyProfile, PLAY_TYPE_ABBREVIATIONS } from '../types';
 
+// Import local logo as fallback
+const localLogo = require('../../../../assets/images/loteria_magica_logo.png');
+
 interface TicketModalProps {
   visible: boolean;
   onClose: () => void;
