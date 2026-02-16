@@ -42,6 +42,25 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Slogan siempre visible: muestra el slogan configurado o "Tu suerte comienza aquí" por defecto
 - Campo slogan mejorado en perfil de empresa con indicación visual
 
+### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
+**Nueva ruta:** `/quick-sales`
+
+**Funcionalidades:**
+- **Detección automática de tipo de jugada:**
+  - 2 dígitos → Quiniela (ej: `02`)
+  - 4 dígitos → Pale (ej: `0250` = 02-50)
+  - 6 dígitos → Tripleta (ej: `025080` = 02-50-80)
+- **Entrada rápida:** Solo escribir números y presionar Enter
+- **Vista previa en tiempo real** mientras se escribe
+- **Botones de monto rápido:** 10, 20, 50, 100 o monto personalizado
+- **Selector de lotería horizontal** para cambio rápido
+- **Carrito visible siempre** en la parte inferior
+- **Optimizado para móvil** - diseño vertical compacto
+- **Haptic feedback** al agregar/eliminar jugadas
+
+**Archivos Creados:**
+- `/app/frontend/app/quick-sales.tsx`
+
 **APIs Nuevas:**
 - `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
 - `GET /api/lottery-results/latest` - Últimos resultados validados
