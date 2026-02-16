@@ -279,9 +279,10 @@ export default function CompanyProfileScreen() {
               style={styles.input}
               value={profile.slogan}
               onChangeText={(text) => setProfile(prev => ({ ...prev, slogan: text }))}
-              placeholder="Tu suerte está aquí"
+              placeholder="Tu suerte comienza aquí"
               placeholderTextColor="#64748b"
             />
+            <Text style={styles.inputHint}>Aparecerá debajo del nombre en los tickets compartidos</Text>
           </View>
 
           <View style={styles.inputGroup}>
