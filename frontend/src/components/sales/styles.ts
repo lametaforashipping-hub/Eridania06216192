@@ -672,32 +672,85 @@ export const styles = StyleSheet.create({
     backgroundColor: '#000000',
     marginVertical: 12,
   },
-  // NUEVOS ESTILOS PARA TICKET LIMPIO
-  ticketSeparator: {
-    height: 2,
+  // ESTILOS TICKET ULTRA COMPACTO - SIN LÍNEAS, UNA LÍNEA POR LOTERÍA
+  ticketSingleLine: {
+    height: 1,
     backgroundColor: '#000000',
-    marginVertical: 10,
+    marginVertical: 8,
   },
   ticketNumberBig: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '900',
     color: '#000000',
     textAlign: 'center',
     letterSpacing: 1,
+    marginTop: 6,
   },
   ticketDateBold: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#000000',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  ticketCustomerBold: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000000',
+    color: '#333333',
     textAlign: 'center',
     marginTop: 2,
+  },
+  ticketCustomerBold: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#333333',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  ticketPlaysCompact: {
+    paddingVertical: 4,
+  },
+  ticketLotteryLine: {
+    marginBottom: 6,
+  },
+  ticketLotteryNameCompact: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#000000',
+    marginBottom: 2,
+  },
+  ticketPlayLine: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000000',
+    paddingLeft: 8,
+    paddingVertical: 1,
+  },
+  ticketTotalLine: {
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#000000',
+    marginTop: 4,
+  },
+  ticketTotalText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#000000',
+    textAlign: 'center',
+  },
+  ticketFooterCompact: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#000000',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  ticketPhoneBold: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#333333',
+    textAlign: 'center',
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  // Mantener estilos legacy por compatibilidad
+  ticketSeparator: {
+    height: 2,
+    backgroundColor: '#000000',
+    marginVertical: 10,
   },
   ticketPlaysClean: {
     paddingVertical: 8,
@@ -762,13 +815,6 @@ export const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     marginTop: 10,
-  },
-  ticketPhoneBold: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#000000',
-    textAlign: 'center',
-    marginTop: 2,
   },
   ticketGoodLuck: {
     fontSize: 12,
