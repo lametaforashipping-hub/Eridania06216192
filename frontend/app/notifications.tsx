@@ -206,6 +206,25 @@ export default function Notifications() {
           </>
         )}
 
+        {item.type === 'lottery_results' && (
+          <>
+            <Text style={styles.lotteryResultsTitle}>{item.title || '🎰 Nuevos Resultados'}</Text>
+            <Text style={styles.title}>{item.message}</Text>
+            {(item as any).results && (item as any).results.length > 0 && (
+              <View style={styles.resultsPreview}>
+                {(item as any).results.slice(0, 3).map((r: any, idx: number) => (
+                  <View key={idx} style={styles.resultItem}>
+                    <Text style={styles.resultLotteryName}>{r.lottery_name}</Text>
+                    <Text style={styles.resultNumbers}>
+                      {String(r.first).padStart(2, '0')}-{String(r.second || 0).padStart(2, '0')}-{String(r.third || 0).padStart(2, '0')}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
         {item.type === 'system' && (
           <Text style={styles.title}>Notificación del sistema</Text>
         )}
