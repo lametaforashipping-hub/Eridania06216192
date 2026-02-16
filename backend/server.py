@@ -62,6 +62,7 @@ api_router.include_router(monitoring_router)
 api_router.include_router(accounting_router)
 api_router.include_router(system_router)
 api_router.include_router(bank_accounts_router)
+api_router.include_router(lottery_results_router)
 
 # Include the main API router
 app.include_router(api_router)
