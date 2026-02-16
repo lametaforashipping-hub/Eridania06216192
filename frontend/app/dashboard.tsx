@@ -161,9 +161,10 @@ export default function Dashboard() {
   };
 
   const menuItems = [
-    { icon: 'cart-outline', emoji: '🛒', label: 'Vender', route: '/sales', roles: ['super_admin', 'admin', 'vendedor'], color: '#22c55e' },
+    { icon: 'flash-outline', emoji: '⚡', label: 'Venta Rápida', route: '/quick-sales', roles: ['super_admin', 'admin', 'vendedor'], color: '#22c55e' },
+    { icon: 'cart-outline', emoji: '🛒', label: 'Vender', route: '/sales', roles: ['super_admin', 'admin', 'vendedor'], color: '#3b82f6' },
     { icon: 'barcode-outline', emoji: '📱', label: 'Verificar', route: '/scanner', roles: ['super_admin', 'admin', 'vendedor'], color: '#06b6d4' },
-    { icon: 'list-outline', emoji: '🎫', label: 'Boletos', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'], color: '#3b82f6' },
+    { icon: 'list-outline', emoji: '🎫', label: 'Boletos', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
     { icon: 'heart-outline', emoji: '⭐', label: 'Favoritos', route: '/favorites', roles: ['super_admin', 'admin', 'vendedor'], color: '#ec4899' },
     { icon: 'notifications-outline', emoji: '🔔', label: 'Resultados', route: '/notifications', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
     { icon: 'trophy-outline', emoji: '🏆', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'], color: '#eab308' },
