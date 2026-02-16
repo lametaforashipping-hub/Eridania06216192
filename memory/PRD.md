@@ -50,13 +50,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - 2 dígitos → Quiniela (ej: `02`)
   - 4 dígitos → Pale (ej: `0250` = 02-50)
   - 6 dígitos → Tripleta (ej: `025080` = 02-50-80)
+- **Header con lotería seleccionada:** Nombre GRANDE + indicador ABIERTA/CERRADA
+- **Selector de loterías:** Muestra TODAS con punto verde (abierta) o rojo (cerrada)
+- **Monto manual:** Campo de entrada libre (sin botones predefinidos)
 - **Entrada rápida:** Solo escribir números y presionar Enter
 - **Vista previa en tiempo real** mientras se escribe
-- **Botones de monto rápido:** 10, 20, 50, 100 o monto personalizado
-- **Selector de lotería horizontal** para cambio rápido
-- **Carrito visible siempre** en la parte inferior
-- **Optimizado para móvil** - diseño vertical compacto
+- **Carrito siempre visible** en la parte inferior
 - **Haptic feedback** al agregar/eliminar jugadas
+- **Validación:** No permite jugar en loterías cerradas
 
 **Archivos Creados:**
 - `/app/frontend/app/quick-sales.tsx`
