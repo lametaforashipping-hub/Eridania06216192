@@ -643,16 +643,23 @@ export const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   ticketLogo: {
-    width: 60,
-    height: 60,
+    width: 70,
+    height: 70,
     marginBottom: 8,
-    borderRadius: 8,
+    borderRadius: 35,
   },
   ticketCompanyName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '900',
     color: '#000000',
     textAlign: 'center',
+  },
+  ticketSlogan: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    color: '#6366f1',
+    textAlign: 'center',
+    marginTop: 2,
   },
   ticketCompanyInfo: {
     fontSize: 10,
