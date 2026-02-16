@@ -32,6 +32,8 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 **Frontend Creado:**
 - `/app/frontend/app/auto-results.tsx` - Panel de control de resultados automáticos
 - `/app/frontend/app/notifications.tsx` - Soporte para tipo `lottery_results`
+- `/app/frontend/src/hooks/useNotificationPermission.ts` - Hook para verificar/solicitar permisos push
+- `/app/frontend/src/components/NotificationBanner.tsx` - Banner para activar notificaciones
 
 **APIs Nuevas:**
 - `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
