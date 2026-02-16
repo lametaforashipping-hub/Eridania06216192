@@ -149,17 +149,34 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Super Admin:** admin@loteria.com / admin123
 - **Vendedor:** vendedor@test.com / 12345678
 
+### ✅ Endpoint /health para Deployment (COMPLETADO 16 Feb 2026)
+- Agregado `GET /health` que retorna `{"status": "healthy"}`
+- Necesario para health checks de Kubernetes durante el deployment
+- Archivo modificado: `/app/backend/server.py`
+
+### ✅ Ticket Optimizado para WhatsApp (COMPLETADO 16 Feb 2026)
+- **Formato compacto:** Una sola línea separadora, sin múltiples bordes
+- **Por lotería:** Nombre en mayúsculas (NACIONAL, LEIDSA, etc.)
+- **Jugadas compactas:** Formato "Q 02-15 = $100" en una sola línea
+- **Total destacado:** Con borde superior simple
+- **Footer compacto:** "CONSERVE ESTE BOLETO • ¡BUENA SUERTE!"
+- **Botón "Enviar Imagen":** Descarga PNG en web, comparte directo en móvil
+- Archivos modificados:
+  - `/app/frontend/src/components/sales/components/TicketModal.tsx`
+  - `/app/frontend/src/components/sales/styles.ts`
+
 ## Próximos Pasos (Backlog)
 
 ### P0 - Bloqueadores
-- [ ] Resolver error de despliegue (límite de proyectos Expo - emergent003)
+- [x] ~~Resolver error de despliegue~~ - Endpoint /health implementado
 
 ### P1 - Alta Prioridad
-- [ ] Agregar logo al ticket compartido
+- [x] ~~Agregar logo al ticket compartido~~ - COMPLETADO
 - [ ] Conectar dominio personalizado (loteriamagica.com)
+- [ ] Verificar deployment exitoso con nuevo /health endpoint
 
 ### P2 - Media Prioridad
-- [ ] Notificaciones push para resultados
+- [x] ~~Notificaciones push para resultados~~ - COMPLETADO
 - [ ] Dashboard de estadísticas avanzadas
 
 ### P3 - Baja Prioridad
