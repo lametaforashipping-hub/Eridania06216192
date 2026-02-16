@@ -225,6 +225,15 @@ export default function Dashboard() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
         }
       >
+        {/* Notification Permission Banner */}
+        {showNotificationBanner && (
+          <NotificationBanner
+            onEnable={requestPermission}
+            onDismiss={dismissBanner}
+            isLoading={permissionLoading}
+          />
+        )}
+
         {/* Country Filter for Super Admin */}
         {user?.role === 'super_admin' && (
           <View style={styles.countryFilter}>
