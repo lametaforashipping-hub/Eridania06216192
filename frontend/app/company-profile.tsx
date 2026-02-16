@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   previewSlogan: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#6366f1',
     fontStyle: 'italic',
     marginTop: 2,
   },
