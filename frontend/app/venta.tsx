@@ -653,7 +653,12 @@ export default function VentaUnificada() {
               placeholderTextColor="#4a5568"
               selectTextOnFocus
             />
-            <TouchableOpacity style={styles.addBtn} onPress={handleAddToCart} data-testid="add-play-btn">
+            <TouchableOpacity 
+              style={styles.addBtn} 
+              onPress={handleAddToCart} 
+              testID="add-play-btn"
+              accessibilityLabel="Agregar jugada"
+            >
               <Ionicons name="add" size={28} color="#fff" />
             </TouchableOpacity>
           </View>
