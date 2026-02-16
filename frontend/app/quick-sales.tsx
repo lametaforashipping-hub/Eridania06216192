@@ -181,9 +181,12 @@ export default function QuickSales() {
       return;
     }
     
-    // Check if play type is enabled for this lottery
+    // Check if play type is enabled for this lottery (if play_types exists)
     const playTypeConfig = selectedLottery.play_types?.[detected.type];
-    if (!playTypeConfig?.enabled) {
+    
+    // If play_types doesn't exist or this type isn't defined, allow it (default behavior)
+    // Only block if explicitly disabled (enabled: false)
+    if (playTypeConfig && playTypeConfig.enabled === false) {
       Alert.alert('No disponible', `${detected.name} no está disponible para ${selectedLottery.name}`);
       return;
     }
@@ -194,7 +197,18 @@ export default function QuickSales() {
       Alert.alert('Monto inválido', 'Ingresa un monto válido');
       return;
     }
-    const multiplier = playTypeConfig.multipliers?.first || selectedLottery.prize_multiplier || 70;
+    
+    // Get multiplier from config or use defaults
+    let multiplier = 70; // default for quiniela
+    if (playTypeConfig?.multipliers?.first) {
+      multiplier = playTypeConfig.multipliers.first;
+    } else if (detected.type === 'pale') {
+      multiplier = 1000;
+    } else if (detected.type === 'tripleta') {
+      multiplier = 50000;
+    } else {
+      multiplier = selectedLottery.prize_multiplier || 70;
+    }
     
     // Add to cart
     const newItem: CartItem = {
