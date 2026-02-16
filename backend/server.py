@@ -41,7 +41,8 @@ from routes import (
     draws_router,
     monitoring_router,
     accounting_router,
-    system_router
+    system_router,
+    lottery_results_router
 )
 from routes.bank_accounts import router as bank_accounts_router
 
