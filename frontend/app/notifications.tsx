@@ -215,9 +215,17 @@ export default function Notifications() {
                 {(item as any).results.slice(0, 3).map((r: any, idx: number) => (
                   <View key={idx} style={styles.resultItem}>
                     <Text style={styles.resultLotteryName}>{r.lottery_name}</Text>
-                    <Text style={styles.resultNumbers}>
-                      {String(r.first).padStart(2, '0')}-{String(r.second || 0).padStart(2, '0')}-{String(r.third || 0).padStart(2, '0')}
-                    </Text>
+                    <View style={styles.resultNumbersRow}>
+                      <View style={styles.numberBallFirst}>
+                        <Text style={styles.numberBallText}>{String(r.first).padStart(2, '0')}</Text>
+                      </View>
+                      <View style={styles.numberBallSecond}>
+                        <Text style={styles.numberBallText}>{String(r.second || 0).padStart(2, '0')}</Text>
+                      </View>
+                      <View style={styles.numberBallThird}>
+                        <Text style={styles.numberBallText}>{String(r.third || 0).padStart(2, '0')}</Text>
+                      </View>
+                    </View>
                   </View>
                 ))}
               </View>
