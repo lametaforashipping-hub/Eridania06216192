@@ -410,4 +410,35 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontStyle: 'italic',
   },
+  lotteryResultsTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#8b5cf6',
+    marginBottom: 4,
+  },
+  resultsPreview: {
+    marginTop: 8,
+    backgroundColor: '#1e293b80',
+    borderRadius: 8,
+    padding: 10,
+  },
+  resultItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  resultLotteryName: {
+    fontSize: 13,
+    color: '#94a3b8',
+    flex: 1,
+  },
+  resultNumbers: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#8b5cf6',
+    fontFamily: 'monospace',
+  },
 });
