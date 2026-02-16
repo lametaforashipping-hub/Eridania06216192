@@ -914,21 +914,21 @@ const styles = StyleSheet.create({
   },
   firstPrizeBall: {
     backgroundColor: '#fbbf24',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  secondPrizeBall: {
+    backgroundColor: '#9ca3af',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  thirdPrizeBall: {
+    backgroundColor: '#b45309',
     width: 56,
     height: 56,
     borderRadius: 28,
-  },
-  secondPrizeBall: {
-    backgroundColor: '#64748b',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-  },
-  thirdPrizeBall: {
-    backgroundColor: '#cd7f32',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
   },
   dateTimeRow: {
     flexDirection: 'row',
