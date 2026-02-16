@@ -80,7 +80,14 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """Health check endpoint for deployment"""
-    return {"status": "healthy"}
+    try:
+        # Verify MongoDB connection is alive
+        await client.admin.command('ping')
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        # Return healthy even if DB check fails to prevent container restarts
+        # The app can still serve static content and will retry DB connections
+        return {"status": "healthy", "database": "reconnecting"}
 
 
 @app.on_event("shutdown")
