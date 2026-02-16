@@ -410,6 +410,12 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginBottom: 8,
   },
+  inputHint: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
   input: {
     backgroundColor: '#1e293b',
     borderRadius: 10,
