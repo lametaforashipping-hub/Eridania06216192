@@ -541,26 +541,75 @@ const styles = StyleSheet.create({
   backBtn: {
     padding: 4,
   },
-  headerTitle: {
-    fontSize: 18,
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  selectedLotteryName: {
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  statusOpen: {
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  statusClosed: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  dotOpen: {
+    backgroundColor: '#22c55e',
+  },
+  dotClosed: {
+    backgroundColor: '#ef4444',
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  statusTextOpen: {
+    color: '#22c55e',
+  },
+  statusTextClosed: {
+    color: '#ef4444',
   },
   headerBtn: {
     padding: 4,
   },
   lotterySection: {
     backgroundColor: '#111',
-    paddingVertical: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#222',
   },
+  lotterySectionTitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 8,
+  },
   lotteryScroll: {
-    paddingHorizontal: 12,
     gap: 8,
   },
   lotteryChip: {
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
     backgroundColor: '#1a1a1a',
@@ -572,20 +621,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#22c55e',
     borderColor: '#22c55e',
   },
+  lotteryChipClosed: {
+    opacity: 0.6,
+  },
   lotteryChipText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#94a3b8',
+    marginRight: 6,
   },
   lotteryChipTextSelected: {
     color: '#fff',
+  },
+  lotteryChipTextClosed: {
+    color: '#64748b',
+  },
+  chipStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  chipDotOpen: {
+    backgroundColor: '#22c55e',
+  },
+  chipDotClosed: {
+    backgroundColor: '#ef4444',
   },
   inputSection: {
     padding: 16,
     backgroundColor: '#0a0a0a',
   },
   inputHint: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#64748b',
     textAlign: 'center',
     marginBottom: 12,
@@ -600,12 +667,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 28,
+    paddingVertical: 18,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    letterSpacing: 4,
+    letterSpacing: 6,
     borderWidth: 2,
     borderColor: '#333',
   },
@@ -623,7 +690,7 @@ const styles = StyleSheet.create({
   previewNumbers: {
     color: '#22c55e',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 20,
   },
   previewHint: {
     fontSize: 13,
@@ -632,47 +699,27 @@ const styles = StyleSheet.create({
   },
   amountSection: {
     marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
   },
   amountLabel: {
-    fontSize: 13,
-    color: '#64748b',
-    marginBottom: 8,
-  },
-  amountButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  amountBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  amountBtnActive: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-  },
-  amountBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
     color: '#94a3b8',
+    fontWeight: '600',
   },
-  amountBtnTextActive: {
-    color: '#fff',
-  },
-  amountInput: {
-    width: 70,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
+  amountInputLarge: {
+    width: 120,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
     backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#333',
+    borderWidth: 2,
+    borderColor: '#3b82f6',
     color: '#fff',
-    fontSize: 14,
+    fontSize: 24,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   cartSection: {
@@ -680,7 +727,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#111',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 16,
+    paddingTop: 14,
     paddingHorizontal: 16,
     marginTop: 8,
   },
@@ -688,7 +735,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   cartTitle: {
     fontSize: 16,
@@ -705,7 +752,7 @@ const styles = StyleSheet.create({
   emptyCart: {
     textAlign: 'center',
     color: '#64748b',
-    paddingVertical: 30,
+    paddingVertical: 20,
     fontStyle: 'italic',
   },
   cartItem: {
@@ -739,18 +786,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   cartItemNumbers: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    letterSpacing: 1,
+    letterSpacing: 2,
   },
   cartItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   cartItemAmount: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#94a3b8',
   },
@@ -772,7 +819,7 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
   },
   totalAmount: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#22c55e',
   },
