@@ -39,7 +39,8 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - El ticket ahora **siempre muestra** el logo de Lotería Mágica
 - Si hay logo personalizado en el perfil de empresa, usa ese; sino usa el logo local
 - Logo más grande (70x70) y circular
-- Soporte para slogan de la empresa
+- Slogan siempre visible: muestra el slogan configurado o "Tu suerte comienza aquí" por defecto
+- Campo slogan mejorado en perfil de empresa con indicación visual
 
 **APIs Nuevas:**
 - `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
