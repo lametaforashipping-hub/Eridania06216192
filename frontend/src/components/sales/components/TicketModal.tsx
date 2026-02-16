@@ -131,9 +131,9 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   <Text style={styles.ticketCompanyName}>
                     {companyProfile?.company_name || 'Lotería Mágica'}
                   </Text>
-                  {companyProfile?.slogan && (
-                    <Text style={styles.ticketSlogan}>{companyProfile.slogan}</Text>
-                  )}
+                  <Text style={styles.ticketSlogan}>
+                    {companyProfile?.slogan || 'Tu suerte comienza aquí'}
+                  </Text>
                   {companyProfile?.address && (
                     <Text style={styles.ticketCompanyInfo}>{companyProfile.address}</Text>
                   )}
