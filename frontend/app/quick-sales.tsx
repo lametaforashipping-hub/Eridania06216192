@@ -126,10 +126,14 @@ export default function QuickSales() {
         
         if (lotteriesRes.ok) {
           const data = await lotteriesRes.json();
-          const openLotteries = data.filter((l: Lottery) => l.is_open);
-          setLotteries(openLotteries);
-          if (openLotteries.length > 0) {
-            setSelectedLottery(openLotteries[0]);
+          // Show ALL lotteries, not just open ones
+          setLotteries(data);
+          // Select first open lottery by default
+          const firstOpen = data.find((l: Lottery) => l.is_open);
+          if (firstOpen) {
+            setSelectedLottery(firstOpen);
+          } else if (data.length > 0) {
+            setSelectedLottery(data[0]);
           }
         }
         
