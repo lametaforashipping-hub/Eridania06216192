@@ -77,6 +77,12 @@ app.add_middleware(
 )
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for deployment"""
+    return {"status": "healthy"}
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     """Close MongoDB connection on shutdown"""

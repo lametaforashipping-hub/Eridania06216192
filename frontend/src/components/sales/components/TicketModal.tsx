@@ -127,7 +127,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               <Text style={styles.ticketTitle}>¡Venta Exitosa!</Text>
             </View>
 
-            {/* Ticket Image for WhatsApp - DISEÑO LIMPIO */}
+            {/* Ticket Image for WhatsApp - DISEÑO ULTRA LIMPIO */}
             <ViewShot
               ref={ticketViewRef}
               style={styles.ticketViewShot}
@@ -149,23 +149,18 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   </Text>
                 </View>
 
-                {/* Separador simple */}
-                <View style={styles.ticketSeparator} />
-
-                {/* Número de Ticket GRANDE */}
+                {/* Info del Ticket */}
                 <Text style={styles.ticketNumberBig}>{ticket.ticket_number}</Text>
-                
-                {/* Fecha */}
                 <Text style={styles.ticketDateBold}>{formatDate(ticket.created_at)}</Text>
                 {ticket.customer_name && (
                   <Text style={styles.ticketCustomerBold}>Cliente: {ticket.customer_name}</Text>
                 )}
 
-                {/* Separador */}
-                <View style={styles.ticketSeparator} />
+                {/* Una sola línea separadora */}
+                <View style={styles.ticketSingleLine} />
 
-                {/* JUGADAS - Formato limpio por lotería */}
-                <View style={styles.ticketPlaysClean}>
+                {/* JUGADAS - Una línea por lotería, formato compacto */}
+                <View style={styles.ticketPlaysCompact}>
                   {(() => {
                     // Group plays by lottery
                     const playsByLottery: { [key: string]: typeof ticket.plays } = {};
@@ -176,53 +171,38 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                     });
                     
                     return Object.entries(playsByLottery).map(([lotteryName, plays], lotteryIndex) => (
-                      <View key={lotteryIndex} style={styles.ticketLotteryGroup}>
-                        <Text style={styles.ticketLotteryName}>{lotteryName.toUpperCase()}</Text>
+                      <View key={lotteryIndex} style={styles.ticketLotteryLine}>
+                        <Text style={styles.ticketLotteryNameCompact}>{lotteryName.toUpperCase()}</Text>
                         {plays.map((play, playIndex) => (
-                          <View key={playIndex} style={styles.ticketPlayRow}>
-                            <Text style={styles.ticketPlayTypeBold}>
-                              {PLAY_TYPE_ABBREVIATIONS[play.lottery_type || 'quiniela'] || 'Q'}
-                            </Text>
-                            <Text style={styles.ticketPlayNumbersBold}>
-                              {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
-                            </Text>
-                            <Text style={styles.ticketPlayAmountBold}>
-                              {ticket.currency}{play.amount.toFixed(0)}
-                            </Text>
-                          </View>
+                          <Text key={playIndex} style={styles.ticketPlayLine}>
+                            {PLAY_TYPE_ABBREVIATIONS[play.lottery_type || 'quiniela'] || 'Q'} {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')} = {ticket.currency}{play.amount.toFixed(0)}
+                          </Text>
                         ))}
                       </View>
                     ));
                   })()}
                 </View>
 
-                {/* Separador */}
-                <View style={styles.ticketSeparator} />
-
-                {/* TOTAL GRANDE */}
-                <View style={styles.ticketTotalClean}>
-                  <Text style={styles.ticketTotalLabelBold}>TOTAL</Text>
-                  <Text style={styles.ticketTotalValueBig}>
-                    {ticket.currency} {ticket.total_amount.toFixed(2)}
-                  </Text>
+                {/* TOTAL */}
+                <View style={styles.ticketTotalLine}>
+                  <Text style={styles.ticketTotalText}>TOTAL: {ticket.currency} {ticket.total_amount.toFixed(2)}</Text>
                 </View>
 
-                {/* QR Code */}
+                {/* QR Code pequeño */}
                 <View style={styles.ticketQRSection}>
                   <QRCode
                     value={ticket.ticket_number}
-                    size={70}
+                    size={60}
                     bgColor="#ffffff"
                     fgColor="#000000"
                   />
                 </View>
 
-                {/* Footer simple */}
-                <Text style={styles.ticketFooterBold}>CONSERVE ESTE BOLETO</Text>
+                {/* Footer */}
+                <Text style={styles.ticketFooterCompact}>CONSERVE ESTE BOLETO • ¡BUENA SUERTE!</Text>
                 {companyProfile?.phone && (
                   <Text style={styles.ticketPhoneBold}>Tel: {companyProfile.phone}</Text>
                 )}
-                <Text style={styles.ticketGoodLuck}>¡BUENA SUERTE!</Text>
               </View>
             </ViewShot>
 
