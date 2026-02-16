@@ -159,9 +159,15 @@ export default function QuickSales() {
     setInput(cleaned.substring(0, 6));
   };
   
-  // Handle submit (Enter key)
+  // Handle submit - check if lottery is open
   const handleSubmitInput = useCallback(() => {
     if (!selectedLottery || !input) return;
+    
+    // Check if lottery is open
+    if (!selectedLottery.is_open) {
+      Alert.alert('Cerrada', `${selectedLottery.name} está cerrada`);
+      return;
+    }
     
     const detected = detectPlayType(input);
     if (!detected) {
@@ -184,6 +190,10 @@ export default function QuickSales() {
     
     // Calculate potential win
     const amt = parseFloat(amount) || 20;
+    if (amt <= 0) {
+      Alert.alert('Monto inválido', 'Ingresa un monto válido');
+      return;
+    }
     const multiplier = playTypeConfig.multipliers?.first || selectedLottery.prize_multiplier || 70;
     
     // Add to cart
