@@ -35,6 +35,12 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - `/app/frontend/src/hooks/useNotificationPermission.ts` - Hook para verificar/solicitar permisos push
 - `/app/frontend/src/components/NotificationBanner.tsx` - Banner para activar notificaciones
 
+### ✅ Logo en Ticket Compartido (COMPLETADO 16 Feb 2026)
+- El ticket ahora **siempre muestra** el logo de Lotería Mágica
+- Si hay logo personalizado en el perfil de empresa, usa ese; sino usa el logo local
+- Logo más grande (70x70) y circular
+- Soporte para slogan de la empresa
+
 **APIs Nuevas:**
 - `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
 - `GET /api/lottery-results/latest` - Últimos resultados validados
