@@ -290,8 +290,16 @@ export default function QuickSales() {
     }
   };
   
-  // Quick amount buttons
-  const quickAmounts = [10, 20, 50, 100];
+  // Quick amount buttons - REMOVED, now manual only
+  
+  // Select lottery handler
+  const handleSelectLottery = (lottery: Lottery) => {
+    setSelectedLottery(lottery);
+    // Haptic feedback
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
   
   if (loading) {
     return (
@@ -307,19 +315,39 @@ export default function QuickSales() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        {/* Header */}
+        {/* Header with Selected Lottery Name - BIG */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Venta Rápida</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.selectedLotteryName}>
+              {selectedLottery?.name || 'Selecciona Lotería'}
+            </Text>
+            <View style={[
+              styles.statusBadge,
+              selectedLottery?.is_open ? styles.statusOpen : styles.statusClosed
+            ]}>
+              <View style={[
+                styles.statusDot,
+                selectedLottery?.is_open ? styles.dotOpen : styles.dotClosed
+              ]} />
+              <Text style={[
+                styles.statusText,
+                selectedLottery?.is_open ? styles.statusTextOpen : styles.statusTextClosed
+              ]}>
+                {selectedLottery?.is_open ? 'ABIERTA' : 'CERRADA'}
+              </Text>
+            </View>
+          </View>
           <TouchableOpacity onPress={() => router.push('/sales')} style={styles.headerBtn}>
             <Ionicons name="expand-outline" size={22} color="#94a3b8" />
           </TouchableOpacity>
         </View>
         
-        {/* Lottery Selector - Horizontal scroll */}
+        {/* Lottery Selector - Horizontal scroll with status */}
         <View style={styles.lotterySection}>
+          <Text style={styles.lotterySectionTitle}>Seleccionar Lotería:</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
@@ -330,16 +358,22 @@ export default function QuickSales() {
                 key={lottery.id}
                 style={[
                   styles.lotteryChip,
-                  selectedLottery?.id === lottery.id && styles.lotteryChipSelected
+                  selectedLottery?.id === lottery.id && styles.lotteryChipSelected,
+                  !lottery.is_open && styles.lotteryChipClosed
                 ]}
-                onPress={() => setSelectedLottery(lottery)}
+                onPress={() => handleSelectLottery(lottery)}
               >
                 <Text style={[
                   styles.lotteryChipText,
-                  selectedLottery?.id === lottery.id && styles.lotteryChipTextSelected
+                  selectedLottery?.id === lottery.id && styles.lotteryChipTextSelected,
+                  !lottery.is_open && styles.lotteryChipTextClosed
                 ]}>
                   {lottery.name}
                 </Text>
+                <View style={[
+                  styles.chipStatusDot,
+                  lottery.is_open ? styles.chipDotOpen : styles.chipDotClosed
+                ]} />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -348,7 +382,7 @@ export default function QuickSales() {
         {/* Main Input Area */}
         <View style={styles.inputSection}>
           <Text style={styles.inputHint}>
-            Escribe y presiona Enter: 02=Quiniela, 0250=Pale, 025080=Tripleta
+            02 = Quiniela | 0250 = Pale | 025080 = Tripleta
           </Text>
           
           <View style={styles.inputRow}>
@@ -358,7 +392,7 @@ export default function QuickSales() {
               value={input}
               onChangeText={handleInputChange}
               onSubmitEditing={handleSubmitInput}
-              placeholder="Ingresa números..."
+              placeholder="Números..."
               placeholderTextColor="#64748b"
               keyboardType="number-pad"
               returnKeyType="done"
@@ -369,7 +403,7 @@ export default function QuickSales() {
               style={styles.addBtn}
               onPress={handleSubmitInput}
             >
-              <Ionicons name="add-circle" size={32} color="#22c55e" />
+              <Ionicons name="add-circle" size={40} color="#22c55e" />
             </TouchableOpacity>
           </View>
           
@@ -393,44 +427,26 @@ export default function QuickSales() {
               )}
               {(input.length === 1 || input.length === 3 || input.length === 5) && (
                 <Text style={styles.previewHint}>
-                  {input.length === 1 && 'Necesitas 1 dígito más para Quiniela'}
-                  {input.length === 3 && 'Necesitas 1 dígito más para Pale'}
-                  {input.length === 5 && 'Necesitas 1 dígito más para Tripleta'}
+                  {input.length === 1 && 'Falta 1 dígito → Quiniela'}
+                  {input.length === 3 && 'Falta 1 dígito → Pale'}
+                  {input.length === 5 && 'Falta 1 dígito → Tripleta'}
                 </Text>
               )}
             </View>
           )}
           
-          {/* Amount Row */}
+          {/* Amount Row - MANUAL INPUT */}
           <View style={styles.amountSection}>
-            <Text style={styles.amountLabel}>Monto: {currency}</Text>
-            <View style={styles.amountButtons}>
-              {quickAmounts.map(amt => (
-                <TouchableOpacity
-                  key={amt}
-                  style={[
-                    styles.amountBtn,
-                    parseFloat(amount) === amt && styles.amountBtnActive
-                  ]}
-                  onPress={() => setAmount(amt.toString())}
-                >
-                  <Text style={[
-                    styles.amountBtnText,
-                    parseFloat(amount) === amt && styles.amountBtnTextActive
-                  ]}>
-                    {amt}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              <TextInput
-                style={styles.amountInput}
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-                placeholder="Otro"
-                placeholderTextColor="#64748b"
-              />
-            </View>
+            <Text style={styles.amountLabel}>Monto ({currency}):</Text>
+            <TextInput
+              style={styles.amountInputLarge}
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+              placeholder="20"
+              placeholderTextColor="#64748b"
+              selectTextOnFocus
+            />
           </View>
         </View>
         
@@ -449,7 +465,7 @@ export default function QuickSales() {
           
           <ScrollView style={styles.cartList} showsVerticalScrollIndicator={false}>
             {cart.length === 0 ? (
-              <Text style={styles.emptyCart}>Sin jugadas aún</Text>
+              <Text style={styles.emptyCart}>Sin jugadas</Text>
             ) : (
               cart.map((item, index) => (
                 <View key={item.id} style={styles.cartItem}>
@@ -466,7 +482,7 @@ export default function QuickSales() {
                       onPress={() => removeFromCart(item.id)}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Ionicons name="close-circle" size={22} color="#ef4444" />
+                      <Ionicons name="close-circle" size={24} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
                 </View>
