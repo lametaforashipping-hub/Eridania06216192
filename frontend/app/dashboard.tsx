@@ -41,6 +41,14 @@ export default function Dashboard() {
   
   // Hook for sound and vibration alerts
   const { checkAndAlertNewDeposits } = useNotificationAlert();
+  
+  // Hook for notification permission banner
+  const { 
+    showBanner: showNotificationBanner, 
+    requestPermission, 
+    dismissBanner,
+    isLoading: permissionLoading 
+  } = useNotificationPermission(user?.id, token || undefined);
 
   const fetchSummary = useCallback(async () => {
     if (!token) return;
