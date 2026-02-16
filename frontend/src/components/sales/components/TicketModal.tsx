@@ -222,8 +222,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                 {companyProfile?.phone && (
                   <Text style={styles.ticketPhoneBold}>Tel: {companyProfile.phone}</Text>
                 )}
-                  <Text style={styles.ticketFooterText}>¡BUENA SUERTE!</Text>
-                </View>
+                <Text style={styles.ticketGoodLuck}>¡BUENA SUERTE!</Text>
               </View>
             </ViewShot>
 
