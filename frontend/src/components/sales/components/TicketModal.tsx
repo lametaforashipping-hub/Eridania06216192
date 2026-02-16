@@ -121,18 +121,19 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               options={{ format: 'png', quality: 1 }}
             >
               <View style={styles.ticketContainer}>
-                {/* Header centrado */}
+                {/* Header con Logo */}
                 <View style={styles.ticketHeaderSection}>
-                  {companyProfile?.logo_url && (
-                    <Image
-                      source={{ uri: companyProfile.logo_url }}
-                      style={styles.ticketLogo}
-                      resizeMode="contain"
-                    />
-                  )}
+                  <Image
+                    source={companyProfile?.logo_url ? { uri: companyProfile.logo_url } : localLogo}
+                    style={styles.ticketLogo}
+                    resizeMode="contain"
+                  />
                   <Text style={styles.ticketCompanyName}>
-                    {companyProfile?.company_name || 'LOTERIA'}
+                    {companyProfile?.company_name || 'Lotería Mágica'}
                   </Text>
+                  {companyProfile?.slogan && (
+                    <Text style={styles.ticketSlogan}>{companyProfile.slogan}</Text>
+                  )}
                   {companyProfile?.address && (
                     <Text style={styles.ticketCompanyInfo}>{companyProfile.address}</Text>
                   )}
