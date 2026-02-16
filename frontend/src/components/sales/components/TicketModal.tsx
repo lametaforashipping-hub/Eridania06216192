@@ -116,11 +116,6 @@ export const TicketModal: React.FC<TicketModalProps> = ({
       setSharingImage(false);
     }
   };
-      Alert.alert('Error', 'No se pudo compartir la imagen');
-    } finally {
-      setSharingImage(false);
-    }
-  };
 
   return (
     <Modal visible={visible} transparent animationType="fade">
