@@ -88,6 +88,7 @@ export default function Notifications() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'draw_result': return 'trophy';
+      case 'lottery_results': return 'megaphone';
       case 'winner_alert': return 'gift';
       case 'winner': return 'cash';
       case 'deposit_request': return 'cash';
@@ -100,6 +101,7 @@ export default function Notifications() {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'draw_result': return '#f59e0b';
+      case 'lottery_results': return '#8b5cf6';
       case 'winner_alert': return '#22c55e';
       case 'winner': return '#22c55e';
       case 'deposit_request': return '#f59e0b';
