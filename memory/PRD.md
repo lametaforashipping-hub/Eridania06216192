@@ -59,8 +59,20 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Haptic feedback** al agregar/eliminar jugadas
 - **Validación:** No permite jugar en loterías cerradas
 
+**Bug Fix:** Corregida validación de play_types que causaba error "no disponible"
+
+**Testing:** 9/9 tests backend pasando, frontend verificado
+
 **Archivos Creados:**
 - `/app/frontend/app/quick-sales.tsx`
+
+### ✅ Mejoras Visuales en Números de Sorteo (COMPLETADO 16 Feb 2026)
+- **Sorteos (/draws):** Números más grandes (64x60x56px) con colores distintivos
+  - 1er premio: Dorado (#fbbf24)
+  - 2do premio: Gris (#9ca3af)
+  - 3er premio: Bronce (#b45309)
+- **Notificaciones:** Números en círculos de colores grandes (44px)
+- **Texto negro** para mejor contraste
 
 **APIs Nuevas:**
 - `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
