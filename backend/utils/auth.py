@@ -7,7 +7,9 @@ from typing import List
 from models.enums import UserRole
 from utils.database import get_db
 
-JWT_SECRET = os.environ.get('JWT_SECRET', 'lottery-super-secret-key-2024-extended')
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET environment variable is required")
 JWT_ALGORITHM = "HS256"
 
 security = HTTPBearer()

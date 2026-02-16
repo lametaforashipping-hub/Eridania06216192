@@ -11,7 +11,9 @@ from utils.database import get_db
 from utils.helpers import serialize_doc
 from utils.auth import require_role
 
-JWT_SECRET = os.environ.get('JWT_SECRET', 'lottery-super-secret-key-2024-extended')
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET environment variable is required")
 
 router = APIRouter(prefix="/admin", tags=["Administration"])
 
