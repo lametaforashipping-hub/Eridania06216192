@@ -11,6 +11,37 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ## Cambios Recientes
 
+### ✅ Sistema de Resultados Automáticos (COMPLETADO 16 Feb 2026)
+**Funcionalidades:**
+- **Web Scraping Multi-Fuente:** Obtiene resultados de 4 sitios web dominicanos:
+  - conectate.com.do
+  - loteriasdominicanas.com
+  - quinielasrd.com
+  - loteriard.com
+- **Validación Cruzada 100%:** Solo procesa resultados confirmados por 2+ fuentes
+- **Scheduler Automático:** Verifica cada 5, 7 o 10 minutos (configurable)
+- **Procesamiento Automático:** Detecta ganadores y envía notificaciones
+- **Loterías Soportadas:** Nacional, Leidsa, Loteka, Real, LoteDom y más
+
+**Backend Creado:**
+- `/app/backend/services/lottery_scraper.py` - Servicio de scraping con validación
+- `/app/backend/services/lottery_scheduler.py` - Scheduler automático APScheduler
+- `/app/backend/routes/lottery_results.py` - API endpoints
+
+**Frontend Creado:**
+- `/app/frontend/app/auto-results.tsx` - Panel de control de resultados automáticos
+
+**APIs Nuevas:**
+- `GET /api/lottery-results/sources-check` - Estado de fuentes de datos
+- `GET /api/lottery-results/latest` - Últimos resultados validados
+- `GET /api/lottery-results/preview` - Vista previa de ganadores potenciales
+- `POST /api/lottery-results/fetch-now` - Buscar resultados manualmente
+- `GET /api/lottery-results/status` - Estado del scheduler
+- `POST /api/lottery-results/scheduler/start` - Iniciar scheduler (Super Admin)
+- `POST /api/lottery-results/scheduler/stop` - Detener scheduler (Super Admin)
+
+**Testing:** 13/13 tests backend pasando, frontend 100% verificado
+
 ### ✅ Alertas Sonoras y Vibración para Depósitos (COMPLETADO 14 Feb 2026)
 **Funcionalidades:**
 - **Sonido de alerta:** Beep de dos tonos (880Hz + 1100Hz) cuando hay nuevo depósito pendiente
