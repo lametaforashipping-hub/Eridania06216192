@@ -127,14 +127,14 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               <Text style={styles.ticketTitle}>¡Venta Exitosa!</Text>
             </View>
 
-            {/* Ticket Image for WhatsApp */}
+            {/* Ticket Image for WhatsApp - DISEÑO LIMPIO */}
             <ViewShot
               ref={ticketViewRef}
               style={styles.ticketViewShot}
               options={{ format: 'png', quality: 1 }}
             >
               <View style={styles.ticketContainer}>
-                {/* Header con Logo */}
+                {/* Header con Logo y Empresa */}
                 <View style={styles.ticketHeaderSection}>
                   <Image
                     source={companyProfile?.logo_url ? { uri: companyProfile.logo_url } : localLogo}
@@ -142,82 +142,86 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                     resizeMode="contain"
                   />
                   <Text style={styles.ticketCompanyName}>
-                    {companyProfile?.company_name || 'Lotería Mágica'}
+                    {companyProfile?.company_name || 'LOTERÍA MÁGICA'}
                   </Text>
                   <Text style={styles.ticketSlogan}>
                     {companyProfile?.slogan || 'Tu suerte comienza aquí'}
                   </Text>
-                  {companyProfile?.address && (
-                    <Text style={styles.ticketCompanyInfo}>{companyProfile.address}</Text>
-                  )}
-                  {companyProfile?.rnc && (
-                    <Text style={styles.ticketCompanyInfo}>RNC: {companyProfile.rnc}</Text>
-                  )}
                 </View>
 
-                {/* Línea divisoria */}
-                <View style={styles.ticketDivider} />
+                {/* Separador simple */}
+                <View style={styles.ticketSeparator} />
 
-                {/* Número de Ticket */}
-                <View style={styles.ticketNumberSection}>
-                  <Text style={styles.ticketNumberLabel}>NO. BOLETO</Text>
-                  <Text style={styles.ticketNumber}>{ticket.ticket_number}</Text>
+                {/* Número de Ticket GRANDE */}
+                <Text style={styles.ticketNumberBig}>{ticket.ticket_number}</Text>
+                
+                {/* Fecha */}
+                <Text style={styles.ticketDateBold}>{formatDate(ticket.created_at)}</Text>
+                {ticket.customer_name && (
+                  <Text style={styles.ticketCustomerBold}>Cliente: {ticket.customer_name}</Text>
+                )}
+
+                {/* Separador */}
+                <View style={styles.ticketSeparator} />
+
+                {/* JUGADAS - Formato limpio por lotería */}
+                <View style={styles.ticketPlaysClean}>
+                  {(() => {
+                    // Group plays by lottery
+                    const playsByLottery: { [key: string]: typeof ticket.plays } = {};
+                    ticket.plays.forEach(play => {
+                      const key = play.lottery_name || 'Lotería';
+                      if (!playsByLottery[key]) playsByLottery[key] = [];
+                      playsByLottery[key].push(play);
+                    });
+                    
+                    return Object.entries(playsByLottery).map(([lotteryName, plays], lotteryIndex) => (
+                      <View key={lotteryIndex} style={styles.ticketLotteryGroup}>
+                        <Text style={styles.ticketLotteryName}>{lotteryName.toUpperCase()}</Text>
+                        {plays.map((play, playIndex) => (
+                          <View key={playIndex} style={styles.ticketPlayRow}>
+                            <Text style={styles.ticketPlayTypeBold}>
+                              {PLAY_TYPE_ABBREVIATIONS[play.lottery_type || 'quiniela'] || 'Q'}
+                            </Text>
+                            <Text style={styles.ticketPlayNumbersBold}>
+                              {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
+                            </Text>
+                            <Text style={styles.ticketPlayAmountBold}>
+                              {ticket.currency}{play.amount.toFixed(0)}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ));
+                  })()}
                 </View>
 
-                {/* Fecha y hora */}
-                <View style={styles.ticketDateSection}>
-                  <Text style={styles.ticketDate}>{formatDate(ticket.created_at)}</Text>
-                  {ticket.customer_name && (
-                    <Text style={styles.ticketCustomer}>Cliente: {ticket.customer_name}</Text>
-                  )}
-                </View>
+                {/* Separador */}
+                <View style={styles.ticketSeparator} />
 
-                {/* Línea divisoria */}
-                <View style={styles.ticketDivider} />
-
-                {/* Jugadas */}
-                <View style={styles.ticketPlaysSection}>
-                  {ticket.plays.map((play, index) => (
-                    <View key={index} style={styles.ticketPlay}>
-                      <Text style={styles.ticketPlayType}>
-                        {PLAY_TYPE_ABBREVIATIONS[play.lottery_type || 'quiniela'] || 'Q'}
-                      </Text>
-                      <Text style={styles.ticketPlayNumbers}>
-                        {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
-                      </Text>
-                      <Text style={styles.ticketPlayAmount}>
-                        {ticket.currency} {play.amount.toFixed(0)}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-
-                {/* Total */}
-                <View style={styles.ticketTotalSection}>
-                  <Text style={styles.ticketTotalLabel}>
-                    TOTAL ({ticket.plays.length} jugadas)
-                  </Text>
-                  <Text style={styles.ticketTotalValue}>
+                {/* TOTAL GRANDE */}
+                <View style={styles.ticketTotalClean}>
+                  <Text style={styles.ticketTotalLabelBold}>TOTAL</Text>
+                  <Text style={styles.ticketTotalValueBig}>
                     {ticket.currency} {ticket.total_amount.toFixed(2)}
                   </Text>
                 </View>
 
-                {/* Línea divisoria */}
-                <View style={styles.ticketDivider} />
-
-                {/* QR Code Centrado */}
+                {/* QR Code */}
                 <View style={styles.ticketQRSection}>
                   <QRCode
                     value={ticket.ticket_number}
-                    size={80}
+                    size={70}
                     bgColor="#ffffff"
                     fgColor="#000000"
                   />
                 </View>
 
-                {/* Footer */}
-                <View style={styles.ticketFooterSection}>
-                  <Text style={styles.ticketFooterText}>CONSERVE ESTE BOLETO</Text>
+                {/* Footer simple */}
+                <Text style={styles.ticketFooterBold}>CONSERVE ESTE BOLETO</Text>
+                {companyProfile?.phone && (
+                  <Text style={styles.ticketPhoneBold}>Tel: {companyProfile.phone}</Text>
+                )}
                   <Text style={styles.ticketFooterText}>¡BUENA SUERTE!</Text>
                 </View>
               </View>
