@@ -120,3 +120,63 @@ async def notify_high_risk_bet(ticket_number: str, seller_name: str, amount: flo
                 "seller_name": seller_name
             }
         )
+
+
+async def notify_new_lottery_results(results: List[dict]):
+    """
+    Send push notification to ALL users when new lottery results are published.
+    Results format: [{"lottery_name": "Nacional", "first": 38, "second": 74, "third": 79}, ...]
+    """
+    db = get_db()
+    
+    # Get all active users with notification tokens
+    all_users = await db.users.find({"active": True}).to_list(10000)
+    tokens = [user["notification_token"] for user in all_users if user.get("notification_token")]
+    
+    if not tokens:
+        logger.info("No users with push tokens to notify about results")
+        return
+    
+    # Build notification message
+    if len(results) == 1:
+        r = results[0]
+        title = f"🎰 {r['lottery_name']}"
+        numbers = f"{str(r['first']).zfill(2)}-{str(r.get('second', 0)).zfill(2)}-{str(r.get('third', 0)).zfill(2)}"
+        body = f"Números ganadores: {numbers}"
+    else:
+        title = f"🎰 {len(results)} Resultados Nuevos"
+        # Show first 3 lotteries
+        lottery_names = [r['lottery_name'] for r in results[:3]]
+        if len(results) > 3:
+            body = f"{', '.join(lottery_names)} y {len(results) - 3} más"
+        else:
+            body = ", ".join(lottery_names)
+    
+    # Create in-app notification for all users
+    import uuid
+    from datetime import datetime, timezone
+    
+    notification_doc = {
+        "id": str(uuid.uuid4()),
+        "type": "lottery_results",
+        "title": title,
+        "message": body,
+        "results": results,
+        "created_at": datetime.now(timezone.utc),
+        "read_by": []
+    }
+    await db.notifications.insert_one(notification_doc)
+    
+    # Send push notifications
+    await send_push_notification(
+        tokens,
+        title,
+        body,
+        {
+            "type": "lottery_results",
+            "results": results,
+            "notification_id": notification_doc["id"]
+        }
+    )
+    
+    logger.info(f"Lottery results notification sent to {len(tokens)} devices")
