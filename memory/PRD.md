@@ -149,6 +149,20 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Super Admin:** admin@loteria.com / admin123
 - **Vendedor:** vendedor@test.com / 12345678
 
+### ✅ Interfaz Unificada de Venta (COMPLETADO 16 Feb 2026)
+- **Antes:** Dos pantallas separadas ("Venta Rápida" y "Vender")
+- **Ahora:** Una sola pantalla `/venta` optimizada para móvil
+- **Características:**
+  - Selección múltiple de loterías (todas seleccionadas por defecto)
+  - Auto-detección del tipo de jugada (2 dígitos=Quiniela, 4=Pale, 6=Tripleta)
+  - Preview en tiempo real: "Quiniela: 25 × 22 lotería(s)"
+  - Agregar jugadas a todas las loterías seleccionadas con un clic
+  - Acceso rápido a favoritos y jugadas recientes
+  - Ticket modal con desglose por lotería
+- Archivos:
+  - `/app/frontend/app/venta.tsx` (NUEVA)
+  - `/app/frontend/app/dashboard.tsx` (MODIFICADO - un solo botón "Venta")
+
 ### ✅ Endpoint /health para Deployment (COMPLETADO 16 Feb 2026)
 - Agregado `GET /health` que retorna `{"status": "healthy"}`
 - Necesario para health checks de Kubernetes durante el deployment
