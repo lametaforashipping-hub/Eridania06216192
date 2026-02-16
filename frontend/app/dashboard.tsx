@@ -157,6 +157,7 @@ export default function Dashboard() {
     { icon: 'heart-outline', emoji: '⭐', label: 'Favoritos', route: '/favorites', roles: ['super_admin', 'admin', 'vendedor'], color: '#ec4899' },
     { icon: 'notifications-outline', emoji: '🔔', label: 'Resultados', route: '/notifications', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
     { icon: 'trophy-outline', emoji: '🏆', label: 'Sorteos', route: '/draws', roles: ['super_admin', 'admin'], color: '#eab308' },
+    { icon: 'flash-outline', emoji: '⚡', label: 'Auto Resultados', route: '/auto-results', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: 'pulse-outline', emoji: '📡', label: 'En Vivo', route: '/live-tickets', roles: ['super_admin', 'admin'], color: '#ef4444' },
     { icon: 'eye-outline', emoji: '👁️', label: 'Monitoreo', route: '/monitoring', roles: ['super_admin', 'admin'], color: '#ef4444' },
     { icon: 'speedometer-outline', emoji: '⚡', label: 'Límites', route: '/number-limits', roles: ['super_admin', 'admin'], color: '#dc2626' },
