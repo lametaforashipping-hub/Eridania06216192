@@ -14,9 +14,16 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
+# MongoDB connection with Atlas-compatible settings
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+client = AsyncIOMotorClient(
+    mongo_url,
+    serverSelectionTimeoutMS=30000,
+    connectTimeoutMS=30000,
+    socketTimeoutMS=30000,
+    retryWrites=True,
+    retryReads=True,
+)
 
 # Create the main app
 app = FastAPI(title="Sistema de Lotería RD/USA - Banca Completa v3")
