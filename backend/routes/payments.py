@@ -248,13 +248,3 @@ async def get_payment_history(
         }
     }
 
-
-@router.get("/pending-count")
-async def get_pending_payments_count(
-    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
-):
-    """Get count of pending client payments"""
-    db = get_db()
-    count = await db.client_payments.count_documents({"status": PaymentStatus.PENDING.value})
-    return {"count": count}
-
