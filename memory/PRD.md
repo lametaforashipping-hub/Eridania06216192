@@ -151,6 +151,21 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ### ✅ Interfaz Unificada de Venta (COMPLETADO 16 Feb 2026)
 
+### ✅ Pantalla de Reportes Mensuales (COMPLETADO 17 Feb 2026)
+- **Nueva pantalla** accesible desde "Mi Perfil" con estadísticas mensuales detalladas
+- **Funcionalidades:**
+  - Selector de mes con navegación (flechas) entre meses
+  - Tarjetas de resumen: Ventas totales, Comisiones, Depósitos, Promedio/Boleto
+  - Indicador de crecimiento vs mes anterior (%)
+  - **Gráfico de barras**: "Ventas por Día" (solo días con ventas)
+  - **Gráfico de líneas**: "Tendencia de Ventas" (todos los días del mes)
+  - Estado de boletos (Pendientes, Ganadores, No Ganaron, Cancelados)
+  - Pull-to-refresh para actualizar datos
+- **Archivos:**
+  - Backend: `/app/backend/routes/users.py` (endpoint GET /api/users/me/monthly-report)
+  - Frontend: `/app/frontend/app/monthly-report.tsx` (nueva pantalla con gráficos)
+  - Frontend: `/app/frontend/app/my-profile.tsx` (botón "Reportes Mensuales" agregado)
+
 ### ✅ Pantalla "Mi Perfil" para Vendedores (COMPLETADO 17 Feb 2026)
 - **Problema:** Los vendedores no podían acceder a su perfil, recibían error 403 al intentar acceder a endpoints de admin
 - **Solución:** Se creó un endpoint dedicado `/api/users/me/profile` que cualquier usuario autenticado puede usar
