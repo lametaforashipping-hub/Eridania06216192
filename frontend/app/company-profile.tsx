@@ -19,6 +19,18 @@ import * as ImagePicker from 'expo-image-picker';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
+// Helper to convert relative URLs to absolute for web
+const getAbsoluteUrl = (url: string | undefined): string | undefined => {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // On web, use window.location.origin for relative URLs
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return `${window.location.origin}${url}`;
+  }
+  // On mobile, use the API URL as base
+  return `${API_URL}${url}`;
+};
+
 interface CompanyProfile {
   id?: string;
   company_name: string;
