@@ -44,6 +44,24 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Bug Fix (17 Feb 2026):** Corregida URL del logo que retornaba 404. Ahora usa URL local `/logo.png` servida desde la carpeta `public/`
 - **QR Code:** Usa API externa `api.qrserver.com` para generar imagen QR en web (más compatible que SVG con html2canvas)
 
+### ✅ Subida de Logo Personalizado (COMPLETADO 17 Feb 2026)
+- **Backend:** Endpoint `POST /api/company-profile/logo` para subir logos
+- **Funcionalidades:**
+  - Soporta JPG, PNG, GIF, WebP
+  - Genera nombre único para evitar conflictos de caché
+  - Elimina logos anteriores al subir uno nuevo
+  - Almacena en `/uploads/` (servido estáticamente)
+  - Actualiza automáticamente el perfil de empresa en la DB
+- **Frontend:** Pantalla de "Perfil de Empresa" permite:
+  - Toca el área del logo para seleccionar imagen
+  - Preview circular del logo actual
+  - Vista previa del recibo con el logo
+  - El logo aparece automáticamente en los tickets generados
+- **Archivos modificados:**
+  - `/app/backend/routes/company.py` (endpoint de upload)
+  - `/app/frontend/app/company-profile.tsx` (helper getAbsoluteUrl)
+  - `/app/frontend/src/components/sales/components/TicketModal.tsx` (getAbsoluteLogoUrl)
+
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
 **Nueva ruta:** `/quick-sales`
 
