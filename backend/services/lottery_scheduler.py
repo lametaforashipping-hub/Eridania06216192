@@ -292,15 +292,30 @@ async def check_and_process_results():
         
         logger.info(f"Lottery map created with {len(lottery_map)} entries for {len(active_lotteries)} active lotteries")
         
+        # Lotteries that don't require cross-validation (unique sources)
+        SINGLE_SOURCE_LOTTERIES = [
+            "florida_dia", "florida_noche", "florida",
+            "new_york_tarde", "new_york_noche", "new_york",
+            "anguila", "anguila_manana", "anguila_mediodia", "anguila_tarde", "anguila_noche",
+            "king_lottery", "king_lottery_1230", "king_lottery_1930"
+        ]
+        
         # Track new results for push notification
         new_results_for_notification = []
         
         # Process each result
         for lottery_key, result in current_results.items():
-            # Only process validated results (2+ sources agree)
-            if not result.validated:
+            # Check if validation is required
+            requires_validation = lottery_key not in SINGLE_SOURCE_LOTTERIES
+            
+            if requires_validation and not result.validated:
                 logger.warning(f"⚠ Skipping unvalidated result for {lottery_key}")
                 continue
+            
+            # For single-source lotteries, mark as validated with single source
+            if not requires_validation and not result.validated:
+                result.validated = True
+                logger.info(f"✓ Accepting single-source result for {lottery_key}: {result.first_prize}-{result.second_prize}-{result.third_prize}")
             
             # Find matching lottery in DB with improved matching
             matching_lottery = None
