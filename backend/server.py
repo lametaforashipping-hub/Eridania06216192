@@ -92,7 +92,9 @@ app.add_middleware(
 async def startup_event():
     """Initialize services on startup"""
     from services.lottery_scheduler import start_scheduler
+    from services.notifications import notify_admin_pending_payments_summary
     from utils.database import get_db
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
     
     try:
         # Check if scheduler should auto-start from saved config
@@ -107,6 +109,20 @@ async def startup_event():
             # Start with default 5 minutes if no config exists
             start_scheduler(interval_minutes=5)
             logger.info("🚀 Started lottery scheduler with default 5 min interval")
+        
+        # Start daily payment summary scheduler
+        payment_scheduler = AsyncIOScheduler()
+        payment_scheduler.add_job(
+            notify_admin_pending_payments_summary,
+            'cron',
+            hour=8,  # 8 AM UTC
+            minute=0,
+            id='daily_payment_summary',
+            replace_existing=True
+        )
+        payment_scheduler.start()
+        logger.info("🚀 Started daily payment summary scheduler (8:00 AM UTC)")
+        
     except Exception as e:
         logger.warning(f"Could not auto-start scheduler: {e}")
 
