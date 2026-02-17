@@ -738,12 +738,21 @@ class LotteryScraper:
         
         # Fetch from all sources concurrently
         all_tasks = [
+            # Dominican sources (cross-validated)
             self.scrape_conectate(),
             self.scrape_loteriasdominicanas(),
             self.scrape_quinielasrd(),
             self.scrape_loteriard(),
-            self.scrape_florida_lottery(),
-            self.scrape_ny_lottery()
+            # American lotteries
+            self.scrape_florida_full(),
+            self.scrape_ny_lottery(),
+            # Additional Dominican lotteries
+            self.scrape_anguila(),
+            self.scrape_king_lottery(),
+            self.scrape_la_primera(),
+            self.scrape_la_suerte(),
+            self.scrape_gana_mas(),
+            self.scrape_pega3_mas(),
         ]
         
         all_results = await asyncio.gather(*all_tasks, return_exceptions=True)
