@@ -418,6 +418,23 @@ export default function MyProfile() {
           </View>
         )}
 
+        {/* Monthly Report Button */}
+        <TouchableOpacity 
+          style={styles.reportButton} 
+          onPress={() => router.push('/monthly-report')}
+        >
+          <View style={styles.reportButtonContent}>
+            <View style={styles.reportIconContainer}>
+              <Ionicons name="bar-chart" size={24} color="#22c55e" />
+            </View>
+            <View style={styles.reportTextContainer}>
+              <Text style={styles.reportButtonTitle}>Reportes Mensuales</Text>
+              <Text style={styles.reportButtonSubtitle}>Ver gráficos y estadísticas detalladas</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#64748b" />
+          </View>
+        </TouchableOpacity>
+
         {/* Recent Tickets */}
         <View style={styles.ticketsCard}>
           <Text style={styles.ticketsTitle}>Boletos Recientes</Text>
