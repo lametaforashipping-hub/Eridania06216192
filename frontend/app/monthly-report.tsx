@@ -46,12 +46,14 @@ interface MonthlyReport {
 }
 
 export default function MonthlyReport() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
+  const reportRef = useRef<View>(null);
   
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
