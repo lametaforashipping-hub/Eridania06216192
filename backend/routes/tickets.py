@@ -460,9 +460,11 @@ async def get_tickets(
     lottery_id: Optional[str] = None,
     seller_id: Optional[str] = None,
     country: Optional[str] = None,
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(50, ge=1, le=200, description="Items per page"),
     current_user: dict = Depends(get_current_user)
 ):
-    """Get tickets with filters"""
+    """Get tickets with filters and pagination"""
     db = get_db()
     query = {}
     
@@ -504,8 +506,38 @@ async def get_tickets(
             {"ticket_type": "multi_play", "plays.lottery_id": {"$in": lottery_filter_ids}}
         ]
     
-    tickets = await db.tickets.find(query).sort("created_at", -1).to_list(500)
-    return serialize_doc(tickets)
+    # Get total count for pagination
+    total_count = await db.tickets.count_documents(query)
+    
+    # Get status counts for filters (only once per query without status filter)
+    status_counts = {}
+    if not status:
+        base_query = {k: v for k, v in query.items() if k != "status"}
+        pipeline = [
+            {"$match": base_query},
+            {"$group": {"_id": "$status", "count": {"$sum": 1}}}
+        ]
+        status_agg = await db.tickets.aggregate(pipeline).to_list(10)
+        status_counts = {s["_id"]: s["count"] for s in status_agg}
+    
+    # Calculate pagination
+    skip = (page - 1) * limit
+    total_pages = (total_count + limit - 1) // limit
+    
+    tickets = await db.tickets.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    return {
+        "tickets": serialize_doc(tickets),
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total_count,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        },
+        "status_counts": status_counts
+    }
 
 
 @router.get("/today")
