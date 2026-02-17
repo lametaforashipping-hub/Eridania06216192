@@ -158,26 +158,6 @@ export default function MonthlyReport() {
   };
   
   // Prepare chart data
-        pdf.setTextColor(255, 255, 255);
-        pdf.text(day.tickets.toString(), 130, tableY);
-        
-        tableY += 6;
-      });
-      
-      // Save the PDF
-      const fileName = `Reporte_${months[selectedMonth - 1]}_${selectedYear}.pdf`;
-      pdf.save(fileName);
-      
-      Alert.alert('Éxito', `Reporte exportado como ${fileName}`);
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      Alert.alert('Error', 'No se pudo exportar el reporte');
-    } finally {
-      setExporting(false);
-    }
-  };
-  
-  // Prepare chart data
   const salesChartData = report?.daily_data
     .filter(d => d.sales > 0 || d.commission > 0)
     .map(d => ({
