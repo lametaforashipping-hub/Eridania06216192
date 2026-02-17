@@ -316,7 +316,7 @@ export default function CompanyProfileScreen() {
           <Text style={styles.previewTitle}>Vista Previa del Recibo</Text>
           <View style={styles.receiptPreview}>
             {profile.logo_url && (
-              <Image source={{ uri: profile.logo_url }} style={styles.previewLogo} />
+              <Image source={{ uri: getAbsoluteUrl(profile.logo_url) }} style={styles.previewLogo} />
             )}
             <Text style={styles.previewCompanyName}>{profile.company_name || 'Nombre de Empresa'}</Text>
             {profile.slogan && <Text style={styles.previewSlogan}>{profile.slogan}</Text>}
