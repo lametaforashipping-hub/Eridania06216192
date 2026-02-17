@@ -164,27 +164,35 @@ async def get_client_profile(current_user: dict = Depends(require_role([UserRole
 
 @router.get("/payment-accounts")
 async def get_payment_accounts():
-    """Get available payment accounts (Zelle, bank accounts)"""
+    """Get available payment accounts (uses existing bank accounts system)"""
     db = get_db()
     
-    # Get company payment configuration
-    config = await db.payment_config.find_one({})
-    
-    if not config:
-        # Default config
-        return {
-            "zelle": {
-                "enabled": True,
-                "phone": "",
-                "email": "",
-                "name": ""
-            },
-            "bank_accounts": []
+    # Get active bank accounts that are available for client payments
+    accounts = await db.bank_accounts.find(
+        {"active": True},
+        {
+            "_id": 0,
+            "id": 1,
+            "name": 1,
+            "account_type": 1,
+            "currency": 1,
+            "country": 1,
+            "bank_name": 1,
+            "account_number": 1,
+            "zelle_email": 1,
+            "zelle_phone": 1,
+            "notes": 1
         }
+    ).to_list(100)
+    
+    # Separate by type for easier frontend handling
+    zelle_accounts = [a for a in accounts if a.get("account_type") == "zelle"]
+    bank_accounts = [a for a in accounts if a.get("account_type") == "bank"]
     
     return {
-        "zelle": config.get("zelle", {}),
-        "bank_accounts": config.get("bank_accounts", [])
+        "zelle_accounts": zelle_accounts,
+        "bank_accounts": bank_accounts,
+        "all_accounts": accounts
     }
 
 
