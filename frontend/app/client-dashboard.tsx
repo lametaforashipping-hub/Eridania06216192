@@ -38,6 +38,7 @@ export default function ClientDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState<ClientProfile | null>(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -55,6 +56,20 @@ export default function ClientDashboardScreen() {
     }
   }, [token]);
 
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/clients/notifications/unread-count`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadNotifications(data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, [token]);
+
   useEffect(() => {
     // Check if user is a client
     if (user?.role !== 'cliente') {
@@ -62,11 +77,12 @@ export default function ClientDashboardScreen() {
       return;
     }
     fetchProfile();
-  }, [user, fetchProfile, router]);
+    fetchUnreadCount();
+  }, [user, fetchProfile, fetchUnreadCount, router]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProfile();
+    await Promise.all([fetchProfile(), fetchUnreadCount()]);
     setRefreshing(false);
   };
 
