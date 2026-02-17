@@ -40,6 +40,23 @@ const getWebLogoUrl = (): string => {
   return '/logo.png';
 };
 
+// Convert relative URL to absolute for web (html2canvas needs absolute URLs)
+const getAbsoluteLogoUrl = (logoUrl: string | undefined): string | undefined => {
+  if (!logoUrl) return undefined;
+  
+  // If already absolute URL, return as-is
+  if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+    return logoUrl;
+  }
+  
+  // Convert relative URL to absolute for web
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return `${window.location.origin}${logoUrl}`;
+  }
+  
+  return logoUrl;
+};
+
 interface TicketModalProps {
   visible: boolean;
   onClose: () => void;
