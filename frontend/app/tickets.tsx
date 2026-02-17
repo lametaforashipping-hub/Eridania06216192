@@ -79,6 +79,18 @@ export default function Tickets() {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [statusCounts, setStatusCounts] = useState<{[key: string]: number}>({});
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(50);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    total_pages: number;
+    has_next: boolean;
+    has_prev: boolean;
+  } | null>(null);
 
   // Toggle expanded state for a ticket
   const toggleExpanded = (ticketId: string) => {
