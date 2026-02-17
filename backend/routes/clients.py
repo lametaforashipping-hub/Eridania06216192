@@ -462,3 +462,76 @@ async def get_lottery_results(
             result["lottery_name"] = lottery["name"]
     
     return serialize_doc(results)
+
+
+@router.get("/notifications")
+async def get_client_notifications(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    unread_only: bool = False,
+    current_user: dict = Depends(require_role([UserRole.CLIENTE]))
+):
+    """Get client notifications (payment confirmations, winners, etc.)"""
+    db = get_db()
+    
+    query = {"user_id": current_user["id"]}
+    if unread_only:
+        query["read"] = False
+    
+    total = await db.client_notifications.count_documents(query)
+    notifications = await db.client_notifications.find(query).sort("created_at", -1).skip((page - 1) * limit).limit(limit).to_list(limit)
+    
+    return {
+        "notifications": serialize_doc(notifications),
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "total_pages": (total + limit - 1) // limit
+        }
+    }
+
+
+@router.get("/notifications/unread-count")
+async def get_unread_notifications_count(
+    current_user: dict = Depends(require_role([UserRole.CLIENTE]))
+):
+    """Get count of unread notifications"""
+    db = get_db()
+    count = await db.client_notifications.count_documents({
+        "user_id": current_user["id"],
+        "read": False
+    })
+    return {"count": count}
+
+
+@router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: str,
+    current_user: dict = Depends(require_role([UserRole.CLIENTE]))
+):
+    """Mark a notification as read"""
+    db = get_db()
+    result = await db.client_notifications.update_one(
+        {"id": notification_id, "user_id": current_user["id"]},
+        {"$set": {"read": True, "read_at": datetime.utcnow()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Notificación no encontrada")
+    
+    return {"message": "Notificación marcada como leída"}
+
+
+@router.put("/notifications/read-all")
+async def mark_all_notifications_read(
+    current_user: dict = Depends(require_role([UserRole.CLIENTE]))
+):
+    """Mark all notifications as read"""
+    db = get_db()
+    await db.client_notifications.update_many(
+        {"user_id": current_user["id"], "read": False},
+        {"$set": {"read": True, "read_at": datetime.utcnow()}}
+    )
+    return {"message": "Todas las notificaciones marcadas como leídas"}
+
