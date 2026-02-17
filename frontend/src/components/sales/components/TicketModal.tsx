@@ -248,14 +248,21 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   <Text style={styles.ticketTotalText}>TOTAL: {ticket.currency} {ticket.total_amount.toFixed(2)}</Text>
                 </View>
 
-                {/* QR Code pequeño */}
+                {/* QR Code pequeño - usando imagen para mejor compatibilidad */}
                 <View style={styles.ticketQRSection}>
-                  <QRCode
-                    value={ticket.ticket_number}
-                    size={60}
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                  />
+                  {Platform.OS === 'web' ? (
+                    <Image
+                      source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(ticket.ticket_number)}` }}
+                      style={{ width: 60, height: 60 }}
+                    />
+                  ) : (
+                    <QRCode
+                      value={ticket.ticket_number}
+                      size={60}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                  )}
                 </View>
 
                 {/* Footer */}
