@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-sales-app.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-sales-app-1.preview.emergentagent.com')
 
 # Test credentials
 SUPER_ADMIN_CREDS = {"email": "admin@loteria.com", "password": "admin123"}
