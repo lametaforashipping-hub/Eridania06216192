@@ -1054,4 +1054,38 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  reportButton: {
+    backgroundColor: '#111',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#22c55e30',
+  },
+  reportButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reportIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#22c55e15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  reportButtonTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  reportButtonSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
 });
