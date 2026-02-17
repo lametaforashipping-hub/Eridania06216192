@@ -1,12 +1,18 @@
 """Company profile routes"""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from datetime import datetime
 import uuid
+import os
+import shutil
 from typing import Optional
 from pydantic import BaseModel
 from models.enums import UserRole
 from utils.database import get_db
 from utils.auth import get_current_user, require_role
+
+# Directorio para guardar logos subidos
+UPLOAD_DIR = "/app/frontend/public/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/company-profile", tags=["Company"])
 
