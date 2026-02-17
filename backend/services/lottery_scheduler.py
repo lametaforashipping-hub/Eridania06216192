@@ -25,7 +25,7 @@ _last_fetch_time: Optional[datetime] = None
 async def process_new_results(db, validated_result: LotteryResult, lottery_doc: dict):
     """Process a validated lottery result and update winning tickets"""
     from models.enums import TicketStatus, TransactionType
-    from services.notifications import notify_winner, notify_draw_complete
+    from services.notifications import notify_winner, notify_draw_complete, notify_client_winner
     import uuid
     
     lottery_id = lottery_doc["id"]
@@ -57,6 +57,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     total_winners = 0
     total_paid = 0.0
     winner_notifications = []
+    client_winner_notifications = []
     
     # Get prize tiers from lottery config
     prize_tiers = lottery_doc.get("prize_tiers", {"first": 70, "second": 15, "third": 5})
@@ -73,11 +74,12 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
         if prize_number is None:
             continue
         
-        # Find pending tickets with this number
+        # Find pending tickets (sellers) with this number
         ticket_query = {
             "lottery_id": lottery_id,
             "status": TicketStatus.PENDING.value,
-            "numbers": prize_number
+            "numbers": prize_number,
+            "client_id": {"$exists": False}  # Only seller tickets
         }
         
         matching_tickets = await db.tickets.find(ticket_query).to_list(10000)
@@ -117,6 +119,46 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 "ticket_number": ticket["ticket_number"],
                 "prize": prize
             })
+        
+        # Find pending CLIENT tickets with this number
+        client_ticket_query = {
+            "lottery_id": lottery_id,
+            "status": TicketStatus.PENDING.value,
+            "client_id": {"$exists": True}
+        }
+        
+        client_tickets = await db.tickets.find(client_ticket_query).to_list(10000)
+        
+        for ticket in client_tickets:
+            # Check if any play in the ticket matches
+            plays = ticket.get("plays", [])
+            for play in plays:
+                play_numbers = play.get("numbers", [])
+                if prize_number in play_numbers:
+                    play_amount = play.get("amount", 0)
+                    prize = play_amount * multiplier
+                    
+                    await db.tickets.update_one(
+                        {"id": ticket["id"]},
+                        {"$set": {
+                            "status": TicketStatus.WON.value,
+                            "draw_id": draw["id"],
+                            "potential_win": prize,
+                            "won_position": position,
+                            "automated_result": True
+                        }}
+                    )
+                    total_winners += 1
+                    total_paid += prize
+                    
+                    # Add to client winner notifications
+                    client_winner_notifications.append({
+                        "client_id": ticket["client_id"],
+                        "ticket_number": ticket.get("ticket_number", ""),
+                        "prize": prize,
+                        "lottery_name": lottery_name
+                    })
+                    break  # Only count once per ticket
     
     # Mark remaining pending tickets as lost
     await db.tickets.update_many(
