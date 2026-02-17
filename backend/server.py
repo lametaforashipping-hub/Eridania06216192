@@ -84,6 +84,29 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    from services.lottery_scheduler import start_scheduler
+    from utils.database import get_db
+    
+    try:
+        # Check if scheduler should auto-start from saved config
+        db = get_db()
+        config = await db.system_config.find_one({"key": "lottery_scheduler"})
+        
+        if config and config.get("enabled", False):
+            interval = config.get("interval_minutes", 5)
+            start_scheduler(interval_minutes=interval)
+            logger.info(f"🚀 Auto-started lottery scheduler (interval: {interval} min)")
+        else:
+            # Start with default 5 minutes if no config exists
+            start_scheduler(interval_minutes=5)
+            logger.info("🚀 Started lottery scheduler with default 5 min interval")
+    except Exception as e:
+        logger.warning(f"Could not auto-start scheduler: {e}")
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint for deployment"""
