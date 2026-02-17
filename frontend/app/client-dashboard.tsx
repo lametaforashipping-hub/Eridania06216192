@@ -148,9 +148,24 @@ export default function ClientDashboardScreen() {
           <Text style={styles.greeting}>¡Hola!</Text>
           <Text style={styles.userName}>{profile?.name || 'Cliente'}</Text>
         </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#ef4444" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            onPress={() => router.push('/client-notifications')} 
+            style={styles.notificationButton}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#fbbf24" />
+            {unreadNotifications > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
