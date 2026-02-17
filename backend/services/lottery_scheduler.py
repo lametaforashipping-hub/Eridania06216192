@@ -215,14 +215,82 @@ async def check_and_process_results():
         # Get all active lotteries from DB
         active_lotteries = await db.lotteries.find({"active": True}).to_list(100)
         
-        # Map lottery names to DB records
+        # Create comprehensive mapping of lottery names to DB records
+        # This maps various name variations to the actual lottery document
         lottery_map = {}
         for lot in active_lotteries:
             name_lower = lot["name"].lower()
             lottery_map[name_lower] = lot
-            # Also map by common variations
-            for word in name_lower.split():
-                lottery_map[word] = lot
+            
+            # Create variations
+            # "Quiniela Leidsa" -> "leidsa", "quiniela leidsa"
+            # "Lotería Nacional" -> "nacional", "loteria nacional"
+            words = name_lower.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").split()
+            for word in words:
+                if word not in ["quiniela", "loteria", "lotería", "la", "de", "el"]:
+                    lottery_map[word] = lot
+            
+            # Add specific mappings based on lottery name patterns
+            if "leidsa" in name_lower:
+                lottery_map["leidsa"] = lot
+            if "nacional" in name_lower and "gana" not in name_lower:
+                lottery_map["nacional"] = lot
+            if "gana" in name_lower and "mas" in name_lower.replace("á", "a"):
+                lottery_map["gana_mas"] = lot
+            if "real" in name_lower:
+                lottery_map["real"] = lot
+            if "loteka" in name_lower:
+                lottery_map["loteka"] = lot
+            if "lotedom" in name_lower:
+                lottery_map["lotedom"] = lot
+            if "pega" in name_lower and "3" in name_lower:
+                lottery_map["pega_3_mas"] = lot
+            if "florida" in name_lower:
+                if "dia" in name_lower or "day" in name_lower:
+                    lottery_map["florida_dia"] = lot
+                elif "noche" in name_lower or "night" in name_lower:
+                    lottery_map["florida_noche"] = lot
+                else:
+                    lottery_map["florida"] = lot
+            if "new york" in name_lower or "ny" in name_lower:
+                if "tarde" in name_lower or "midday" in name_lower:
+                    lottery_map["new_york_tarde"] = lot
+                elif "noche" in name_lower or "evening" in name_lower or "night" in name_lower:
+                    lottery_map["new_york_noche"] = lot
+            if "primera" in name_lower:
+                if "dia" in name_lower:
+                    lottery_map["la_primera_dia"] = lot
+                elif "noche" in name_lower:
+                    lottery_map["la_primera_noche"] = lot
+                else:
+                    lottery_map["la_primera"] = lot
+            if "suerte" in name_lower:
+                if "12:30" in name_lower or "12" in name_lower:
+                    lottery_map["la_suerte_1230"] = lot
+                elif "18:00" in name_lower or "18" in name_lower:
+                    lottery_map["la_suerte_1800"] = lot
+                else:
+                    lottery_map["la_suerte"] = lot
+            if "anguila" in name_lower or "anguilla" in name_lower:
+                if "mañana" in name_lower or "manana" in name_lower:
+                    lottery_map["anguila_manana"] = lot
+                elif "medio" in name_lower:
+                    lottery_map["anguila_mediodia"] = lot
+                elif "tarde" in name_lower:
+                    lottery_map["anguila_tarde"] = lot
+                elif "noche" in name_lower:
+                    lottery_map["anguila_noche"] = lot
+                else:
+                    lottery_map["anguila"] = lot
+            if "king" in name_lower:
+                if "12:30" in name_lower or "12" in name_lower:
+                    lottery_map["king_lottery_1230"] = lot
+                elif "7:30" in name_lower or "19:30" in name_lower:
+                    lottery_map["king_lottery_1930"] = lot
+                else:
+                    lottery_map["king_lottery"] = lot
+        
+        logger.info(f"Lottery map created with {len(lottery_map)} entries for {len(active_lotteries)} active lotteries")
         
         # Track new results for push notification
         new_results_for_notification = []
@@ -234,12 +302,27 @@ async def check_and_process_results():
                 logger.warning(f"⚠ Skipping unvalidated result for {lottery_key}")
                 continue
             
-            # Find matching lottery in DB
+            # Find matching lottery in DB with improved matching
             matching_lottery = None
-            for db_name, lot_doc in lottery_map.items():
-                if lottery_key in db_name or db_name in lottery_key:
-                    matching_lottery = lot_doc
-                    break
+            
+            # Direct match first
+            if lottery_key in lottery_map:
+                matching_lottery = lottery_map[lottery_key]
+            else:
+                # Try partial matching
+                for db_key, lot_doc in lottery_map.items():
+                    if lottery_key in db_key or db_key in lottery_key:
+                        matching_lottery = lot_doc
+                        break
+                    # Check if any word matches
+                    lottery_words = lottery_key.replace("_", " ").split()
+                    db_words = db_key.replace("_", " ").split()
+                    for lw in lottery_words:
+                        if lw in db_words or any(lw in dw for dw in db_words):
+                            matching_lottery = lot_doc
+                            break
+                    if matching_lottery:
+                        break
             
             if not matching_lottery:
                 logger.debug(f"No matching lottery in DB for: {lottery_key}")
