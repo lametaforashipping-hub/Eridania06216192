@@ -161,8 +161,13 @@ async def process_payment(
                 {"id": ticket["client_id"]},
                 {"$inc": {"total_plays": 1}}
             )
-        
-        # TODO: Send notification to client
+            
+            # Send notification to client
+            await notify_client_payment_confirmed(
+                ticket["client_id"],
+                ticket.get("ticket_number", ticket_number),
+                ticket.get("total_amount", 0)
+            )
         
         return {
             "message": "Pago aprobado. La jugada es ahora válida.",
@@ -182,6 +187,9 @@ async def process_payment(
             }}
         )
         
+        # Get ticket info for notification
+        ticket = await db.tickets.find_one({"id": payment["ticket_id"]})
+        
         # Cancel ticket
         await db.tickets.update_one(
             {"id": payment["ticket_id"]},
@@ -194,7 +202,13 @@ async def process_payment(
             }}
         )
         
-        # TODO: Send notification to client
+        # Send notification to client
+        if ticket:
+            await notify_client_payment_rejected(
+                ticket["client_id"],
+                ticket.get("ticket_number", ""),
+                data.notes
+            )
         
         return {
             "message": "Pago rechazado. La jugada ha sido cancelada.",
