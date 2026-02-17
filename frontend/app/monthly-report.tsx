@@ -501,6 +501,9 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 4,
   },
+  exportButton: {
+    padding: 4,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -509,6 +512,21 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  exportPdfButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#22c55e',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    gap: 8,
+  },
+  exportPdfText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   monthSelector: {
     flexDirection: 'row',
