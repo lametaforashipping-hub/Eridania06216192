@@ -275,7 +275,17 @@ export default function MonthlyReport() {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Reporte Mensual</Text>
-        <View style={{ width: 32 }} />
+        <TouchableOpacity 
+          onPress={exportToPDF} 
+          style={styles.exportButton}
+          disabled={exporting || !report}
+        >
+          {exporting ? (
+            <ActivityIndicator size="small" color="#22c55e" />
+          ) : (
+            <Ionicons name="download-outline" size={24} color="#22c55e" />
+          )}
+        </TouchableOpacity>
       </View>
       
       <ScrollView
@@ -283,6 +293,7 @@ export default function MonthlyReport() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />}
         showsVerticalScrollIndicator={false}
       >
+        <View data-testid="report-content">
         {/* Month Selector */}
         <View style={styles.monthSelector}>
           <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.monthArrow}>
@@ -296,6 +307,24 @@ export default function MonthlyReport() {
             <Ionicons name="chevron-forward" size={24} color="#22c55e" />
           </TouchableOpacity>
         </View>
+        
+        {/* Export PDF Button */}
+        {Platform.OS === 'web' && (
+          <TouchableOpacity 
+            style={styles.exportPdfButton} 
+            onPress={exportToPDF}
+            disabled={exporting || !report}
+          >
+            {exporting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="document-text-outline" size={20} color="#fff" />
+                <Text style={styles.exportPdfText}>Exportar PDF</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
         
         {/* Summary Cards */}
         <View style={styles.summaryGrid}>
