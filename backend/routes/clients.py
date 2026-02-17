@@ -29,6 +29,7 @@ class ClientRegister(BaseModel):
 class ClientTicketCreate(BaseModel):
     plays: list  # List of plays similar to multi-play
     payment_method: PaymentMethod
+    bank_account_id: Optional[str] = None  # ID de la cuenta bancaria seleccionada
 
 
 @router.post("/register")
