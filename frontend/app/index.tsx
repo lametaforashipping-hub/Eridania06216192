@@ -10,7 +10,12 @@ export default function Index() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.replace('/dashboard');
+        // Redirect based on user role
+        if (user.role === 'cliente') {
+          router.replace('/client-dashboard');
+        } else {
+          router.replace('/dashboard');
+        }
       } else {
         router.replace('/login');
       }
