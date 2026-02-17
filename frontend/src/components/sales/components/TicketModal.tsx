@@ -32,6 +32,9 @@ if (Platform.OS === 'web') {
 // Import local logo as fallback
 const localLogo = require('../../../../assets/images/loteria_magica_logo.png');
 
+// Web-compatible logo URL (for html2canvas capture)
+const WEB_LOGO_URL = '/logo.png';
+
 interface TicketModalProps {
   visible: boolean;
   onClose: () => void;
