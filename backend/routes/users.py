@@ -113,6 +113,130 @@ async def update_my_profile(
     return {"message": "Perfil actualizado correctamente"}
 
 
+@router.get("/me/monthly-report")
+async def get_monthly_report(
+    month: int = Query(None, ge=1, le=12),
+    year: int = Query(None, ge=2020, le=2030),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get monthly sales report for the current user"""
+    db = get_db()
+    user_id = current_user["id"]
+    
+    # Default to current month if not specified
+    now = datetime.utcnow()
+    if month is None:
+        month = now.month
+    if year is None:
+        year = now.year
+    
+    # Calculate date range for the month
+    start_date = datetime(year, month, 1)
+    if month == 12:
+        end_date = datetime(year + 1, 1, 1)
+    else:
+        end_date = datetime(year, month + 1, 1)
+    
+    # Get tickets for the month
+    tickets = await db.tickets.find({
+        "seller_id": user_id,
+        "created_at": {"$gte": start_date, "$lt": end_date}
+    }, {"_id": 0}).to_list(None)
+    
+    # Get transactions for the month
+    transactions = await db.transactions.find({
+        "user_id": user_id,
+        "created_at": {"$gte": start_date, "$lt": end_date}
+    }, {"_id": 0}).to_list(None)
+    
+    # Calculate daily stats
+    daily_stats = {}
+    for day in range(1, 32):
+        try:
+            date_key = datetime(year, month, day).strftime("%Y-%m-%d")
+            daily_stats[date_key] = {"sales": 0, "commission": 0, "tickets": 0}
+        except ValueError:
+            break
+    
+    # Aggregate ticket data by day
+    for ticket in tickets:
+        date_key = ticket["created_at"].strftime("%Y-%m-%d")
+        if date_key in daily_stats:
+            daily_stats[date_key]["sales"] += ticket.get("total_amount", ticket.get("amount", 0))
+            daily_stats[date_key]["tickets"] += 1
+    
+    # Aggregate commission data by day
+    for tx in transactions:
+        if tx.get("transaction_type") == "commission":
+            date_key = tx["created_at"].strftime("%Y-%m-%d")
+            if date_key in daily_stats:
+                daily_stats[date_key]["commission"] += tx.get("amount", 0)
+    
+    # Calculate totals
+    total_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in tickets)
+    total_tickets = len(tickets)
+    total_commission = sum(t.get("amount", 0) for t in transactions if t.get("transaction_type") == "commission")
+    total_deposits = sum(t.get("amount", 0) for t in transactions if t.get("transaction_type") == "deposit")
+    
+    # Count tickets by status
+    status_counts = {}
+    for ticket in tickets:
+        status = ticket.get("status", "pending")
+        status_counts[status] = status_counts.get(status, 0) + 1
+    
+    # Get previous month for comparison
+    if month == 1:
+        prev_month, prev_year = 12, year - 1
+    else:
+        prev_month, prev_year = month - 1, year
+    
+    prev_start = datetime(prev_year, prev_month, 1)
+    prev_end = start_date
+    
+    prev_tickets = await db.tickets.find({
+        "seller_id": user_id,
+        "created_at": {"$gte": prev_start, "$lt": prev_end}
+    }, {"_id": 0, "total_amount": 1, "amount": 1}).to_list(None)
+    
+    prev_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in prev_tickets)
+    
+    # Calculate growth percentage
+    if prev_sales > 0:
+        growth_percentage = ((total_sales - prev_sales) / prev_sales) * 100
+    else:
+        growth_percentage = 100 if total_sales > 0 else 0
+    
+    # Convert daily_stats to list format for charts
+    daily_data = [
+        {
+            "date": date,
+            "day": int(date.split("-")[2]),
+            "sales": stats["sales"],
+            "commission": stats["commission"],
+            "tickets": stats["tickets"]
+        }
+        for date, stats in sorted(daily_stats.items())
+    ]
+    
+    return {
+        "month": month,
+        "year": year,
+        "month_name": ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+                       "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][month],
+        "summary": {
+            "total_sales": total_sales,
+            "total_tickets": total_tickets,
+            "total_commission": total_commission,
+            "total_deposits": total_deposits,
+            "avg_ticket_value": total_sales / total_tickets if total_tickets > 0 else 0,
+            "growth_percentage": round(growth_percentage, 1),
+            "status_counts": status_counts
+        },
+        "daily_data": daily_data,
+        "currency": current_user.get("currency", "RD$")
+    }
+
+
 @router.get("")
 async def get_users(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
     """Get all users (filtered by permissions) - optimized with projection"""
