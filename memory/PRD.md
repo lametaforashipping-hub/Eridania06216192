@@ -161,12 +161,12 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - Estadísticas de hoy: ventas, boletos, comisión, pendientes
   - Estadísticas de la semana: ventas, boletos, comisión
   - Lista de tickets recientes (últimos 20)
+  - **Historial de transacciones** (ventas, comisiones, depósitos) con iconos de color
   - Edición de perfil (nombre, teléfono, dirección)
   - Botón de cerrar sesión
 - **Archivos:**
   - Backend: `/app/backend/routes/users.py` (endpoint GET/PUT /api/users/me/profile)
   - Frontend: `/app/frontend/app/my-profile.tsx` (nueva pantalla)
-  - Dashboard: `/app/frontend/app/dashboard.tsx` (link "Mi Perfil" agregado al menú)
 
 ### ✅ Interfaz Unificada de Venta - Original (COMPLETADO 16 Feb 2026)
 - **Antes:** Dos pantallas separadas ("Venta Rápida" y "Vender")
