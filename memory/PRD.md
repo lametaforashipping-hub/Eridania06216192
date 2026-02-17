@@ -150,6 +150,25 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Vendedor:** vendedor@test.com / 12345678
 
 ### ✅ Interfaz Unificada de Venta (COMPLETADO 16 Feb 2026)
+
+### ✅ Pantalla "Mi Perfil" para Vendedores (COMPLETADO 17 Feb 2026)
+- **Problema:** Los vendedores no podían acceder a su perfil, recibían error 403 al intentar acceder a endpoints de admin
+- **Solución:** Se creó un endpoint dedicado `/api/users/me/profile` que cualquier usuario autenticado puede usar
+- **Funcionalidades:**
+  - Muestra nombre, email, rol y estado (activo/inactivo)
+  - Balance disponible y límite de crédito
+  - Porcentaje de comisión (con fallback a 10% por defecto)
+  - Estadísticas de hoy: ventas, boletos, comisión, pendientes
+  - Estadísticas de la semana: ventas, boletos, comisión
+  - Lista de tickets recientes (últimos 20)
+  - Edición de perfil (nombre, teléfono, dirección)
+  - Botón de cerrar sesión
+- **Archivos:**
+  - Backend: `/app/backend/routes/users.py` (endpoint GET/PUT /api/users/me/profile)
+  - Frontend: `/app/frontend/app/my-profile.tsx` (nueva pantalla)
+  - Dashboard: `/app/frontend/app/dashboard.tsx` (link "Mi Perfil" agregado al menú)
+
+### ✅ Interfaz Unificada de Venta - Original (COMPLETADO 16 Feb 2026)
 - **Antes:** Dos pantallas separadas ("Venta Rápida" y "Vender")
 - **Ahora:** Una sola pantalla `/venta` optimizada para móvil
 - **Características:**
