@@ -1,6 +1,6 @@
 """User management routes"""
 from fastapi import APIRouter, HTTPException, Depends, Query
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 from models.schemas import UserUpdate
 from models.enums import UserRole, TransactionType
@@ -9,6 +9,106 @@ from utils.helpers import serialize_doc
 from utils.auth import get_current_user, require_role
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
+@router.get("/me/profile")
+async def get_my_profile(current_user: dict = Depends(get_current_user)):
+    """Get current user's complete profile with stats - accessible by all authenticated users"""
+    db = get_db()
+    user_id = current_user["id"]
+    
+    # Get user data
+    user = await db.users.find_one({"id": user_id}, {"password": 0, "notification_token": 0, "_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Get today's date range
+    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = today + timedelta(days=1)
+    
+    # Get today's stats
+    today_tickets = await db.tickets.find({
+        "seller_id": user_id,
+        "created_at": {"$gte": today, "$lt": tomorrow}
+    }).to_list(1000)
+    
+    today_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in today_tickets)
+    today_wins = sum(t.get("win_amount", 0) for t in today_tickets if t.get("status") == "won")
+    today_tickets_count = len(today_tickets)
+    today_pending = len([t for t in today_tickets if t.get("status") == "pending"])
+    today_won = len([t for t in today_tickets if t.get("status") == "won"])
+    today_cancelled = len([t for t in today_tickets if t.get("status") == "cancelled"])
+    commission_rate = user.get("commission_rate", 10)
+    today_commission = today_sales * (commission_rate / 100)
+    today_net = today_sales - today_wins - today_commission
+    
+    # Get recent tickets (last 20)
+    recent_tickets = await db.tickets.find(
+        {"seller_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(20).to_list(20)
+    
+    # Get recent transactions (last 10)
+    recent_transactions = await db.transactions.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(10).to_list(10)
+    
+    # Weekly stats
+    week_ago = today - timedelta(days=7)
+    week_tickets = await db.tickets.find({
+        "seller_id": user_id,
+        "created_at": {"$gte": week_ago}
+    }).to_list(5000)
+    
+    week_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in week_tickets)
+    week_commission = week_sales * (commission_rate / 100)
+    
+    return {
+        "user": user,
+        "today_stats": {
+            "sales": today_sales,
+            "wins": today_wins,
+            "commission": today_commission,
+            "net": today_net,
+            "tickets_count": today_tickets_count,
+            "pending": today_pending,
+            "won": today_won,
+            "cancelled": today_cancelled
+        },
+        "week_stats": {
+            "sales": week_sales,
+            "commission": week_commission,
+            "tickets_count": len(week_tickets)
+        },
+        "recent_tickets": recent_tickets,
+        "recent_transactions": recent_transactions
+    }
+
+
+@router.put("/me/profile")
+async def update_my_profile(
+    name: str = None,
+    phone: str = None,
+    address: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update current user's profile (limited fields) - accessible by all authenticated users"""
+    db = get_db()
+    
+    update_data = {}
+    if name:
+        update_data["name"] = name
+    if phone:
+        update_data["phone"] = phone
+    if address:
+        update_data["address"] = address
+    
+    if update_data:
+        update_data["updated_at"] = datetime.utcnow()
+        await db.users.update_one({"id": current_user["id"]}, {"$set": update_data})
+    
+    return {"message": "Perfil actualizado correctamente"}
 
 
 @router.get("")
