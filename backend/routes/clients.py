@@ -163,6 +163,45 @@ async def get_client_profile(current_user: dict = Depends(require_role([UserRole
     }
 
 
+class ClientProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+
+@router.put("/me")
+async def update_client_profile(
+    data: ClientProfileUpdate,
+    current_user: dict = Depends(require_role([UserRole.CLIENTE]))
+):
+    """Update current client's profile"""
+    db = get_db()
+    
+    update_data = {"updated_at": datetime.utcnow()}
+    
+    if data.name:
+        update_data["name"] = data.name
+    
+    if data.email is not None:
+        # Check if email is already in use by another user
+        if data.email:
+            existing = await db.users.find_one({
+                "email": data.email,
+                "id": {"$ne": current_user["id"]}
+            })
+            if existing:
+                raise HTTPException(status_code=400, detail="Este correo ya está en uso")
+        update_data["email"] = data.email
+    
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Perfil actualizado correctamente"}
+
+
+
+
 @router.get("/payment-accounts")
 async def get_payment_accounts():
     """Get available payment accounts (uses existing bank accounts system)"""
