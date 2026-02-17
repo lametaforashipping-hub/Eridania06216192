@@ -194,7 +194,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               style={styles.ticketViewShot}
               options={{ format: 'png', quality: 1 }}
             >
-              <View style={styles.ticketContainer}>
+              <View style={styles.ticketContainer} data-testid="ticket-container">
                 {/* Header con Logo y Empresa */}
                 <View style={styles.ticketHeaderSection}>
                   <Image
