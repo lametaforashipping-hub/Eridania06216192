@@ -407,10 +407,10 @@ class LotteryScraper:
         """Scrape Florida Lottery - both midday and evening from multiple sources"""
         results = []
         
-        # Source 1: LotteryUSA
+        # Source 1: LotteryUSA (without trailing slash)
         for url, key in [
-            ("https://www.lotteryusa.com/florida/midday-pick-3", "florida_dia"),
-            ("https://www.lotteryusa.com/florida/evening-pick-3", "florida_noche"),
+            ("https://www.lotteryusa.com/florida/pick-3/midday", "florida_dia"),
+            ("https://www.lotteryusa.com/florida/pick-3", "florida_noche"),
         ]:
             html = await self.fetch_page(url)
             if html:
