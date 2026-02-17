@@ -461,21 +461,6 @@ class LotteryScraper:
         return results
 
     async def scrape_anguila(self) -> List[LotteryResult]:
-                
-                if len(numbers) >= 1:
-                    results.append(LotteryResult(
-                        lottery_name="florida_noche",
-                        first_prize=numbers[0],
-                        second_prize=numbers[1] if len(numbers) > 1 else None,
-                        third_prize=numbers[2] if len(numbers) > 2 else None,
-                        source="lotteryusa.com"
-                    ))
-            except Exception as e:
-                logger.error(f"Error parsing Florida evening: {e}")
-        
-        return results
-
-    async def scrape_anguila(self) -> List[LotteryResult]:
         """Scrape Anguilla lottery results from multiple sources"""
         results = []
         
