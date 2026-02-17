@@ -62,6 +62,49 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `/app/frontend/app/company-profile.tsx` (helper getAbsoluteUrl)
   - `/app/frontend/src/components/sales/components/TicketModal.tsx` (getAbsoluteLogoUrl)
 
+### ✅ Dashboard de Estadísticas Avanzadas (COMPLETADO 17 Feb 2026)
+**Nueva ruta:** `/admin-stats`
+
+**Backend - Endpoint `GET /api/admin/stats/dashboard`:**
+- Parámetro `period`: day, week, month, year
+- Retorna:
+  - `summary`: ventas totales, ganancia neta, boletos, comisiones, premios pagados, promedio/boleto
+  - `growth`: porcentaje de crecimiento vs período anterior
+  - `status_breakdown`: conteo por estado (pendiente, ganador, perdido, etc.)
+  - `sales_by_lottery`: ventas por lotería (top 10)
+  - `daily_sales`: ventas diarias para gráficos
+  - `top_sellers`: ranking de vendedores
+
+**Frontend - Pantalla `/admin-stats`:**
+- Selector de período (Hoy, Semana, Mes, Año)
+- 6 tarjetas KPI con íconos y valores
+- Indicadores de crecimiento (%, verde/rojo)
+- Gráfico de barras: Ventas por Día
+- Gráfico de barras: Ventas por Lotería
+- Gráfico circular: Estado de Boletos
+- Lista: Top Vendedores
+- Exportar a imagen PNG
+
+**Archivos:**
+- `/app/backend/routes/admin.py` (nuevo endpoint stats/dashboard)
+- `/app/frontend/app/admin-stats.tsx` (nueva pantalla)
+- `/app/frontend/app/dashboard.tsx` (enlace al menú)
+
+### ✅ Paginación en Vista de Tickets (COMPLETADO 17 Feb 2026)
+**Endpoint `GET /api/tickets` actualizado:**
+- Parámetros: `page` (default 1), `limit` (default 50, max 200)
+- Retorna:
+  - `tickets`: array paginado
+  - `pagination`: page, limit, total, total_pages, has_next, has_prev
+  - `status_counts`: conteo por estado para filtros
+
+**Frontend `/tickets` actualizado:**
+- Controles de paginación al final de la lista
+- Selector de cantidad por página (25, 50, 100)
+- Botones Anterior/Siguiente
+- Indicador "Página X de Y (total boletos)"
+
+
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
 **Nueva ruta:** `/quick-sales`
 
