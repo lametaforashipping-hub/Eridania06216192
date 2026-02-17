@@ -830,6 +830,9 @@ class LotteryScraper:
             self.scrape_la_suerte(),
             self.scrape_gana_mas(),
             self.scrape_pega3_mas(),
+            # Additional sources for missing lotteries
+            self.scrape_resultados_rd(),
+            self.scrape_loterias_en_vivo(),
         ]
         
         all_results = await asyncio.gather(*all_tasks, return_exceptions=True)
