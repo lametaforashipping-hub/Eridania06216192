@@ -29,10 +29,21 @@ class LotteryType(str, Enum):
 
 class TicketStatus(str, Enum):
     PENDING = "pending"
+    PENDING_PAYMENT = "pending_payment"  # Cliente - esperando confirmación de pago
     WON = "won"
     LOST = "lost"
     CANCELLED = "cancelled"
     PAID = "paid"
+
+class PaymentMethod(str, Enum):
+    ZELLE = "zelle"
+    TRANSFER = "transfer"
+
+class PaymentStatus(str, Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
 
 class TransactionType(str, Enum):
     SALE = "sale"
