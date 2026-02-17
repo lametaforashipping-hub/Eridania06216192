@@ -23,6 +23,12 @@ import { styles } from '../styles';
 import { isDesktop } from '../constants';
 import { MultiPlayTicketResponse, CompanyProfile, PLAY_TYPE_ABBREVIATIONS } from '../types';
 
+// Conditionally import html2canvas for web
+let html2canvas: any = null;
+if (Platform.OS === 'web') {
+  html2canvas = require('html2canvas');
+}
+
 // Import local logo as fallback
 const localLogo = require('../../../../assets/images/loteria_magica_logo.png');
 
