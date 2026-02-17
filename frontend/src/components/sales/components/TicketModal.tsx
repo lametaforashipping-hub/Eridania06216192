@@ -32,8 +32,8 @@ if (Platform.OS === 'web') {
 // Import local logo as fallback
 const localLogo = require('../../../../assets/images/loteria_magica_logo.png');
 
-// Web-compatible logo URL - Using a reliable public URL
-const WEB_LOGO_URL = 'https://i.ibb.co/kqvnNdF/loteria-magica-logo.png';
+// Web-compatible logo URL - Using the public folder on our server
+const WEB_LOGO_URL = '/logo.png';
 
 interface TicketModalProps {
   visible: boolean;
