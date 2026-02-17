@@ -160,11 +160,11 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - **Gráfico de barras**: "Ventas por Día" (solo días con ventas)
   - **Gráfico de líneas**: "Tendencia de Ventas" (todos los días del mes)
   - Estado de boletos (Pendientes, Ganadores, No Ganaron, Cancelados)
+  - **Exportar reporte como imagen PNG** (botón "Descargar Reporte")
   - Pull-to-refresh para actualizar datos
 - **Archivos:**
   - Backend: `/app/backend/routes/users.py` (endpoint GET /api/users/me/monthly-report)
-  - Frontend: `/app/frontend/app/monthly-report.tsx` (nueva pantalla con gráficos)
-  - Frontend: `/app/frontend/app/my-profile.tsx` (botón "Reportes Mensuales" agregado)
+  - Frontend: `/app/frontend/app/monthly-report.tsx` (pantalla con gráficos y exportación)
 
 ### ✅ Pantalla "Mi Perfil" para Vendedores (COMPLETADO 17 Feb 2026)
 - **Problema:** Los vendedores no podían acceder a su perfil, recibían error 403 al intentar acceder a endpoints de admin
