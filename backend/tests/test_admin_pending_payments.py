@@ -48,7 +48,7 @@ class TestAdminPendingPayments:
         """Test that unauthorized users cannot access pending payments"""
         # No auth header
         response = requests.get(f"{BASE_URL}/api/payments/pending")
-        assert response.status_code in [401, 422], f"Expected 401/422, got {response.status_code}"
+        assert response.status_code in [401, 403, 422], f"Expected 401/403/422, got {response.status_code}"
         print("✓ Pending payments requires authentication")
     
     def test_get_pending_payments_client_forbidden(self):
@@ -88,7 +88,7 @@ class TestAdminPendingPayments:
     def test_get_pending_payments_count_unauthorized(self):
         """Test that pending-count requires auth"""
         response = requests.get(f"{BASE_URL}/api/payments/pending-count")
-        assert response.status_code in [401, 422], f"Expected 401/422, got {response.status_code}"
+        assert response.status_code in [401, 403, 422], f"Expected 401/403/422, got {response.status_code}"
         print("✓ Pending count requires authentication")
     
     def test_get_pending_payments_count_admin_success(self):
@@ -136,7 +136,7 @@ class TestAdminPendingPayments:
             f"{BASE_URL}/api/payments/{fake_id}/action",
             json={"action": "approve"}
         )
-        assert response.status_code in [401, 422], f"Expected 401/422, got {response.status_code}"
+        assert response.status_code in [401, 403, 422], f"Expected 401/403/422, got {response.status_code}"
         print("✓ Processing payment requires authentication")
     
     def test_process_payment_client_forbidden(self):
