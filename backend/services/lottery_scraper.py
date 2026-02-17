@@ -345,6 +345,73 @@ class LotteryScraper:
         
         return results
     
+    async def scrape_florida_lottery(self) -> List[LotteryResult]:
+        """Scrape Florida Lottery Pick 2/Pick 3 results"""
+        results = []
+        # Florida lottery results from alternative source
+        url = "https://www.lotteryusa.com/florida/midday-pick-3"
+        
+        html = await self.fetch_page(url)
+        if not html:
+            return results
+        
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Look for the winning numbers
+            number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+            numbers = []
+            for elem in number_elems:
+                num = self.parse_number(elem.get_text())
+                if num is not None:
+                    numbers.append(num)
+            
+            if len(numbers) >= 1:
+                # Midday
+                results.append(LotteryResult(
+                    lottery_name="florida_dia",
+                    first_prize=numbers[0],
+                    second_prize=numbers[1] if len(numbers) > 1 else None,
+                    third_prize=numbers[2] if len(numbers) > 2 else None,
+                    source="lotteryusa.com"
+                ))
+        except Exception as e:
+            logger.error(f"Error parsing Florida lottery: {e}")
+        
+        return results
+    
+    async def scrape_ny_lottery(self) -> List[LotteryResult]:
+        """Scrape New York Lottery Numbers results"""
+        results = []
+        url = "https://www.lotteryusa.com/new-york/midday-numbers"
+        
+        html = await self.fetch_page(url)
+        if not html:
+            return results
+        
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+            numbers = []
+            for elem in number_elems:
+                num = self.parse_number(elem.get_text())
+                if num is not None:
+                    numbers.append(num)
+            
+            if len(numbers) >= 1:
+                results.append(LotteryResult(
+                    lottery_name="new_york_tarde",
+                    first_prize=numbers[0],
+                    second_prize=numbers[1] if len(numbers) > 1 else None,
+                    third_prize=numbers[2] if len(numbers) > 2 else None,
+                    source="lotteryusa.com"
+                ))
+        except Exception as e:
+            logger.error(f"Error parsing NY lottery: {e}")
+        
+        return results
+
     async def fetch_all_results(self) -> Dict[str, LotteryResult]:
         """Fetch results from all sources and cross-validate"""
         logger.info("Fetching lottery results from all sources...")
