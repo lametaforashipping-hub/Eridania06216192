@@ -938,4 +938,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterScroll: {
+    flexDirection: 'row',
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#1a1a1a',
+    marginRight: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  filterButtonActive: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  filterButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#94a3b8',
+  },
+  filterButtonTextActive: {
+    color: '#fff',
+  },
 });
