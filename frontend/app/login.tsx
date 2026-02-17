@@ -244,6 +244,16 @@ export default function Login() {
                   </>
                 )}
               </TouchableOpacity>
+
+              {/* Client Portal Link */}
+              <TouchableOpacity
+                style={styles.clientPortalLink}
+                onPress={() => router.push('/client-login')}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="game-controller-outline" size={18} color="#22c55e" />
+                <Text style={styles.clientPortalText}>Soy cliente - Quiero jugar</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
