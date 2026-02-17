@@ -132,25 +132,25 @@ export default function Tickets() {
 
   const fetchTickets = useCallback(async () => {
     try {
-      // Fetch all tickets first for counts
-      const allResponse = await fetch(`${API_URL}/api/tickets`, {
+      // Build query params with pagination
+      const statusParam = filter !== 'all' ? `&status=${filter}` : '';
+      const response = await fetch(`${API_URL}/api/tickets?page=${page}&limit=${limit}${statusParam}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      if (allResponse.ok) {
-        const allData = await allResponse.json();
+      if (response.ok) {
+        const data = await response.json();
         
-        // Calculate status counts
-        const counts: {[key: string]: number} = { all: allData.length };
-        allData.forEach((t: Ticket) => {
-          counts[t.status] = (counts[t.status] || 0) + 1;
-        });
-        setStatusCounts(counts);
+        // Set tickets from paginated response
+        setTickets(data.tickets || []);
+        setPagination(data.pagination || null);
         
-        // Apply filter
-        if (filter === 'all') {
-          setTickets(allData);
-        } else {
-          setTickets(allData.filter((t: Ticket) => t.status === filter));
+        // Set status counts from response
+        if (data.status_counts) {
+          const counts: {[key: string]: number} = { 
+            all: data.pagination?.total || 0,
+            ...data.status_counts 
+          };
+          setStatusCounts(counts);
         }
       }
     } catch (error) {
@@ -158,7 +158,7 @@ export default function Tickets() {
     } finally {
       setLoading(false);
     }
-  }, [token, filter]);
+  }, [token, filter, page, limit]);
 
   // Filter tickets based on search query
   useEffect(() => {
