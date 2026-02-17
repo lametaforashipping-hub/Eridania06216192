@@ -111,12 +111,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (tokenOrEmail: string, userOrPassword: any) => {
     try {
+      // Check if this is a direct token login (from client portal)
+      // If second param is an object with 'id' and 'role', it's a direct login with token and user
+      if (userOrPassword && typeof userOrPassword === 'object' && userOrPassword.id && userOrPassword.role) {
+        // Direct login with token and user object (for client portal)
+        await AsyncStorage.setItem('token', tokenOrEmail);
+        await AsyncStorage.setItem('user', JSON.stringify(userOrPassword));
+        
+        setToken(tokenOrEmail);
+        setUser(userOrPassword);
+        
+        console.log('Logged in with token directly');
+        return;
+      }
+      
+      // Traditional email/password login
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: tokenOrEmail, password: userOrPassword }),
       });
 
       if (!response.ok) {
