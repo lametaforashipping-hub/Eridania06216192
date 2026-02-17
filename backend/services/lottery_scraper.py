@@ -421,7 +421,9 @@ class LotteryScraper:
             self.scrape_conectate(),
             self.scrape_loteriasdominicanas(),
             self.scrape_quinielasrd(),
-            self.scrape_loteriard()
+            self.scrape_loteriard(),
+            self.scrape_florida_lottery(),
+            self.scrape_ny_lottery()
         ]
         
         all_results = await asyncio.gather(*all_tasks, return_exceptions=True)
