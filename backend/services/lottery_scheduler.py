@@ -294,10 +294,21 @@ async def check_and_process_results():
         
         # Lotteries that don't require cross-validation (unique sources)
         SINGLE_SOURCE_LOTTERIES = [
+            # American lotteries
             "florida_dia", "florida_noche", "florida",
             "new_york_tarde", "new_york_noche", "new_york",
+            # Anguila (unique source)
             "anguila", "anguila_manana", "anguila_mediodia", "anguila_tarde", "anguila_noche",
-            "king_lottery", "king_lottery_1230", "king_lottery_1930"
+            # King Lottery
+            "king_lottery", "king_lottery_1230", "king_lottery_1930",
+            # La Primera
+            "la_primera", "la_primera_dia", "la_primera_noche",
+            # La Suerte
+            "la_suerte", "la_suerte_1230", "la_suerte_1800",
+            # Gana Más
+            "gana_mas",
+            # Pega 3 Más
+            "pega_3_mas",
         ]
         
         # Track new results for push notification
