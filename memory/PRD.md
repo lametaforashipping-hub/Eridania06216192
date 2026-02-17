@@ -35,12 +35,14 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - `/app/frontend/src/hooks/useNotificationPermission.ts` - Hook para verificar/solicitar permisos push
 - `/app/frontend/src/components/NotificationBanner.tsx` - Banner para activar notificaciones
 
-### ✅ Logo en Ticket Compartido (COMPLETADO 16 Feb 2026)
+### ✅ Logo en Ticket Compartido (COMPLETADO 16 Feb 2026, BUG FIX 17 Feb 2026)
 - El ticket ahora **siempre muestra** el logo de Lotería Mágica
 - Si hay logo personalizado en el perfil de empresa, usa ese; sino usa el logo local
 - Logo más grande (70x70) y circular
 - Slogan siempre visible: muestra el slogan configurado o "Tu suerte comienza aquí" por defecto
 - Campo slogan mejorado en perfil de empresa con indicación visual
+- **Bug Fix (17 Feb 2026):** Corregida URL del logo que retornaba 404. Ahora usa URL local `/logo.png` servida desde la carpeta `public/`
+- **QR Code:** Usa API externa `api.qrserver.com` para generar imagen QR en web (más compatible que SVG con html2canvas)
 
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
 **Nueva ruta:** `/quick-sales`
