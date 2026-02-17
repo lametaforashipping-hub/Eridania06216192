@@ -220,6 +220,23 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             lottery_name
         )
     
+    # Send CLIENT winner notifications
+    for client_winner in client_winner_notifications:
+        await notify_client_winner(
+            client_winner["client_id"],
+            client_winner["ticket_number"],
+            client_winner["prize"],
+            client_winner["lottery_name"]
+        )
+        
+        # Update client stats
+        await db.users.update_one(
+            {"id": client_winner["client_id"]},
+            {"$inc": {"total_won": client_winner["prize"]}}
+        )
+        
+        logger.info(f"🎉 Client winner notification sent: {client_winner['ticket_number']} - ${client_winner['prize']}")
+    
     # Send draw complete notification to admins
     await notify_draw_complete(
         lottery_name,
