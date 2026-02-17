@@ -50,7 +50,14 @@ const PAYMENT_STATUS_CONFIG: { [key: string]: { label: string; color: string } }
 
 export default function ClientTicketsScreen() {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user, loading: authLoading } = useAuth();
+  
+  // Redirect if not authenticated as client
+  useEffect(() => {
+    if (!authLoading && (!user || user.role !== 'cliente')) {
+      router.replace('/client-login');
+    }
+  }, [user, authLoading, router]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);

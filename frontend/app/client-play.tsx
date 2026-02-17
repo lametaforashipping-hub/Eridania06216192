@@ -87,9 +87,16 @@ const formatNumbers = (numbers: number[]): string => {
 };
 
 export default function ClientPlayScreen() {
-  const { token, user } = useAuth();
+  const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
+  
+  // Redirect if not authenticated as client
+  useEffect(() => {
+    if (!authLoading && (!user || user.role !== 'cliente')) {
+      router.replace('/client-login');
+    }
+  }, [user, authLoading, router]);
   
   // State
   const [lotteries, setLotteries] = useState<Lottery[]>([]);

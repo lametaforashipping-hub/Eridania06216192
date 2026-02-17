@@ -32,7 +32,14 @@ interface ClientProfile {
 
 export default function ClientProfileScreen() {
   const router = useRouter();
-  const { token, user, logout } = useAuth();
+  const { token, user, logout, loading: authLoading } = useAuth();
+  
+  // Redirect if not authenticated as client
+  useEffect(() => {
+    if (!authLoading && (!user || user.role !== 'cliente')) {
+      router.replace('/client-login');
+    }
+  }, [user, authLoading, router]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState<ClientProfile | null>(null);
