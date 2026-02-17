@@ -16,28 +16,30 @@ logger = logging.getLogger(__name__)
 # Lottery name mappings to normalize different source names
 LOTTERY_NAME_MAPPINGS = {
     # Leidsa
-    "leidsa": ["leidsa", "quiniela leidsa", "leidsa quiniela"],
-    "leidsa_pega3": ["pega 3 mas leidsa", "pega3 leidsa", "leidsa pega 3"],
+    "leidsa": ["leidsa", "quiniela leidsa", "leidsa quiniela", "quiniela leidsa"],
+    "pega_3_mas": ["pega 3 mas", "pega3 mas", "pega 3 más", "pega3mas", "leidsa pega 3"],
     # Loteka  
     "loteka": ["loteka", "quiniela loteka", "loteka quiniela"],
-    "loteka_mega_chances": ["mega chances", "mega chances loteka"],
     # Nacional
-    "nacional": ["nacional", "loteria nacional", "la nacional", "nacional noche", "nacional dia"],
-    "nacional_gana_mas": ["gana mas", "gana más", "ganá más"],
+    "nacional": ["nacional", "loteria nacional", "la nacional", "nacional noche", "nacional dia", "lotería nacional"],
+    "gana_mas": ["gana mas", "gana más", "ganá más", "ganamas"],
     # Real
     "real": ["real", "loteria real", "loto real", "quiniela real"],
-    "real_loto": ["loto real", "loto pool real"],
     # La Primera
-    "la_primera": ["la primera", "primera", "quiniela la primera"],
+    "la_primera": ["la primera", "primera", "quiniela la primera", "primera dia", "primera noche"],
     # La Suerte
-    "la_suerte": ["la suerte", "suerte dominicana", "quiniela la suerte"],
+    "la_suerte": ["la suerte", "suerte dominicana", "quiniela la suerte", "suerte 12:30", "suerte 18:00"],
     # Lotedom
     "lotedom": ["lotedom", "quiniela lotedom"],
     # King Lottery
-    "king_lottery": ["king lottery", "king", "king lottery noche", "king lottery dia"],
+    "king_lottery": ["king lottery", "king", "king lottery noche", "king lottery dia", "kinglottery"],
+    # Anguila
+    "anguila": ["anguila", "anguilla", "anguilita", "anguila lottery"],
     # Americanas
-    "florida": ["florida", "florida lottery", "florida day", "florida noche"],
-    "new_york": ["new york", "ny lottery", "new york day", "new york noche"],
+    "florida_dia": ["florida dia", "florida day", "florida medio dia", "florida mediodía"],
+    "florida_noche": ["florida noche", "florida night", "florida evening"],
+    "new_york_tarde": ["new york tarde", "new york midday", "ny tarde", "ny midday", "new york medio dia"],
+    "new_york_noche": ["new york noche", "new york evening", "ny noche", "ny evening", "new york night"],
 }
 
 # Draw time schedules (Dominican Time UTC-4)
