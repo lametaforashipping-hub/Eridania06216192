@@ -212,7 +212,7 @@ export default function CompanyProfileScreen() {
             {uploading ? (
               <ActivityIndicator size="large" color="#22c55e" />
             ) : profile.logo_url ? (
-              <Image source={{ uri: profile.logo_url }} style={styles.logoImage} />
+              <Image source={{ uri: getAbsoluteUrl(profile.logo_url) }} style={styles.logoImage} />
             ) : (
               <View style={styles.logoPlaceholder}>
                 <Ionicons name="business" size={48} color="#64748b" />
