@@ -105,6 +105,7 @@ export default function MyProfile() {
         setTodayStats(data.today_stats);
         setWeekStats(data.week_stats);
         setRecentTickets(data.recent_tickets || []);
+        setRecentTransactions(data.recent_transactions || []);
         
         // Set edit fields
         setEditName(data.user.name || '');
