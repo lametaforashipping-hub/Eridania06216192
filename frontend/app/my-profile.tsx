@@ -446,6 +446,38 @@ export default function MyProfile() {
           )}
         </View>
 
+        {/* Recent Transactions */}
+        <View style={styles.transactionsCard}>
+          <Text style={styles.transactionsTitle}>Historial de Transacciones</Text>
+          {recentTransactions.length === 0 ? (
+            <Text style={styles.noTransactions}>No hay transacciones recientes</Text>
+          ) : (
+            recentTransactions.slice(0, 10).map((transaction) => (
+              <View key={transaction.id} style={styles.transactionItem}>
+                <View style={styles.transactionLeft}>
+                  <View style={[styles.transactionIconContainer, { backgroundColor: getTransactionColor(transaction.transaction_type) + '20' }]}>
+                    <Ionicons 
+                      name={getTransactionIcon(transaction.transaction_type) as any} 
+                      size={18} 
+                      color={getTransactionColor(transaction.transaction_type)} 
+                    />
+                  </View>
+                  <View style={styles.transactionInfo}>
+                    <Text style={styles.transactionType}>{getTransactionLabel(transaction.transaction_type)}</Text>
+                    <Text style={styles.transactionDesc} numberOfLines={1}>
+                      {transaction.description}
+                    </Text>
+                    <Text style={styles.transactionDate}>{formatDate(transaction.created_at)}</Text>
+                  </View>
+                </View>
+                <Text style={[styles.transactionAmount, { color: getTransactionColor(transaction.transaction_type) }]}>
+                  {transaction.transaction_type === 'withdrawal' ? '-' : '+'}{transaction.currency} {formatCurrency(transaction.amount)}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
+
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
           <Ionicons name="log-out-outline" size={20} color="#ef4444" />
