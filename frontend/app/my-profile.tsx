@@ -86,6 +86,9 @@ export default function MyProfile() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
+  // Transaction filter
+  const [transactionFilter, setTransactionFilter] = useState<string>('all');
+  
   // Edit mode
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
