@@ -4,6 +4,7 @@ class UserRole(str, Enum):
     SUPER_ADMIN = "super_admin"
     ADMIN = "admin"
     VENDEDOR = "vendedor"
+    CLIENTE = "cliente"
 
 class Currency(str, Enum):
     RD = "RD$"
