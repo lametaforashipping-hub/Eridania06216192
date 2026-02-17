@@ -85,24 +85,26 @@ export const TicketModal: React.FC<TicketModalProps> = ({
     
     try {
       if (Platform.OS === 'web') {
-        // On web, use html2canvas
-        const ticketElement = document.querySelector('[data-testid="ticket-container"]');
+        // On web, use html2canvas with direct ref
+        const ticketElement = ticketContainerRef.current;
         if (!ticketElement || !html2canvas) {
-          // Fallback: generate image from HTML
+          // Fallback: generate and open ticket HTML
           const htmlContent = generateTicketHTML(ticket, companyProfile);
           const blob = new Blob([htmlContent], { type: 'text/html' });
           const url = URL.createObjectURL(blob);
           window.open(url, '_blank');
-          Alert.alert('Ticket', 'Se abrió el ticket en una nueva pestaña. Usa "Guardar como imagen" para descargarlo.');
+          Alert.alert('Ticket', 'Se abrió el ticket. Usa Ctrl+P para guardar como imagen/PDF.');
+          setSharingImage(false);
           return;
         }
         
         try {
-          const canvas = await html2canvas(ticketElement as HTMLElement, {
+          const canvas = await html2canvas(ticketElement, {
             backgroundColor: '#ffffff',
             scale: 2,
             useCORS: true,
             allowTaint: true,
+            logging: false,
           });
           
           // Convert to blob and download
@@ -112,34 +114,31 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               const link = document.createElement('a');
               link.href = url;
               link.download = `ticket-${ticket.ticket_number}.png`;
-              link.style.display = 'none';
               document.body.appendChild(link);
               link.click();
-              
-              setTimeout(() => {
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-              }, 100);
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
               
               Alert.alert(
                 '¡Imagen Descargada!', 
-                'El ticket se guardó. Ahora puedes enviarlo por WhatsApp.',
-                [{ text: 'OK' }]
+                'El ticket se guardó. Ahora puedes enviarlo por WhatsApp.'
               );
             } else {
               throw new Error('No se pudo crear la imagen');
             }
+            setSharingImage(false);
           }, 'image/png', 1.0);
+          return; // Don't set sharingImage false here, it's done in the callback
         } catch (canvasError) {
           console.error('html2canvas error:', canvasError);
-          // Fallback: open print dialog
           handlePrintTicket();
-          Alert.alert('Alternativa', 'Usa la opción de imprimir y selecciona "Guardar como PDF/Imagen".');
+          Alert.alert('Alternativa', 'Usa la opción de imprimir y selecciona "Guardar como PDF".');
         }
       } else {
         // On mobile, use ViewShot
         if (!ticketViewRef.current) {
-          Alert.alert('Error', 'No se pudo capturar el ticket. Intenta de nuevo.');
+          Alert.alert('Error', 'No se pudo capturar el ticket.');
+          setSharingImage(false);
           return;
         }
         
@@ -170,13 +169,9 @@ export const TicketModal: React.FC<TicketModalProps> = ({
       }
     } catch (error: any) {
       console.error('Error sharing image:', error);
-      Alert.alert(
-        'Error', 
-        'No se pudo compartir la imagen. Intenta usar "Compartir como texto".'
-      );
-    } finally {
-      setSharingImage(false);
+      Alert.alert('Error', 'No se pudo compartir. Intenta "Compartir como texto".');
     }
+    setSharingImage(false);
   };
 
   return (
