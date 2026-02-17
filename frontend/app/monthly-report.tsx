@@ -228,7 +228,7 @@ export default function MonthlyReport() {
           </TouchableOpacity>
         </View>
         
-        {/* Export PDF Button */}
+        {/* Export Image Button */}
         {Platform.OS === 'web' && (
           <TouchableOpacity 
             style={styles.exportPdfButton} 
@@ -239,8 +239,8 @@ export default function MonthlyReport() {
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <>
-                <Ionicons name="document-text-outline" size={20} color="#fff" />
-                <Text style={styles.exportPdfText}>Exportar PDF</Text>
+                <Ionicons name="image-outline" size={20} color="#fff" />
+                <Text style={styles.exportPdfText}>Descargar Reporte</Text>
               </>
             )}
           </TouchableOpacity>
