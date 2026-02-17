@@ -7,6 +7,7 @@ from models.enums import UserRole, TicketStatus, PaymentStatus
 from utils.database import get_db
 from utils.helpers import serialize_doc
 from utils.auth import require_role
+from services.notifications import notify_client_payment_confirmed, notify_client_payment_rejected
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
