@@ -209,7 +209,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                       companyProfile?.logo_url 
                         ? { uri: companyProfile.logo_url } 
                         : Platform.OS === 'web' 
-                          ? { uri: WEB_LOGO_URL }
+                          ? { uri: getWebLogoUrl() }
                           : localLogo
                     }
                     style={styles.ticketLogo}
