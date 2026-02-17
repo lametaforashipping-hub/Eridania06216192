@@ -52,6 +52,7 @@ from routes import (
     lottery_results_router
 )
 from routes.bank_accounts import router as bank_accounts_router
+from routes.clients import router as clients_router
 
 # Register all routers with the API router
 api_router.include_router(auth_router)
