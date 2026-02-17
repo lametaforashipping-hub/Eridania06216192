@@ -704,6 +704,111 @@ class LotteryScraper:
         
         return results
 
+    async def scrape_resultados_rd(self) -> List[LotteryResult]:
+        """Scrape from resultados.com.do - Additional source for all Dominican lotteries"""
+        results = []
+        url = "https://resultados.com.do/"
+        
+        html = await self.fetch_page(url)
+        if not html:
+            return results
+        
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            text = soup.get_text()
+            
+            # Define patterns for different lotteries
+            lottery_patterns = [
+                # (regex_pattern, lottery_key)
+                (r'florida\s*(?:día|dia|midday)[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})', 'florida_dia'),
+                (r'florida\s*(?:noche|evening|night)[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})', 'florida_noche'),
+                (r'new\s*york\s*(?:tarde|midday)[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})', 'new_york_tarde'),
+                (r'new\s*york\s*(?:noche|evening|night)[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})', 'new_york_noche'),
+                (r'anguila\s*(?:medio\s*d[ií]a|mediodia|12:00)[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})', 'anguila_mediodia'),
+            ]
+            
+            for pattern, lottery_key in lottery_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    result = LotteryResult(
+                        lottery_name=lottery_key,
+                        first_prize=int(match.group(1)),
+                        second_prize=int(match.group(2)),
+                        third_prize=int(match.group(3)),
+                        source="resultados.com.do"
+                    )
+                    if not any(r.lottery_name == lottery_key for r in results):
+                        results.append(result)
+                        logger.info(f"Found {lottery_key} from resultados.com.do: {result.first_prize}-{result.second_prize}-{result.third_prize}")
+        except Exception as e:
+            logger.error(f"Error parsing resultados.com.do: {e}")
+        
+        return results
+
+    async def scrape_loterias_en_vivo(self) -> List[LotteryResult]:
+        """Scrape from loteriasdominicanas.com with more detailed parsing"""
+        results = []
+        url = "https://loteriasdominicanas.com/"
+        
+        html = await self.fetch_page(url)
+        if not html:
+            return results
+        
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Look for lottery blocks/cards
+            lottery_blocks = soup.find_all(['div', 'section', 'article'], class_=re.compile(r'lottery|result|quiniela', re.I))
+            
+            for block in lottery_blocks:
+                block_text = block.get_text().lower()
+                
+                # Anguila Medio Día
+                if 'anguila' in block_text and ('medio' in block_text or '12:' in block_text):
+                    numbers = re.findall(r'\b(\d{1,2})\b', block.get_text())
+                    if len(numbers) >= 3:
+                        valid_nums = [int(n) for n in numbers if 0 <= int(n) <= 99][:3]
+                        if len(valid_nums) == 3:
+                            results.append(LotteryResult(
+                                lottery_name="anguila_mediodia",
+                                first_prize=valid_nums[0],
+                                second_prize=valid_nums[1],
+                                third_prize=valid_nums[2],
+                                source="loteriasdominicanas.com"
+                            ))
+                
+                # Florida Noche
+                if 'florida' in block_text and 'noche' in block_text:
+                    numbers = re.findall(r'\b(\d{1,2})\b', block.get_text())
+                    if len(numbers) >= 3:
+                        valid_nums = [int(n) for n in numbers if 0 <= int(n) <= 99][:3]
+                        if len(valid_nums) == 3:
+                            results.append(LotteryResult(
+                                lottery_name="florida_noche",
+                                first_prize=valid_nums[0],
+                                second_prize=valid_nums[1],
+                                third_prize=valid_nums[2],
+                                source="loteriasdominicanas.com"
+                            ))
+                
+                # New York Noche
+                if ('new york' in block_text or 'ny' in block_text) and 'noche' in block_text:
+                    numbers = re.findall(r'\b(\d{1,2})\b', block.get_text())
+                    if len(numbers) >= 3:
+                        valid_nums = [int(n) for n in numbers if 0 <= int(n) <= 99][:3]
+                        if len(valid_nums) == 3:
+                            results.append(LotteryResult(
+                                lottery_name="new_york_noche",
+                                first_prize=valid_nums[0],
+                                second_prize=valid_nums[1],
+                                third_prize=valid_nums[2],
+                                source="loteriasdominicanas.com"
+                            ))
+        except Exception as e:
+            logger.error(f"Error in detailed loteriasdominicanas parsing: {e}")
+        
+        return results
+
     async def fetch_all_results(self) -> Dict[str, LotteryResult]:
         """Fetch results from all sources and cross-validate"""
         logger.info("Fetching lottery results from all sources...")
