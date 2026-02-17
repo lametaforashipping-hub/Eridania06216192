@@ -1,105 +1,103 @@
 <analysis>**original_problem_statement:**
-The user wants to build a comprehensive lottery sales application. The project has evolved through several phases, including core sales, RBAC, a virtual banking system, and automating lottery result publication. The user's primary goal is to have a robust, fast, and user-friendly application for both lottery administrators and sellers, with a strong emphasis on mobile usability and real-time features.
+The user wants to build a comprehensive lottery sales application. The initial goal was a robust system for administrators and sellers. The project has now been expanded with a major new feature: a **client-facing portal**.
 
-In this session, the focus shifted to enhancing the seller's user experience by significantly expanding the Mi Perfil (My Profile) screen and adding a new Reportes Mensuales (Monthly Reports) section. A bug was also reported concerning the display of the logo and QR code on generated tickets.
+PRODUCT REQUIREMENTS (New - Client Portal):
+-   **Client Registration & Profile:** Clients should be able to register using their phone/email and manage a simple profile.
+-   **Digital Ticket Purchase:** Clients can select lottery numbers and create a ticket order. The ticket is initially marked as pending payment.
+-   **Digital Payments:** Clients pay for their tickets via Zelle or bank transfer, using the company's pre-configured bank accounts. They must manually upload a proof of payment (receipt/screenshot).
+-   **Payment Confirmation:** A Super Admin or Admin must manually review the uploaded proof and confirm the payment in the system. Only after confirmation is the ticket considered valid.
+-   **Real-time Notifications:** Clients receive notifications about their ticket status (e.g., payment confirmed, won/lost).
+-   **Results:** Clients can view lottery results within the app.
 
-PRODUCT REQUIREMENTS:
--   **Automate Winning Number Publication & Notifications:** (DONE)
--   **Add Logo to Shared Ticket:** (DONE, but a regression is IN PROGRESS)
--   **Add Slogan to Company Profile & Ticket:** (DONE)
--   **Improve Readability of Numbers in Notifications/Draws:** (DONE)
--   **Restore Share Ticket as Image via WhatsApp:** (DONE)
--   **Redesign Ticket for Clarity:** (DONE)
--   **Fix Deployment Errors:** (DONE)
--   **Add Push Notification Reminder Banner:** (DONE)
--   **Unify Sales and Quick Sales UI:** (DONE)
--   **Fix Seller Profile Access:** (DONE)
--   **Enhance Mi Perfil with Transaction History, Filters, and Totals:** (DONE)
--   **Create Monthly Reports Screen for Sellers with Charts:** (DONE)
--   **Add Export to Image/PDF for Monthly Reports:** (DONE - as Image)
--   **Fix Logo & QR Code Not Appearing on Ticket:** (IN PROGRESS)
+PRODUCT REQUIREMENTS (Existing):
+-   **Fix Logo & QR Code Not Appearing on Ticket:** (DONE)
+-   **Add Customizable Company Logo:** (DONE)
+-   **Advanced Statistics Dashboard for Admins:** (DONE)
+-   **Add Pagination to Admin Ticket View:** (DONE)
 -   **Connect Custom Domain:** (NOT STARTED)
--   **Advanced Statistics Dashboard:** (NOT STARTED)
 
 **User's preferred language**: Spanish
 
 **what currently exists?**
-The application is a full-stack lottery sales system. This session focused heavily on enriching the seller's dashboard. The Mi Perfil screen was successfully verified and then enhanced with a detailed transaction history (sales, commissions, deposits), complete with filters and a summary of totals. A new, sophisticated Reportes Mensuales screen was built from scratch, featuring a new backend endpoint for data aggregation, KPI cards, and interactive charts for visualizing sales trends. This report can also be exported as a PNG image. The agent is currently debugging a user-reported issue where the company logo and QR code are not appearing on the ticket modal.
+The application is a full-stack lottery system with roles for Admins and Sellers. In this session, several key features were completed: a bug with the ticket's logo/QR code was fixed, a feature to allow admins to upload a custom company logo was implemented, an advanced statistics dashboard for admins was created, and pagination was added to the admin's ticket list view.
+
+Most recently, the agent began implementing a major new feature: a **Client Portal**. The foundational work for this is complete. This includes:
+-   **Backend:** A new  user role, new ticket statuses (e.g., ), and new API endpoints for client registration, login, profile management, and ticket creation.
+-   **Frontend:** A new, separate section for clients with dedicated screens for login, registration, and a basic dashboard structure.
 
 **Last working item**:
-    - Last item agent was working: The user reported that the logo and QR code are missing from the generated ticket. The agent determined this might be due to how  and  handle SVGs and local  images. A fix was attempted by switching to an image-based QR code API for web and moving the logo to the  folder to be served via a static URL. The agent was in the middle of verifying this fix when the session ended.
+    - Last item agent was working: The agent just completed **Phase 1** of the new **Client Portal** feature. This involved setting up all the necessary backend models and API endpoints () and creating the basic frontend screens (, , ). The system is now ready for the next phase of implementation.
     - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? Frontend testing agent. The agent should log in as the seller, create a new ticket from the Venta screen, and verify that the ticket modal correctly displays both the logo and the QR code.
+    - Agent Testing Done: Y (Backend endpoints tested with , frontend screens verified with .)
+    - Which testing method agent to use? Frontend testing agent. The agent should create a comprehensive test plan for the entire client portal feature as it's being built. To start, it should verify the client registration and login flow:
+        1. Navigate to the client registration page.
+        2. Create a new client account.
+        3. Log in with the new credentials.
+        4. Verify that the user is successfully redirected to the client dashboard ().
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Logo and QR code not appearing on the ticket modal. (P0 - HIGHEST)
-
-  Issues Detail:
-  - Issue 1: 
-     - Attempted fixes: 
-        1. In , the  component (which renders an SVG) was replaced with an  component pointing to  for the web platform.
-        2. The local logo image was moved to .
-        3. The  source for the logo was updated in  to use the static URL  on the web platform.
-     - Next debug checklist: 
-        1.  Restart the frontend service to ensure static files from the  directory are served correctly.
-        2.  Use the  tool to create a ticket and visually inspect the .
-        3.  Check the browser's developer tools (Network tab) for any 404 errors related to loading  or the QR code image from the external API.
-        4.  Confirm the conditional logic  in  is correctly triggering the new image-based rendering paths.
-     - Why fix this issue and what will be achieved with the fix? The ticket is a core element of the app. Restoring the logo and QR code is essential for brand identity and functionality (e.g., ticket validation).
-     - Status:  IN PROGRESS
-     - Is recurring issue? Y (It was fixed before but has reappeared, likely due to other changes).
-     - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on other issue: None
+  - None.
 
 **In progress Task List**:
-  - None.
+  - Task 1: Complete the Client Portal Feature (P0 - HIGHEST)
+
+ Task Detail:
+  - Task 1: 
+     - Where to resume: The backend and frontend foundations are in place. The next step is to implement **Phase 2: Client-side Ticket Creation & Payment Submission**. This involves building the UI for clients to select numbers, create a ticket (which will be in  status), and upload their proof of payment.
+     - What will be achieved with this? Clients will be able to place orders through the app, a core part of the new feature.
+     - Status:  IN PROGRESS
+     - Should Test frontend/backend/both after fix? Both.
+     - Blocked on something: None.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **P1: Connect Custom Domain:** Once the application is stable, guide the user to connect their  domain.
+    *   **P0: Client Portal - Phase 3 (Admin Payment Confirmation):** Build the UI for Admins to view pending payments, see the uploaded proof, and confirm or reject the payment, which updates the ticket status.
+    - **P0: Client Portal - Phase 4 (Notifications & Results):** Implement the logic to notify clients when their payment is confirmed and when lottery results are published.
+    *   **P1: Connect Custom Domain:** Guide the user to connect their  domain.
+    *   **P2: Fix Pagination UI:** The backend pagination works, but the UI component on the admin tickets page () might not be visible due to  scrolling. Investigate and ensure the pagination controls are always visible.
+
 *   **Future Tasks:**
-    *   **P2: Advanced Statistics Dashboard:** Build a dashboard with advanced sales metrics, graphs, and trends for administrators.
-    *   **P2: Add Pagination to Admin Ticket View:** Refactor the query in  to use pagination instead of fetching up to 10,000 tickets at once to prevent performance issues.
+    *   **P2: Advanced Statistics Dashboard (Enhancements):** Further improve the admin dashboard with more detailed graphs and data filters.
 
 **Completed work in this session**
-- **Seller Profile Verification and Enhancement ():**
-  - Verified the base functionality for sellers to view their own profile.
-  - Fixed a bug where the commission percentage was not displaying correctly.
-  - Added a Historial de Transacciones section to show sales, commissions, and deposits.
-  - Implemented filters (Todos, Ventas, Comisiones, Depósitos) and a summary of totals for the transactions.
-- **New Seller Monthly Reports Screen ():**
-  - Created a new backend endpoint  in  for monthly data aggregation.
-  - Built a new Reportes Mensuales page using  to display KPI cards, a daily sales bar chart, and a sales trend line chart.
-  - Added a feature to export the entire report view as a PNG image using .
-- **Dependency and Build Management:**
-  - Resolved a critical Metro bundler build failure caused by installing the incompatible  library, which involved removing the package, cleaning , and resetting the Metro cache.
+- **Bug Fix: Ticket Logo & QR Code:** Resolved an issue where the logo and QR code were not appearing on the ticket modal. The root cause was a broken external image URL, which was fixed by using a locally served static asset.
+- **Feature: Customizable Company Logo:** Implemented a new feature allowing administrators to upload a company logo from the Perfil de Empresa screen. This involved creating a new backend endpoint for file uploads and updating the ticket modal to use the custom logo if available.
+- **Feature: Advanced Admin Statistics Dashboard:** Created a new dashboard for administrators () with KPIs and charts for sales, profit, commissions, and other metrics, powered by a new backend aggregation endpoint.
+- **Feature: Admin Ticket Pagination:** Refactored the admin ticket list on both the backend (to support  and  parameters) and frontend (to fetch and display paginated data).
+- **Feature: Client Portal (Phase 1 - Foundation):** Built the foundational backend and frontend architecture for the new client-facing portal, including user roles, registration/login endpoints, and initial screens.
 
 **Earlier issues found/mentioned but not fixed**
    - None.
 
 **Known issue recurrence from previous fork**
-  - None from the previous fork. The deployment issues were resolved and did not recur. The current ticket issue is a regression within this session.
+  - None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Data Visualization:** Using  to render interactive bar and line charts for financial data.
-*   **Backend Data Aggregation:** Implementing a new API endpoint that uses MongoDB aggregation pipelines to efficiently summarize time-series data for the frontend.
-*   **Platform-Specific Rendering:** Using  to provide different components and logic for web vs. native mobile, specifically for QR code generation and image asset loading.
-*   **Web Export & Bundler Issues:** Pivoting from a problematic PDF export solution () to a more reliable image export () after diagnosing a Metro bundler incompatibility with dynamic .
-*   **UI/UX Enhancement:** Iteratively building out a user-requested feature set (profile -> transactions -> filters -> reports -> export) in a logical sequence.
+*   **Multi-Portal Architecture:** The app is now structured into distinct sections for admins/sellers and clients, using Expo Router's layout groups (, ) to manage separate navigation and authentication flows.
+*   **Role-Based Access Control (RBAC):** Expanded the user model to include a  role, enabling different permissions and user experiences.
+*   **File Uploads & Static Serving:** Implemented file uploads in FastAPI for the custom logo and configured static file serving for the  directory.
+*   **Backend Aggregation:** Used MongoDB aggregation pipelines to efficiently calculate complex statistics for the admin dashboard.
+*   **API-driven Pagination:** Implemented backend logic and frontend state management for paginating large data sets.
 
 **key DB schema**
-  - No database schema changes were made in this session.
+  - **users:**  field (Enum) now includes .
+  - **tickets:**  field (Enum) now includes . New fields  (String) and  (ObjectId) will be needed for the client flow.
+  - **company_profile:**  field (String) was added to store the path to the custom logo.
 
 **changes in tech stack**
-  -  was added and subsequently removed due to build conflicts. No permanent stack changes.
+  - No changes.
 
 **All files of reference**
 *   **Created:**
+    *   
+    *   
+    *   
+    *   
+    *   
     *   
     *   
 *   **Updated:**
@@ -107,35 +105,45 @@ The application is a full-stack lottery sales system. This session focused heavi
     *   
     *   
     *   
+    *   
+    *   
+    *   
+    *   
+    *   
 
 **Areas that need refactoring**:
-*   The  endpoint that fetches tickets for the admin view still lacks pagination and could cause performance issues at scale.
+*   The pagination UI on the admin ticket list () needs to be reviewed to ensure it's always visible, regardless of the list's scroll position.
 
 **key api endpoints**
-*   : **(MODIFIED)** Now returns a  array.
-*   : **(NEW)** Aggregates and returns monthly sales, commission, and deposit data for the authenticated seller.
+*   : (NEW) Uploads a custom company logo.
+*   : (NEW) Returns aggregated sales and performance statistics for the admin dashboard.
+*   : (MODIFIED) Now supports  and  for pagination.
+*   : (NEW) Public endpoint for new client registration.
+*   : (NEW) Public endpoint for client login.
+*   : (NEW) Protected endpoint to get the logged-in client's profile.
+*   : (NEW) Endpoint for clients to create a new ticket order.
 
 **Critical Info for New Agent**
 *   **Communicate in Spanish.**
-*   The immediate task is to **validate the fix for the missing logo and QR code** on the ticket modal. The code changes are in . Verify if the new approach (using an image API for QR and a public URL for the logo) works.
-*   The seller-facing features (Mi Perfil and Reportes Mensuales) are functionally complete and have been tested.
-*   Be mindful of Expo Metro bundler limitations when considering new frontend libraries, especially those not explicitly designed for React Native. The  approach for screen capture is the established pattern in this project.
+*   The main priority is to continue building the **Client Portal**. You are starting **Phase 2**, which is implementing the UI for clients to create tickets and upload their proof of payment.
+*   The client-facing part of the application lives in the  directory.
+*   The backend logic for the client portal is split between  and .
 
 **documents and test reports created in this job**
   -  (Updated)
-  - 
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1.  **EL LUGO NI EL CODGO QR ESTAN SALIENDO EN ELTICKE**: User reported that the logo and QR code are not appearing on the ticket. (IN PROGRESS)
-2.  **SI**: Confirmed wanting to add the export functionality to the monthly report. (COMPLETED)
-3.  **SI**: Confirmed wanting to create the monthly reports screen. (COMPLETED)
-4.  **SI**: Confirmed wanting to add a summary of totals to the transaction history. (COMPLETED)
-5.  **SI**: Confirmed wanting to add filters to the transaction history. (COMPLETED)
-6.  **SI**: Confirmed wanting to add the transaction history to the profile screen. (COMPLETED)
-7.  **SI**: Acknowledged the initial Mi Perfil verification and commission bug fix. (COMPLETED)
+1.  **Configurar cuentas Zelle/bancarias esta parte es configurada con la cuenta bancaria de el mimo sitemas**: User clarified that the new client payment system should use the existing bank accounts already configured in the system. (COMPLETED - Agent adapted the plan).
+2.  **User providing detailed requirements for the new Client Portal feature**: Described the desired flow for client registration, ticket purchase, payment, and notifications. (IN PROGRESS - Phase 1 completed).
+3.  **si**: Confirmed moving forward with the Client Portal plan. (COMPLETED)
+4.  **2, 3**: User selected the Advanced Statistics Dashboard and Add Pagination tasks to be implemented. (COMPLETED)
+5.  **SI**: Confirmed the plan to implement the statistics and pagination features. (COMPLETED)
+6.  **OK**: Acknowledged completion of the custom logo feature. (COMPLETED)
+7.  **SI**: Agreed to the agent's suggestion to implement the customizable logo feature. (COMPLETED)
+8.  **User acknowledges the fix for the logo/QR bug and is ready for the next task.** (COMPLETED)
 
 **Project Health Check:**
-*   **Broken:** The ticket modal display is broken; it does not show the logo or QR code. This is a high-priority visual bug/regression.
+*   **Broken:** None.
 *   **Mocked:** None.
 
 **3rd Party Integrations**
@@ -155,10 +163,10 @@ The application is a full-stack lottery sales system. This session focused heavi
 *   
 
 **Testing status**
-  - Testing agent used after significant changes: YES, to verify the initial Mi Perfil fix.
-  - Troubleshoot agent used after agent stuck in loop: NO, but the agent self-debugged a complex build issue.
+  - Testing agent used after significant changes: NO (Agent self-tested features using curl and screenshots).
+  - Troubleshoot agent used after agent stuck in loop: NO.
   - Test files created: []
-  - Known regressions: The ticket logo/QR code display has regressed.
+  - Known regressions: None.
 
 **Credentials to test flow:**
 *   **Seller:**
@@ -167,6 +175,9 @@ The application is a full-stack lottery sales system. This session focused heavi
 *   **Super Admin:**
     *   Email: 
     *   Password: 
+*   **Client (Newly created for testing):**
+    *   Phone: 
+    *   Password: 
 
 **What agent forgot to execute**
-*   The agent did not forget any user requests. It followed a logical progression of feature implementation and is currently in the middle of debugging the latest reported issue.</analysis>
+*   The agent successfully managed all user requests. It broke down a very large new feature request into manageable phases and completed the first phase. No tasks were forgotten.</analysis>
