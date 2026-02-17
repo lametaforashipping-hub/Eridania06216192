@@ -165,7 +165,7 @@ async def process_payment(
             # Send notification to client
             await notify_client_payment_confirmed(
                 ticket["client_id"],
-                ticket.get("ticket_number", ticket_number),
+                ticket.get("ticket_number", ""),
                 ticket.get("total_amount", 0)
             )
         
