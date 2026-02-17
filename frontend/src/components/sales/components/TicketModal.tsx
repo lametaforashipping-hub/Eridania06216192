@@ -46,6 +46,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   companyProfile,
 }) => {
   const ticketViewRef = useRef<ViewShot>(null);
+  const ticketContainerRef = useRef<any>(null);
   const [sharingImage, setSharingImage] = useState(false);
 
   if (!ticket) return null;
