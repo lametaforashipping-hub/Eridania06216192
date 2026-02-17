@@ -246,7 +246,7 @@ async def check_and_process_results():
             if "pega" in name_lower and "3" in name_lower:
                 lottery_map["pega_3_mas"] = lot
             if "florida" in name_lower:
-                if "dia" in name_lower or "day" in name_lower:
+                if "día" in name_lower or "dia" in name_lower or "day" in name_lower:
                     lottery_map["florida_dia"] = lot
                 elif "noche" in name_lower or "night" in name_lower:
                     lottery_map["florida_noche"] = lot
@@ -257,24 +257,27 @@ async def check_and_process_results():
                     lottery_map["new_york_tarde"] = lot
                 elif "noche" in name_lower or "evening" in name_lower or "night" in name_lower:
                     lottery_map["new_york_noche"] = lot
+            # La Primera - check before Leidsa to avoid conflicts
             if "primera" in name_lower:
-                if "dia" in name_lower:
+                if "día" in name_lower or "dia" in name_lower:
                     lottery_map["la_primera_dia"] = lot
+                    lottery_map["primera_dia"] = lot  # Alternative key
                 elif "noche" in name_lower:
                     lottery_map["la_primera_noche"] = lot
+                    lottery_map["primera_noche"] = lot  # Alternative key
                 else:
                     lottery_map["la_primera"] = lot
             if "suerte" in name_lower:
-                if "12:30" in name_lower or "12" in name_lower:
+                if "12:30" in name_lower or "1230" in name_lower:
                     lottery_map["la_suerte_1230"] = lot
-                elif "18:00" in name_lower or "18" in name_lower:
+                elif "18:00" in name_lower or "1800" in name_lower:
                     lottery_map["la_suerte_1800"] = lot
                 else:
                     lottery_map["la_suerte"] = lot
             if "anguila" in name_lower or "anguilla" in name_lower:
                 if "mañana" in name_lower or "manana" in name_lower:
                     lottery_map["anguila_manana"] = lot
-                elif "medio" in name_lower:
+                elif "medio" in name_lower or "mediodía" in name_lower or "mediodia" in name_lower:
                     lottery_map["anguila_mediodia"] = lot
                 elif "tarde" in name_lower:
                     lottery_map["anguila_tarde"] = lot
@@ -283,9 +286,9 @@ async def check_and_process_results():
                 else:
                     lottery_map["anguila"] = lot
             if "king" in name_lower:
-                if "12:30" in name_lower or "12" in name_lower:
+                if "12:30" in name_lower or "1230" in name_lower:
                     lottery_map["king_lottery_1230"] = lot
-                elif "7:30" in name_lower or "19:30" in name_lower:
+                elif "7:30" in name_lower or "19:30" in name_lower or "730" in name_lower:
                     lottery_map["king_lottery_1930"] = lot
                 else:
                     lottery_map["king_lottery"] = lot
