@@ -226,6 +226,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ### P1 - Alta Prioridad
 - [x] ~~Agregar logo al ticket compartido~~ - COMPLETADO
+- [x] ~~Personalizar logo desde Perfil de Empresa~~ - COMPLETADO 17 Feb 2026
 - [ ] Conectar dominio personalizado (loteriamagica.com)
 - [ ] Verificar deployment exitoso con nuevo /health endpoint
 
