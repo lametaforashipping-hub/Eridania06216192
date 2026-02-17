@@ -39,6 +39,8 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     today_won = len([t for t in today_tickets if t.get("status") == "won"])
     today_cancelled = len([t for t in today_tickets if t.get("status") == "cancelled"])
     commission_rate = user.get("commission_rate", 10)
+    # Ensure commission_rate is in the user object for frontend
+    user["commission_rate"] = commission_rate
     today_commission = today_sales * (commission_rate / 100)
     today_net = today_sales - today_wins - today_commission
     
