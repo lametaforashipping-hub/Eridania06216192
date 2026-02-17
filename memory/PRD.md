@@ -9,6 +9,50 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - **Base de datos:** MongoDB
 - **Dominio:** loteriamagica.com (Hostinger) - pendiente configuración
 
+
+## NUEVA FUNCIONALIDAD: Plataforma para Clientes (EN PROGRESO)
+
+### Fase 1: Base del Sistema de Clientes ✅ COMPLETADO 17 Feb 2026
+**Backend:**
+- Nuevo rol `CLIENTE` en `/app/backend/models/enums.py`
+- Nuevos estados: `PENDING_PAYMENT`, `PaymentMethod`, `PaymentStatus`
+- Nuevo archivo `/app/backend/routes/clients.py`:
+  - `POST /api/clients/register` - Registro público de clientes
+  - `POST /api/clients/login` - Login con teléfono
+  - `GET /api/clients/me` - Perfil del cliente
+  - `GET /api/clients/payment-accounts` - Cuentas de pago disponibles
+  - `POST /api/clients/tickets` - Crear ticket (pendiente pago)
+  - `POST /api/clients/tickets/{id}/upload-receipt` - Subir comprobante
+  - `GET /api/clients/tickets` - Historial de tickets
+  - `GET /api/clients/results` - Ver resultados
+- Nuevo archivo `/app/backend/routes/payments.py`:
+  - `GET /api/payments/config` - Configuración de cuentas
+  - `PUT /api/payments/config` - Actualizar config
+  - `GET /api/payments/pending` - Pagos pendientes
+  - `POST /api/payments/{id}/action` - Aprobar/Rechazar pago
+  - `GET /api/payments/history` - Historial
+
+**Frontend:**
+- `/app/frontend/app/client-register.tsx` - Registro de clientes
+- `/app/frontend/app/client-login.tsx` - Login de clientes
+- `/app/frontend/app/client-dashboard.tsx` - Dashboard principal
+- Enlace en login principal: "Soy cliente - Quiero jugar"
+
+### Fase 2: Sistema de Pagos (PENDIENTE)
+- Configuración de cuentas Zelle y bancarias (Admin)
+- Flujo de pago del cliente
+- Subida de comprobante
+
+### Fase 3: Confirmación y Validación (PENDIENTE)
+- Panel de pagos pendientes (Admin)
+- Aprobar/Rechazar pagos
+- Cancelación automática 15 min antes del cierre
+
+### Fase 4: Notificaciones (PENDIENTE)
+- Alertas al cliente sobre estado de pagos
+- Notificación de ganadores
+
+
 ## Cambios Recientes
 
 ### ✅ Sistema de Resultados Automáticos (COMPLETADO 16 Feb 2026)
