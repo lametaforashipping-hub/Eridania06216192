@@ -464,7 +464,7 @@ class LotteryScraper:
         """Scrape Anguilla lottery results from multiple sources"""
         results = []
         
-        # Try loteriasdominicanas for Anguila
+        # Source 1: loteriasdominicanas.com general page
         url = "https://loteriasdominicanas.com/"
         html = await self.fetch_page(url)
         if html:
@@ -477,12 +477,20 @@ class LotteryScraper:
                     ("mañana", "anguila_manana"),
                     ("manana", "anguila_manana"),
                     ("10:00", "anguila_manana"),
+                    ("10 am", "anguila_manana"),
+                    ("11:00", "anguila_manana"),
+                    ("11 am", "anguila_manana"),
                     ("medio", "anguila_mediodia"),
                     ("12:00", "anguila_mediodia"),
+                    ("12 pm", "anguila_mediodia"),
+                    ("1:00 pm", "anguila_mediodia"),
                     ("tarde", "anguila_tarde"),
                     ("15:00", "anguila_tarde"),
+                    ("3:00 pm", "anguila_tarde"),
+                    ("6:00 pm", "anguila_tarde"),
                     ("noche", "anguila_noche"),
                     ("21:00", "anguila_noche"),
+                    ("9:00 pm", "anguila_noche"),
                 ]:
                     pattern = rf'anguil[la]*\s*{time_slot}[:\s]*(\d{{1,2}})[-\s]+(\d{{1,2}})[-\s]+(\d{{1,2}})'
                     match = re.search(pattern, text)
@@ -498,6 +506,81 @@ class LotteryScraper:
                             results.append(result)
             except Exception as e:
                 logger.error(f"Error parsing Anguila: {e}")
+        
+        # Source 2: Specific page for Anguila Medio Día
+        url_mediodia = "https://loteriasdominicanas.com/anguila/anguila-medio-dia"
+        html = await self.fetch_page(url_mediodia)
+        if html and not any(r.lottery_name == "anguila_mediodia" for r in results):
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                # Look for numbers in various formats
+                text = soup.get_text()
+                
+                # Try to find 3 consecutive numbers
+                numbers = re.findall(r'\b(\d{1,2})\b', text)
+                valid_nums = [int(n) for n in numbers if 0 <= int(n) <= 99]
+                
+                # Filter out common non-lottery numbers (years, times, etc)
+                valid_nums = [n for n in valid_nums if n not in [20, 26, 12, 00]]
+                
+                if len(valid_nums) >= 3:
+                    results.append(LotteryResult(
+                        lottery_name="anguila_mediodia",
+                        first_prize=valid_nums[0],
+                        second_prize=valid_nums[1],
+                        third_prize=valid_nums[2],
+                        source="loteriasdominicanas.com"
+                    ))
+                    logger.info(f"Found anguila_mediodia from specific page: {valid_nums[0]}-{valid_nums[1]}-{valid_nums[2]}")
+            except Exception as e:
+                logger.error(f"Error parsing Anguila Medio Día specific page: {e}")
+        
+        # Source 3: conectate.com.do for Anguila
+        url_conectate = "https://www.conectate.com.do/loterias/anguilla/anguila-12-pm"
+        html = await self.fetch_page(url_conectate)
+        if html and not any(r.lottery_name == "anguila_mediodia" for r in results):
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                text = soup.get_text()
+                
+                numbers = re.findall(r'\b(\d{1,2})\b', text)
+                valid_nums = [int(n) for n in numbers if 0 <= int(n) <= 99]
+                valid_nums = [n for n in valid_nums if n not in [20, 26, 12, 00]]
+                
+                if len(valid_nums) >= 3:
+                    results.append(LotteryResult(
+                        lottery_name="anguila_mediodia",
+                        first_prize=valid_nums[0],
+                        second_prize=valid_nums[1],
+                        third_prize=valid_nums[2],
+                        source="conectate.com.do"
+                    ))
+                    logger.info(f"Found anguila_mediodia from conectate: {valid_nums[0]}-{valid_nums[1]}-{valid_nums[2]}")
+            except Exception as e:
+                logger.error(f"Error parsing Anguila from conectate: {e}")
+        
+        # Source 4: enloteria.com
+        url_enloteria = "https://enloteria.com/resultados-anguilla-12pm"
+        html = await self.fetch_page(url_enloteria)
+        if html and not any(r.lottery_name == "anguila_mediodia" for r in results):
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                text = soup.get_text()
+                
+                # Look for result pattern
+                pattern = r'(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})'
+                match = re.search(pattern, text)
+                if match:
+                    results.append(LotteryResult(
+                        lottery_name="anguila_mediodia",
+                        first_prize=int(match.group(1)),
+                        second_prize=int(match.group(2)),
+                        third_prize=int(match.group(3)),
+                        source="enloteria.com"
+                    ))
+                    logger.info(f"Found anguila_mediodia from enloteria: {match.group(1)}-{match.group(2)}-{match.group(3)}")
+            except Exception as e:
+                logger.error(f"Error parsing Anguila from enloteria: {e}")
         
         return results
 
