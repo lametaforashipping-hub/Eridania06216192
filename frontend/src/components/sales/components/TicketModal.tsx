@@ -200,7 +200,13 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                 {/* Header con Logo y Empresa */}
                 <View style={styles.ticketHeaderSection}>
                   <Image
-                    source={companyProfile?.logo_url ? { uri: companyProfile.logo_url } : localLogo}
+                    source={
+                      companyProfile?.logo_url 
+                        ? { uri: companyProfile.logo_url } 
+                        : Platform.OS === 'web' 
+                          ? { uri: WEB_LOGO_URL }
+                          : localLogo
+                    }
                     style={styles.ticketLogo}
                     resizeMode="contain"
                   />
