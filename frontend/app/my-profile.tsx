@@ -65,6 +65,15 @@ interface Ticket {
   currency: string;
 }
 
+interface Transaction {
+  id: string;
+  transaction_type: string;
+  amount: number;
+  currency: string;
+  description: string;
+  created_at: string;
+}
+
 export default function MyProfile() {
   const { token, user: authUser, logout } = useAuth();
   const router = useRouter();
@@ -73,6 +82,7 @@ export default function MyProfile() {
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null);
   const [weekStats, setWeekStats] = useState<WeekStats | null>(null);
   const [recentTickets, setRecentTickets] = useState<Ticket[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
