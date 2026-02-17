@@ -457,27 +457,10 @@ class LotteryScraper:
                             break
         except Exception as e:
             logger.debug(f"LotteryCorner FL backup failed: {e}")
-                        lottery_name="florida_dia",
-                        first_prize=numbers[0],
-                        second_prize=numbers[1] if len(numbers) > 1 else None,
-                        third_prize=numbers[2] if len(numbers) > 2 else None,
-                        source="lotteryusa.com"
-                    ))
-            except Exception as e:
-                logger.error(f"Error parsing Florida midday: {e}")
         
-        # Evening
-        url_evening = "https://www.lotteryusa.com/florida/evening-pick-3"
-        html = await self.fetch_page(url_evening)
-        if html:
-            try:
-                soup = BeautifulSoup(html, 'html.parser')
-                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
-                numbers = []
-                for elem in number_elems:
-                    num = self.parse_number(elem.get_text())
-                    if num is not None:
-                        numbers.append(num)
+        return results
+
+    async def scrape_anguila(self) -> List[LotteryResult]:
                 
                 if len(numbers) >= 1:
                     results.append(LotteryResult(
