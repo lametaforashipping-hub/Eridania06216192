@@ -183,6 +183,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 
 ### P0 - Bloqueadores
 - [x] ~~Resolver error de despliegue~~ - Endpoint /health implementado
+- [x] ~~Página "Mi Perfil" para vendedores~~ - COMPLETADO 17 Feb 2026
 
 ### P1 - Alta Prioridad
 - [x] ~~Agregar logo al ticket compartido~~ - COMPLETADO
