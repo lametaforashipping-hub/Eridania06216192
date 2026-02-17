@@ -180,3 +180,179 @@ async def notify_new_lottery_results(results: List[dict]):
     )
     
     logger.info(f"Lottery results notification sent to {len(tokens)} devices")
+
+
+async def notify_client_payment_confirmed(client_id: str, ticket_number: str, total_amount: float):
+    """Send push notification to client when their payment is confirmed"""
+    db = get_db()
+    client = await db.users.find_one({"id": client_id})
+    
+    if not client or not client.get("notification_token"):
+        logger.info(f"No notification token for client {client_id}")
+        return
+    
+    tokens = [client["notification_token"]]
+    
+    # Create in-app notification
+    import uuid
+    from datetime import datetime, timezone
+    
+    notification_doc = {
+        "id": str(uuid.uuid4()),
+        "type": "payment_confirmed",
+        "user_id": client_id,
+        "title": "✅ Pago Confirmado",
+        "message": f"Tu pago para el ticket {ticket_number} ha sido confirmado. ¡Buena suerte!",
+        "ticket_number": ticket_number,
+        "amount": total_amount,
+        "created_at": datetime.now(timezone.utc),
+        "read": False
+    }
+    await db.client_notifications.insert_one(notification_doc)
+    
+    await send_push_notification(
+        tokens,
+        "✅ Pago Confirmado",
+        f"Tu pago de RD$ {total_amount:,.0f} ha sido confirmado. Ticket: {ticket_number}",
+        {
+            "type": "payment_confirmed",
+            "ticket_number": ticket_number,
+            "notification_id": notification_doc["id"]
+        }
+    )
+    
+    logger.info(f"Payment confirmation sent to client {client_id}")
+
+
+async def notify_client_payment_rejected(client_id: str, ticket_number: str, reason: str = None):
+    """Send push notification to client when their payment is rejected"""
+    db = get_db()
+    client = await db.users.find_one({"id": client_id})
+    
+    if not client or not client.get("notification_token"):
+        logger.info(f"No notification token for client {client_id}")
+        return
+    
+    tokens = [client["notification_token"]]
+    
+    message = f"Tu pago para el ticket {ticket_number} no pudo ser verificado."
+    if reason:
+        message += f" Razón: {reason}"
+    
+    # Create in-app notification
+    import uuid
+    from datetime import datetime, timezone
+    
+    notification_doc = {
+        "id": str(uuid.uuid4()),
+        "type": "payment_rejected",
+        "user_id": client_id,
+        "title": "❌ Pago Rechazado",
+        "message": message,
+        "ticket_number": ticket_number,
+        "reason": reason,
+        "created_at": datetime.now(timezone.utc),
+        "read": False
+    }
+    await db.client_notifications.insert_one(notification_doc)
+    
+    await send_push_notification(
+        tokens,
+        "❌ Pago Rechazado",
+        message,
+        {
+            "type": "payment_rejected",
+            "ticket_number": ticket_number,
+            "reason": reason,
+            "notification_id": notification_doc["id"]
+        }
+    )
+    
+    logger.info(f"Payment rejection sent to client {client_id}")
+
+
+async def notify_client_winner(client_id: str, ticket_number: str, prize: float, lottery_name: str):
+    """Send push notification to client when they win"""
+    db = get_db()
+    client = await db.users.find_one({"id": client_id})
+    
+    if not client or not client.get("notification_token"):
+        logger.info(f"No notification token for client {client_id}")
+        return
+    
+    tokens = [client["notification_token"]]
+    
+    # Create in-app notification
+    import uuid
+    from datetime import datetime, timezone
+    
+    notification_doc = {
+        "id": str(uuid.uuid4()),
+        "type": "winner",
+        "user_id": client_id,
+        "title": "🎉 ¡FELICIDADES! ¡GANASTE!",
+        "message": f"Tu ticket {ticket_number} ganó RD$ {prize:,.0f} en {lottery_name}",
+        "ticket_number": ticket_number,
+        "prize": prize,
+        "lottery_name": lottery_name,
+        "created_at": datetime.now(timezone.utc),
+        "read": False
+    }
+    await db.client_notifications.insert_one(notification_doc)
+    
+    await send_push_notification(
+        tokens,
+        "🎉 ¡FELICIDADES! ¡GANASTE!",
+        f"Tu ticket {ticket_number} ganó RD$ {prize:,.0f} en {lottery_name}",
+        {
+            "type": "winner",
+            "ticket_number": ticket_number,
+            "prize": prize,
+            "lottery_name": lottery_name,
+            "notification_id": notification_doc["id"]
+        }
+    )
+    
+    logger.info(f"Winner notification sent to client {client_id}")
+
+
+async def notify_admin_pending_payments_summary():
+    """Send daily summary of pending payments to admins"""
+    db = get_db()
+    
+    # Count pending payments
+    from models.enums import PaymentStatus
+    pending_count = await db.client_payments.count_documents({"status": PaymentStatus.PENDING.value})
+    
+    if pending_count == 0:
+        logger.info("No pending payments for daily summary")
+        return
+    
+    # Get admin tokens
+    admins = await db.users.find({"role": {"$in": ["super_admin", "admin"]}}).to_list(100)
+    tokens = [admin["notification_token"] for admin in admins if admin.get("notification_token")]
+    
+    if not tokens:
+        logger.info("No admin tokens for pending payments summary")
+        return
+    
+    # Calculate total pending amount
+    pipeline = [
+        {"$match": {"status": PaymentStatus.PENDING.value}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]
+    result = await db.client_payments.aggregate(pipeline).to_list(1)
+    total_amount = result[0]["total"] if result else 0
+    
+    await send_push_notification(
+        tokens,
+        "📋 Resumen de Pagos Pendientes",
+        f"Hay {pending_count} pagos pendientes por RD$ {total_amount:,.0f}",
+        {
+            "type": "pending_payments_summary",
+            "pending_count": pending_count,
+            "total_amount": total_amount
+        }
+    )
+    
+    logger.info(f"Pending payments summary sent to {len(tokens)} admins")
