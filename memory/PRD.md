@@ -38,10 +38,37 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - `/app/frontend/app/client-dashboard.tsx` - Dashboard principal
 - Enlace en login principal: "Soy cliente - Quiero jugar"
 
-### Fase 2: Sistema de Pagos (PENDIENTE)
-- Configuración de cuentas Zelle y bancarias (Admin)
-- Flujo de pago del cliente
-- Subida de comprobante
+### Fase 2: Sistema de Pagos ✅ COMPLETADO 17 Feb 2026
+**Backend:**
+- `PUT /api/clients/me` - Actualizar perfil de cliente
+- Endpoint de payment-accounts ya devuelve las cuentas configuradas
+- Flujo completo de creación de ticket con estado `pending_payment`
+
+**Frontend:**
+- `/app/frontend/app/client-play.tsx` - Pantalla de crear jugadas:
+  - Selección de loterías abiertas
+  - Detección automática de tipo de jugada (Quiniela/Pale/Tripleta)
+  - Carrito de jugadas con total
+  - Selección de método de pago (Zelle/Banco)
+  - Modal de confirmación de pedido
+  - Modal para subir comprobante post-creación
+- `/app/frontend/app/client-tickets.tsx` - Historial de tickets:
+  - Filtros por estado (Todas, Pago Pendiente, En Juego, Ganadores)
+  - Subir comprobante desde historial
+  - Detalle de ticket con jugadas
+  - Paginación
+- `/app/frontend/app/client-results.tsx` - Ver resultados:
+  - Selector de fecha
+  - Muestra resultados del día
+  - Premios (1°, 2°, 3°)
+- `/app/frontend/app/client-profile.tsx` - Perfil de cliente:
+  - Estadísticas (Jugadas, Ganado)
+  - Editar nombre/email
+  - Acciones rápidas
+  - Cerrar sesión
+
+**Modificaciones:**
+- `/app/frontend/src/context/AuthContext.tsx` - Soporte para login con token directo (clientes)
 
 ### Fase 3: Confirmación y Validación (PENDIENTE)
 - Panel de pagos pendientes (Admin)
