@@ -224,7 +224,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   <Image
                     source={
                       companyProfile?.logo_url 
-                        ? { uri: companyProfile.logo_url } 
+                        ? { uri: getAbsoluteLogoUrl(companyProfile.logo_url) } 
                         : Platform.OS === 'web' 
                           ? { uri: getWebLogoUrl() }
                           : localLogo
