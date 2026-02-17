@@ -1861,4 +1861,70 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  // Pagination styles
+  paginationContainer: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    marginHorizontal: isDesktop ? 8 : 0,
+  },
+  paginationInfo: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  paginationText: {
+    color: '#94a3b8',
+    fontSize: 13,
+  },
+  paginationButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  paginationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 6,
+  },
+  paginationButtonDisabled: {
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  paginationButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  paginationButtonTextDisabled: {
+    color: '#475569',
+  },
+  pageLimitSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 4,
+  },
+  limitButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  limitButtonActive: {
+    backgroundColor: '#22c55e',
+  },
+  limitButtonText: {
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  limitButtonTextActive: {
+    color: '#ffffff',
+  },
 });
