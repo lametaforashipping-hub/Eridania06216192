@@ -383,32 +383,352 @@ class LotteryScraper:
     async def scrape_ny_lottery(self) -> List[LotteryResult]:
         """Scrape New York Lottery Numbers results"""
         results = []
-        url = "https://www.lotteryusa.com/new-york/midday-numbers"
         
+        # Midday
+        url_midday = "https://www.lotteryusa.com/new-york/midday-numbers"
+        html = await self.fetch_page(url_midday)
+        if html:
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+                numbers = []
+                for elem in number_elems:
+                    num = self.parse_number(elem.get_text())
+                    if num is not None:
+                        numbers.append(num)
+                
+                if len(numbers) >= 1:
+                    results.append(LotteryResult(
+                        lottery_name="new_york_tarde",
+                        first_prize=numbers[0],
+                        second_prize=numbers[1] if len(numbers) > 1 else None,
+                        third_prize=numbers[2] if len(numbers) > 2 else None,
+                        source="lotteryusa.com"
+                    ))
+            except Exception as e:
+                logger.error(f"Error parsing NY midday: {e}")
+        
+        # Evening
+        url_evening = "https://www.lotteryusa.com/new-york/evening-numbers"
+        html = await self.fetch_page(url_evening)
+        if html:
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+                numbers = []
+                for elem in number_elems:
+                    num = self.parse_number(elem.get_text())
+                    if num is not None:
+                        numbers.append(num)
+                
+                if len(numbers) >= 1:
+                    results.append(LotteryResult(
+                        lottery_name="new_york_noche",
+                        first_prize=numbers[0],
+                        second_prize=numbers[1] if len(numbers) > 1 else None,
+                        third_prize=numbers[2] if len(numbers) > 2 else None,
+                        source="lotteryusa.com"
+                    ))
+            except Exception as e:
+                logger.error(f"Error parsing NY evening: {e}")
+        
+        return results
+
+    async def scrape_florida_full(self) -> List[LotteryResult]:
+        """Scrape Florida Lottery - both midday and evening"""
+        results = []
+        
+        # Midday
+        url_midday = "https://www.lotteryusa.com/florida/midday-pick-3"
+        html = await self.fetch_page(url_midday)
+        if html:
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+                numbers = []
+                for elem in number_elems:
+                    num = self.parse_number(elem.get_text())
+                    if num is not None:
+                        numbers.append(num)
+                
+                if len(numbers) >= 1:
+                    results.append(LotteryResult(
+                        lottery_name="florida_dia",
+                        first_prize=numbers[0],
+                        second_prize=numbers[1] if len(numbers) > 1 else None,
+                        third_prize=numbers[2] if len(numbers) > 2 else None,
+                        source="lotteryusa.com"
+                    ))
+            except Exception as e:
+                logger.error(f"Error parsing Florida midday: {e}")
+        
+        # Evening
+        url_evening = "https://www.lotteryusa.com/florida/evening-pick-3"
+        html = await self.fetch_page(url_evening)
+        if html:
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+                numbers = []
+                for elem in number_elems:
+                    num = self.parse_number(elem.get_text())
+                    if num is not None:
+                        numbers.append(num)
+                
+                if len(numbers) >= 1:
+                    results.append(LotteryResult(
+                        lottery_name="florida_noche",
+                        first_prize=numbers[0],
+                        second_prize=numbers[1] if len(numbers) > 1 else None,
+                        third_prize=numbers[2] if len(numbers) > 2 else None,
+                        source="lotteryusa.com"
+                    ))
+            except Exception as e:
+                logger.error(f"Error parsing Florida evening: {e}")
+        
+        return results
+
+    async def scrape_anguila(self) -> List[LotteryResult]:
+        """Scrape Anguilla lottery results from multiple sources"""
+        results = []
+        
+        # Try loteriasdominicanas for Anguila
+        url = "https://loteriasdominicanas.com/"
         html = await self.fetch_page(url)
-        if not html:
-            return results
+        if html:
+            try:
+                soup = BeautifulSoup(html, 'html.parser')
+                text = soup.get_text().lower()
+                
+                # Look for Anguila patterns
+                for time_slot, key in [
+                    ("mañana", "anguila_manana"),
+                    ("manana", "anguila_manana"),
+                    ("10:00", "anguila_manana"),
+                    ("medio", "anguila_mediodia"),
+                    ("12:00", "anguila_mediodia"),
+                    ("tarde", "anguila_tarde"),
+                    ("15:00", "anguila_tarde"),
+                    ("noche", "anguila_noche"),
+                    ("21:00", "anguila_noche"),
+                ]:
+                    pattern = rf'anguil[la]*\s*{time_slot}[:\s]*(\d{{1,2}})[-\s]+(\d{{1,2}})[-\s]+(\d{{1,2}})'
+                    match = re.search(pattern, text)
+                    if match:
+                        result = LotteryResult(
+                            lottery_name=key,
+                            first_prize=int(match.group(1)),
+                            second_prize=int(match.group(2)),
+                            third_prize=int(match.group(3)),
+                            source="loteriasdominicanas.com"
+                        )
+                        if not any(r.lottery_name == result.lottery_name for r in results):
+                            results.append(result)
+            except Exception as e:
+                logger.error(f"Error parsing Anguila: {e}")
         
-        try:
-            soup = BeautifulSoup(html, 'html.parser')
-            
-            number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
-            numbers = []
-            for elem in number_elems:
-                num = self.parse_number(elem.get_text())
-                if num is not None:
-                    numbers.append(num)
-            
-            if len(numbers) >= 1:
-                results.append(LotteryResult(
-                    lottery_name="new_york_tarde",
-                    first_prize=numbers[0],
-                    second_prize=numbers[1] if len(numbers) > 1 else None,
-                    third_prize=numbers[2] if len(numbers) > 2 else None,
-                    source="lotteryusa.com"
-                ))
-        except Exception as e:
-            logger.error(f"Error parsing NY lottery: {e}")
+        return results
+
+    async def scrape_king_lottery(self) -> List[LotteryResult]:
+        """Scrape King Lottery results"""
+        results = []
+        
+        # Try multiple sources for King Lottery
+        for url in ["https://loteriasdominicanas.com/", "https://quinielasrd.com/"]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    text = soup.get_text().lower()
+                    
+                    # Look for King Lottery patterns
+                    for time_slot, key in [
+                        ("12:30", "king_lottery_1230"),
+                        ("medio", "king_lottery_1230"),
+                        ("7:30", "king_lottery_1930"),
+                        ("19:30", "king_lottery_1930"),
+                        ("noche", "king_lottery_1930"),
+                    ]:
+                        pattern = rf'king\s*lottery?\s*{time_slot}[:\s]*(\d{{1,2}})[-\s]+(\d{{1,2}})[-\s]+(\d{{1,2}})'
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name=key,
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == result.lottery_name for r in results):
+                                results.append(result)
+                except Exception as e:
+                    logger.error(f"Error parsing King Lottery from {url}: {e}")
+        
+        return results
+
+    async def scrape_la_primera(self) -> List[LotteryResult]:
+        """Scrape La Primera lottery results"""
+        results = []
+        
+        for url in ["https://loteriasdominicanas.com/", "https://www.conectate.com.do/loterias/"]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    text = soup.get_text().lower()
+                    
+                    # La Primera Día
+                    for pattern in [
+                        r'primera\s*d[ií]a[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                        r'primera\s*12[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                    ]:
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name="la_primera_dia",
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == "la_primera_dia" for r in results):
+                                results.append(result)
+                            break
+                    
+                    # Primera Noche
+                    for pattern in [
+                        r'primera\s*noche[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                        r'primera\s*20[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                    ]:
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name="la_primera_noche",
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == "la_primera_noche" for r in results):
+                                results.append(result)
+                            break
+                except Exception as e:
+                    logger.error(f"Error parsing La Primera from {url}: {e}")
+        
+        return results
+
+    async def scrape_la_suerte(self) -> List[LotteryResult]:
+        """Scrape La Suerte lottery results"""
+        results = []
+        
+        for url in ["https://loteriasdominicanas.com/", "https://www.conectate.com.do/loterias/"]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    text = soup.get_text().lower()
+                    
+                    # La Suerte 12:30
+                    for pattern in [
+                        r'suerte\s*12:?30[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                        r'suerte\s*medio[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                    ]:
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name="la_suerte_1230",
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == "la_suerte_1230" for r in results):
+                                results.append(result)
+                            break
+                    
+                    # La Suerte 18:00
+                    for pattern in [
+                        r'suerte\s*18:?00[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                        r'suerte\s*tarde[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                    ]:
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name="la_suerte_1800",
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == "la_suerte_1800" for r in results):
+                                results.append(result)
+                            break
+                except Exception as e:
+                    logger.error(f"Error parsing La Suerte from {url}: {e}")
+        
+        return results
+
+    async def scrape_gana_mas(self) -> List[LotteryResult]:
+        """Scrape Gana Más (Nacional) results"""
+        results = []
+        
+        for url in ["https://loteriasdominicanas.com/", "https://www.conectate.com.do/loterias/"]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    text = soup.get_text().lower()
+                    
+                    for pattern in [
+                        r'gana\s*m[aá]s[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                        r'gan[aá]\s*m[aá]s[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                    ]:
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name="gana_mas",
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == "gana_mas" for r in results):
+                                results.append(result)
+                            break
+                except Exception as e:
+                    logger.error(f"Error parsing Gana Más from {url}: {e}")
+        
+        return results
+
+    async def scrape_pega3_mas(self) -> List[LotteryResult]:
+        """Scrape Pega 3 Más (Leidsa) results"""
+        results = []
+        
+        for url in ["https://loteriasdominicanas.com/", "https://www.conectate.com.do/loterias/"]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    text = soup.get_text().lower()
+                    
+                    for pattern in [
+                        r'pega\s*3\s*m[aá]s[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                        r'pega3\s*m[aá]s[:\s]*(\d{1,2})[-\s]+(\d{1,2})[-\s]+(\d{1,2})',
+                    ]:
+                        match = re.search(pattern, text)
+                        if match:
+                            result = LotteryResult(
+                                lottery_name="pega_3_mas",
+                                first_prize=int(match.group(1)),
+                                second_prize=int(match.group(2)),
+                                third_prize=int(match.group(3)),
+                                source=url.split('/')[2]
+                            )
+                            if not any(r.lottery_name == "pega_3_mas" for r in results):
+                                results.append(result)
+                            break
+                except Exception as e:
+                    logger.error(f"Error parsing Pega 3 Más from {url}: {e}")
         
         return results
 
