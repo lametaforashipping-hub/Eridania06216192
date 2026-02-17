@@ -523,4 +523,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 8,
   },
+  clientPortalLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    padding: 14,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    gap: 8,
+  },
+  clientPortalText: {
+    color: '#22c55e',
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });
