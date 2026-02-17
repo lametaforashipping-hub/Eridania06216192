@@ -189,6 +189,39 @@ export default function MyProfile() {
     }
   };
 
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'deposit': return 'arrow-down-circle';
+      case 'sale': return 'cart';
+      case 'commission': return 'trending-up';
+      case 'withdrawal': return 'arrow-up-circle';
+      case 'prize_payment': return 'trophy';
+      default: return 'swap-horizontal';
+    }
+  };
+
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'deposit': return '#22c55e';
+      case 'commission': return '#22c55e';
+      case 'sale': return '#3b82f6';
+      case 'withdrawal': return '#ef4444';
+      case 'prize_payment': return '#f59e0b';
+      default: return '#64748b';
+    }
+  };
+
+  const getTransactionLabel = (type: string) => {
+    switch (type) {
+      case 'deposit': return 'Depósito';
+      case 'sale': return 'Venta';
+      case 'commission': return 'Comisión';
+      case 'withdrawal': return 'Retiro';
+      case 'prize_payment': return 'Premio';
+      default: return type;
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
