@@ -73,7 +73,59 @@ async def update_company_profile(
 
 @router.post("/logo")
 async def upload_company_logo(
+    file: UploadFile = File(...),
     current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
 ):
-    """Upload company logo placeholder"""
-    return {"message": "Use PUT /company-profile with logo_url field for now"}
+    """Upload company logo and return the public URL"""
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Tipo de archivo no permitido. Use JPG, PNG, GIF o WebP")
+    
+    # Generate unique filename
+    file_ext = file.filename.split(".")[-1] if file.filename else "png"
+    filename = f"company_logo_{uuid.uuid4().hex[:8]}.{file_ext}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    
+    try:
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Generate public URL (relative path that will be served by frontend)
+        logo_url = f"/uploads/{filename}"
+        
+        # Update company profile with new logo URL
+        db = get_db()
+        existing = await db.company_profile.find_one({})
+        
+        if existing:
+            # Delete old logo file if it exists
+            if existing.get("logo_url") and existing["logo_url"].startswith("/uploads/"):
+                old_file = os.path.join(UPLOAD_DIR, existing["logo_url"].replace("/uploads/", ""))
+                if os.path.exists(old_file):
+                    os.remove(old_file)
+            
+            await db.company_profile.update_one({}, {"$set": {
+                "logo_url": logo_url,
+                "updated_at": datetime.utcnow(),
+                "updated_by": current_user["id"]
+            }})
+        else:
+            await db.company_profile.insert_one({
+                "id": str(uuid.uuid4()),
+                "company_name": "Sistema de Lotería",
+                "logo_url": logo_url,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "updated_by": current_user["id"]
+            })
+        
+        return {"logo_url": logo_url, "message": "Logo actualizado correctamente"}
+    
+    except Exception as e:
+        # Clean up file if database update fails
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(status_code=500, detail=f"Error al guardar el logo: {str(e)}")
