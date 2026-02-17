@@ -161,6 +161,7 @@ export default function Dashboard() {
   };
 
   const menuItems = [
+    { icon: 'person-circle-outline', emoji: '👤', label: 'Mi Perfil', route: '/my-profile', roles: ['super_admin', 'admin', 'vendedor'], color: '#6366f1' },
     { icon: 'cart-outline', emoji: '🛒', label: 'Venta', route: '/venta', roles: ['super_admin', 'admin', 'vendedor'], color: '#22c55e' },
     { icon: 'barcode-outline', emoji: '📱', label: 'Verificar', route: '/scanner', roles: ['super_admin', 'admin', 'vendedor'], color: '#06b6d4' },
     { icon: 'list-outline', emoji: '🎫', label: 'Boletos', route: '/tickets', roles: ['super_admin', 'admin', 'vendedor'], color: '#8b5cf6' },
