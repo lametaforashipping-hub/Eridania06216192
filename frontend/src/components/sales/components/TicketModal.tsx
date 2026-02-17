@@ -74,27 +74,55 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   };
 
   const handleShareWhatsAppImage = async () => {
-    if (!ticketViewRef.current) return;
+    if (!ticketViewRef.current) {
+      Alert.alert('Error', 'No se pudo capturar el ticket. Intenta de nuevo.');
+      return;
+    }
     
     setSharingImage(true);
     try {
+      // Capture the ticket view as image
       const uri = await (ticketViewRef.current as any).capture({
         format: 'png',
         quality: 1,
+        result: 'tmpfile',
       });
       
+      console.log('Captured URI:', uri);
+      
       if (Platform.OS === 'web') {
-        // Download on web
-        const link = document.createElement('a');
-        link.href = uri;
-        link.download = `ticket-${ticket.ticket_number}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        Alert.alert('Descargado', 'La imagen del ticket se descargó. Ahora puedes enviarla por WhatsApp.');
+        // On web, try to download the image
+        try {
+          // For web, ViewShot returns a data URI
+          const link = document.createElement('a');
+          link.href = uri;
+          link.download = `ticket-${ticket.ticket_number}.png`;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          
+          // Small delay before removing
+          setTimeout(() => {
+            document.body.removeChild(link);
+          }, 100);
+          
+          Alert.alert(
+            '¡Imagen Descargada!', 
+            'El ticket se guardó en tu carpeta de descargas. Ahora puedes enviarlo por WhatsApp.',
+            [{ text: 'OK' }]
+          );
+        } catch (webError) {
+          console.error('Web download error:', webError);
+          // Fallback: open image in new tab
+          window.open(uri, '_blank');
+          Alert.alert('Imagen', 'Se abrió la imagen en una nueva pestaña. Guárdala y envíala por WhatsApp.');
+        }
       } else {
-        // Share on mobile - opens share sheet with WhatsApp option
-        const fileUri = `${cacheDirectory}ticket-${ticket.ticket_number}.png`;
+        // On mobile, share directly
+        const fileName = `ticket-${ticket.ticket_number}.png`;
+        const fileUri = `${cacheDirectory}${fileName}`;
+        
+        // Copy to cache
         await FileSystem.copyAsync({ from: uri, to: fileUri });
         
         // Check if sharing is available
@@ -102,16 +130,23 @@ export const TicketModal: React.FC<TicketModalProps> = ({
         if (isAvailable) {
           await Sharing.shareAsync(fileUri, {
             mimeType: 'image/png',
-            dialogTitle: 'Compartir ticket por WhatsApp',
+            dialogTitle: 'Compartir ticket',
             UTI: 'public.png',
           });
         } else {
-          Alert.alert('Error', 'No se puede compartir en este dispositivo');
+          // Fallback to basic share
+          await Share.share({
+            url: fileUri,
+            title: 'Ticket de Lotería',
+          });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sharing image:', error);
-      Alert.alert('Error', 'No se pudo compartir la imagen. Intenta de nuevo.');
+      Alert.alert(
+        'Error', 
+        `No se pudo compartir la imagen: ${error.message || 'Error desconocido'}. Intenta compartir como texto.`
+      );
     } finally {
       setSharingImage(false);
     }
