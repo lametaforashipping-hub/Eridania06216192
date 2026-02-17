@@ -494,6 +494,45 @@ export default function MyProfile() {
             </ScrollView>
           </View>
           
+          {/* Transaction Summary */}
+          {recentTransactions.length > 0 && (
+            <View style={styles.transactionSummary}>
+              <View style={styles.summaryItem}>
+                <View style={[styles.summaryIcon, { backgroundColor: '#3b82f620' }]}>
+                  <Ionicons name="cart" size={16} color="#3b82f6" />
+                </View>
+                <View>
+                  <Text style={styles.summaryLabel}>Ventas</Text>
+                  <Text style={[styles.summaryValue, { color: '#3b82f6' }]}>
+                    {profile?.currency} {formatCurrency(recentTransactions.filter(t => t.transaction_type === 'sale').reduce((sum, t) => sum + t.amount, 0))}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.summaryItem}>
+                <View style={[styles.summaryIcon, { backgroundColor: '#22c55e20' }]}>
+                  <Ionicons name="trending-up" size={16} color="#22c55e" />
+                </View>
+                <View>
+                  <Text style={styles.summaryLabel}>Comisiones</Text>
+                  <Text style={[styles.summaryValue, { color: '#22c55e' }]}>
+                    {profile?.currency} {formatCurrency(recentTransactions.filter(t => t.transaction_type === 'commission').reduce((sum, t) => sum + t.amount, 0))}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.summaryItem}>
+                <View style={[styles.summaryIcon, { backgroundColor: '#f59e0b20' }]}>
+                  <Ionicons name="arrow-down-circle" size={16} color="#f59e0b" />
+                </View>
+                <View>
+                  <Text style={styles.summaryLabel}>Depósitos</Text>
+                  <Text style={[styles.summaryValue, { color: '#f59e0b' }]}>
+                    {profile?.currency} {formatCurrency(recentTransactions.filter(t => t.transaction_type === 'deposit').reduce((sum, t) => sum + t.amount, 0))}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+          
           {recentTransactions.filter(t => transactionFilter === 'all' || t.transaction_type === transactionFilter).length === 0 ? (
             <Text style={styles.noTransactions}>
               {transactionFilter === 'all' ? 'No hay transacciones recientes' : `No hay ${getTransactionLabel(transactionFilter).toLowerCase()}s recientes`}
