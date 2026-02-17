@@ -111,6 +111,132 @@ export default function MonthlyReport() {
     return value.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
   
+  const exportToPDF = async () => {
+    if (!report || Platform.OS !== 'web') {
+      Alert.alert('Error', 'La exportación PDF solo está disponible en web');
+      return;
+    }
+    
+    setExporting(true);
+    
+    try {
+      // Dynamically import libraries for web only
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+      
+      // Find the report content element
+      const element = document.querySelector('[data-testid="report-content"]');
+      if (!element) {
+        throw new Error('No se encontró el contenido del reporte');
+      }
+      
+      // Capture the element as canvas
+      const canvas = await html2canvas(element as HTMLElement, {
+        backgroundColor: '#000',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+      });
+      
+      // Create PDF
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Add header
+      pdf.setFillColor(0, 0, 0);
+      pdf.rect(0, 0, 210, 297, 'F');
+      
+      pdf.setTextColor(34, 197, 94); // Green color
+      pdf.setFontSize(20);
+      pdf.text('Lotería Mágica', 105, 15, { align: 'center' });
+      
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(16);
+      pdf.text(`Reporte Mensual - ${months[selectedMonth - 1]} ${selectedYear}`, 105, 25, { align: 'center' });
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`Vendedor: ${user?.name || 'N/A'}`, 105, 32, { align: 'center' });
+      pdf.text(`Generado: ${new Date().toLocaleDateString('es-DO')}`, 105, 37, { align: 'center' });
+      
+      // Add summary section
+      const summary = report.summary;
+      const startY = 50;
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('Resumen del Mes', 15, startY);
+      
+      pdf.setFontSize(10);
+      // Ventas
+      pdf.setTextColor(59, 130, 246);
+      pdf.text(`Ventas Totales: ${report.currency} ${formatCurrency(summary.total_sales)}`, 15, startY + 10);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`(${summary.total_tickets} boletos)`, 15, startY + 15);
+      
+      // Comisiones
+      pdf.setTextColor(34, 197, 94);
+      pdf.text(`Comisiones: ${report.currency} ${formatCurrency(summary.total_commission)}`, 15, startY + 25);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`Crecimiento: ${summary.growth_percentage >= 0 ? '+' : ''}${summary.growth_percentage}%`, 15, startY + 30);
+      
+      // Depósitos
+      pdf.setTextColor(245, 158, 11);
+      pdf.text(`Depósitos: ${report.currency} ${formatCurrency(summary.total_deposits)}`, 15, startY + 40);
+      
+      // Promedio
+      pdf.setTextColor(139, 92, 246);
+      pdf.text(`Promedio/Boleto: ${report.currency} ${formatCurrency(summary.avg_ticket_value)}`, 15, startY + 50);
+      
+      // Daily breakdown header
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(12);
+      pdf.text('Desglose Diario', 15, startY + 65);
+      
+      // Table header
+      pdf.setFontSize(9);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text('Día', 15, startY + 75);
+      pdf.text('Ventas', 50, startY + 75);
+      pdf.text('Comisión', 90, startY + 75);
+      pdf.text('Boletos', 130, startY + 75);
+      
+      // Table data
+      let tableY = startY + 80;
+      report.daily_data.filter(d => d.sales > 0).forEach((day, index) => {
+        if (tableY > 280) {
+          pdf.addPage();
+          tableY = 20;
+        }
+        
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(day.day.toString(), 15, tableY);
+        pdf.setTextColor(59, 130, 246);
+        pdf.text(`${report.currency} ${formatCurrency(day.sales)}`, 50, tableY);
+        pdf.setTextColor(34, 197, 94);
+        pdf.text(`${report.currency} ${formatCurrency(day.commission)}`, 90, tableY);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(day.tickets.toString(), 130, tableY);
+        
+        tableY += 6;
+      });
+      
+      // Save the PDF
+      const fileName = `Reporte_${months[selectedMonth - 1]}_${selectedYear}.pdf`;
+      pdf.save(fileName);
+      
+      Alert.alert('Éxito', `Reporte exportado como ${fileName}`);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      Alert.alert('Error', 'No se pudo exportar el reporte');
+    } finally {
+      setExporting(false);
+    }
+  };
+  
   // Prepare chart data
   const salesChartData = report?.daily_data
     .filter(d => d.sales > 0 || d.commission > 0)
