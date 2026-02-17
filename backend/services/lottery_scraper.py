@@ -346,78 +346,117 @@ class LotteryScraper:
         return results
     
     async def scrape_ny_lottery(self) -> List[LotteryResult]:
-        """Scrape New York Lottery Numbers results"""
+        """Scrape New York Lottery Numbers results from multiple sources"""
         results = []
         
-        # Midday
-        url_midday = "https://www.lotteryusa.com/new-york/midday-numbers"
-        html = await self.fetch_page(url_midday)
-        if html:
-            try:
-                soup = BeautifulSoup(html, 'html.parser')
-                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
-                numbers = []
-                for elem in number_elems:
-                    num = self.parse_number(elem.get_text())
-                    if num is not None:
-                        numbers.append(num)
-                
-                if len(numbers) >= 1:
-                    results.append(LotteryResult(
-                        lottery_name="new_york_tarde",
-                        first_prize=numbers[0],
-                        second_prize=numbers[1] if len(numbers) > 1 else None,
-                        third_prize=numbers[2] if len(numbers) > 2 else None,
-                        source="lotteryusa.com"
-                    ))
-            except Exception as e:
-                logger.error(f"Error parsing NY midday: {e}")
+        # Source 1: LotteryUSA Midday
+        for url, key in [
+            ("https://www.lotteryusa.com/new-york/midday-numbers", "new_york_tarde"),
+            ("https://www.lotteryusa.com/new-york/evening-numbers", "new_york_noche"),
+        ]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+                    numbers = []
+                    for elem in number_elems:
+                        num = self.parse_number(elem.get_text())
+                        if num is not None:
+                            numbers.append(num)
+                    
+                    if len(numbers) >= 1:
+                        results.append(LotteryResult(
+                            lottery_name=key,
+                            first_prize=numbers[0],
+                            second_prize=numbers[1] if len(numbers) > 1 else None,
+                            third_prize=numbers[2] if len(numbers) > 2 else None,
+                            source="lotteryusa.com"
+                        ))
+                except Exception as e:
+                    logger.error(f"Error parsing NY {key}: {e}")
         
-        # Evening
-        url_evening = "https://www.lotteryusa.com/new-york/evening-numbers"
-        html = await self.fetch_page(url_evening)
-        if html:
-            try:
+        # Source 2: LotteryCorner (backup)
+        try:
+            url = "https://lotterycorner.com/ny/numbers-evening"
+            html = await self.fetch_page(url)
+            if html and "new_york_noche" not in [r.lottery_name for r in results]:
                 soup = BeautifulSoup(html, 'html.parser')
-                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
-                numbers = []
-                for elem in number_elems:
-                    num = self.parse_number(elem.get_text())
-                    if num is not None:
-                        numbers.append(num)
-                
-                if len(numbers) >= 1:
-                    results.append(LotteryResult(
-                        lottery_name="new_york_noche",
-                        first_prize=numbers[0],
-                        second_prize=numbers[1] if len(numbers) > 1 else None,
-                        third_prize=numbers[2] if len(numbers) > 2 else None,
-                        source="lotteryusa.com"
-                    ))
-            except Exception as e:
-                logger.error(f"Error parsing NY evening: {e}")
+                # Look for result table
+                rows = soup.find_all('tr')
+                for row in rows[:3]:
+                    cells = row.find_all('td')
+                    if len(cells) >= 2:
+                        text = cells[1].get_text()
+                        nums = re.findall(r'\d+', text)
+                        if len(nums) >= 3:
+                            results.append(LotteryResult(
+                                lottery_name="new_york_noche",
+                                first_prize=int(nums[0]),
+                                second_prize=int(nums[1]),
+                                third_prize=int(nums[2]),
+                                source="lotterycorner.com"
+                            ))
+                            break
+        except Exception as e:
+            logger.debug(f"LotteryCorner NY backup failed: {e}")
         
         return results
 
     async def scrape_florida_full(self) -> List[LotteryResult]:
-        """Scrape Florida Lottery - both midday and evening"""
+        """Scrape Florida Lottery - both midday and evening from multiple sources"""
         results = []
         
-        # Midday
-        url_midday = "https://www.lotteryusa.com/florida/midday-pick-3"
-        html = await self.fetch_page(url_midday)
-        if html:
-            try:
+        # Source 1: LotteryUSA
+        for url, key in [
+            ("https://www.lotteryusa.com/florida/midday-pick-3", "florida_dia"),
+            ("https://www.lotteryusa.com/florida/evening-pick-3", "florida_noche"),
+        ]:
+            html = await self.fetch_page(url)
+            if html:
+                try:
+                    soup = BeautifulSoup(html, 'html.parser')
+                    number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
+                    numbers = []
+                    for elem in number_elems:
+                        num = self.parse_number(elem.get_text())
+                        if num is not None:
+                            numbers.append(num)
+                    
+                    if len(numbers) >= 1:
+                        results.append(LotteryResult(
+                            lottery_name=key,
+                            first_prize=numbers[0],
+                            second_prize=numbers[1] if len(numbers) > 1 else None,
+                            third_prize=numbers[2] if len(numbers) > 2 else None,
+                            source="lotteryusa.com"
+                        ))
+                except Exception as e:
+                    logger.error(f"Error parsing Florida {key}: {e}")
+        
+        # Source 2: LotteryCorner (backup for evening)
+        try:
+            url = "https://lotterycorner.com/fl/pick-3-evening"
+            html = await self.fetch_page(url)
+            if html and "florida_noche" not in [r.lottery_name for r in results]:
                 soup = BeautifulSoup(html, 'html.parser')
-                number_elems = soup.find_all(['span', 'div'], class_=re.compile(r'ball|number|result', re.I))
-                numbers = []
-                for elem in number_elems:
-                    num = self.parse_number(elem.get_text())
-                    if num is not None:
-                        numbers.append(num)
-                
-                if len(numbers) >= 1:
-                    results.append(LotteryResult(
+                rows = soup.find_all('tr')
+                for row in rows[:3]:
+                    cells = row.find_all('td')
+                    if len(cells) >= 2:
+                        text = cells[1].get_text()
+                        nums = re.findall(r'\d+', text)
+                        if len(nums) >= 3:
+                            results.append(LotteryResult(
+                                lottery_name="florida_noche",
+                                first_prize=int(nums[0]),
+                                second_prize=int(nums[1]),
+                                third_prize=int(nums[2]),
+                                source="lotterycorner.com"
+                            ))
+                            break
+        except Exception as e:
+            logger.debug(f"LotteryCorner FL backup failed: {e}")
                         lottery_name="florida_dia",
                         first_prize=numbers[0],
                         second_prize=numbers[1] if len(numbers) > 1 else None,
