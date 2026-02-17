@@ -1,5 +1,5 @@
 """Ticket sales routes"""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from datetime import datetime
 import uuid
 from typing import Optional
