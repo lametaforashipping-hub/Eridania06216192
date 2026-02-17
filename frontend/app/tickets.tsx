@@ -716,25 +716,71 @@ export default function Tickets() {
       {loading ? (
         <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
       ) : (
-        <FlatList
-          data={filteredTickets}
-          renderItem={renderTicket}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[styles.listContent, isDesktop && styles.listContentDesktop]}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="ticket-outline" size={64} color="#475569" />
-              <Text style={styles.emptyText}>
-                {searchQuery ? 'No se encontró el boleto' : 'No hay boletos'}
-              </Text>
-            </View>
-          }
-          numColumns={isDesktop ? 2 : 1}
-          key={isDesktop ? 'desktop' : 'mobile'}
-        />
+        <>
+          <FlatList
+            data={filteredTickets}
+            renderItem={renderTicket}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={[styles.listContent, isDesktop && styles.listContentDesktop]}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Ionicons name="ticket-outline" size={64} color="#475569" />
+                <Text style={styles.emptyText}>
+                  {searchQuery ? 'No se encontró el boleto' : 'No hay boletos'}
+                </Text>
+              </View>
+            }
+            ListFooterComponent={
+              pagination && pagination.total_pages > 1 ? (
+                <View style={styles.paginationContainer}>
+                  <View style={styles.paginationInfo}>
+                    <Text style={styles.paginationText}>
+                      Página {pagination.page} de {pagination.total_pages} ({pagination.total} boletos)
+                    </Text>
+                  </View>
+                  <View style={styles.paginationButtons}>
+                    <TouchableOpacity
+                      style={[styles.paginationButton, !pagination.has_prev && styles.paginationButtonDisabled]}
+                      onPress={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={!pagination.has_prev}
+                    >
+                      <Ionicons name="chevron-back" size={20} color={pagination.has_prev ? "#ffffff" : "#475569"} />
+                      <Text style={[styles.paginationButtonText, !pagination.has_prev && styles.paginationButtonTextDisabled]}>
+                        Anterior
+                      </Text>
+                    </TouchableOpacity>
+                    <View style={styles.pageLimitSelector}>
+                      {[25, 50, 100].map(l => (
+                        <TouchableOpacity
+                          key={l}
+                          style={[styles.limitButton, limit === l && styles.limitButtonActive]}
+                          onPress={() => { setLimit(l); setPage(1); }}
+                        >
+                          <Text style={[styles.limitButtonText, limit === l && styles.limitButtonTextActive]}>{l}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.paginationButton, !pagination.has_next && styles.paginationButtonDisabled]}
+                      onPress={() => setPage(p => p + 1)}
+                      disabled={!pagination.has_next}
+                    >
+                      <Text style={[styles.paginationButtonText, !pagination.has_next && styles.paginationButtonTextDisabled]}>
+                        Siguiente
+                      </Text>
+                      <Ionicons name="chevron-forward" size={20} color={pagination.has_next ? "#ffffff" : "#475569"} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : null
+            }
+            numColumns={isDesktop ? 2 : 1}
+            key={isDesktop ? 'desktop' : 'mobile'}
+          />
+        </>
       )}
 
       {/* Action Modal */}
