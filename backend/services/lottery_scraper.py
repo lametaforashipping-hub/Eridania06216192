@@ -349,10 +349,10 @@ class LotteryScraper:
         """Scrape New York Lottery Numbers results from multiple sources"""
         results = []
         
-        # Source 1: LotteryUSA Midday
+        # Source 1: LotteryUSA (without trailing slash)
         for url, key in [
             ("https://www.lotteryusa.com/new-york/midday-numbers", "new_york_tarde"),
-            ("https://www.lotteryusa.com/new-york/evening-numbers", "new_york_noche"),
+            ("https://www.lotteryusa.com/new-york/numbers", "new_york_noche"),
         ]:
             html = await self.fetch_page(url)
             if html:
