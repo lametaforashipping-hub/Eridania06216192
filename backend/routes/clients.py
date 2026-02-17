@@ -208,6 +208,13 @@ async def create_client_ticket(
     if not data.plays or len(data.plays) == 0:
         raise HTTPException(status_code=400, detail="Debe incluir al menos una jugada")
     
+    # Get selected bank account info
+    bank_account = None
+    if data.bank_account_id:
+        bank_account = await db.bank_accounts.find_one({"id": data.bank_account_id, "active": True})
+        if not bank_account:
+            raise HTTPException(status_code=400, detail="Cuenta de pago no encontrada")
+    
     # Validate lotteries are open and within time limit
     now = datetime.utcnow()
     validated_plays = []
@@ -256,6 +263,8 @@ async def create_client_ticket(
         "status": TicketStatus.PENDING_PAYMENT.value,
         "payment_method": data.payment_method.value,
         "payment_status": PaymentStatus.PENDING.value,
+        "bank_account_id": data.bank_account_id,
+        "bank_account_name": bank_account["name"] if bank_account else None,
         "payment_deadline": now + timedelta(hours=24),  # 24 hours to pay
         "created_at": now,
         "country": current_user.get("country", "RD")
@@ -263,15 +272,19 @@ async def create_client_ticket(
     
     await db.tickets.insert_one(ticket)
     
-    # Get payment account info
-    payment_config = await db.payment_config.find_one({})
+    # Return payment info based on selected account or all available
     payment_info = {}
-    
-    if data.payment_method == PaymentMethod.ZELLE:
-        payment_info = payment_config.get("zelle", {}) if payment_config else {}
-    else:
-        banks = payment_config.get("bank_accounts", []) if payment_config else []
-        payment_info = {"accounts": banks}
+    if bank_account:
+        payment_info = {
+            "name": bank_account.get("name"),
+            "type": bank_account.get("account_type"),
+            "bank_name": bank_account.get("bank_name"),
+            "account_number": bank_account.get("account_number"),
+            "zelle_email": bank_account.get("zelle_email"),
+            "zelle_phone": bank_account.get("zelle_phone"),
+            "currency": bank_account.get("currency"),
+            "notes": bank_account.get("notes")
+        }
     
     return {
         "ticket": serialize_doc(ticket),
