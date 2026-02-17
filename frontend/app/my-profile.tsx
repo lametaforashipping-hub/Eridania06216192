@@ -452,10 +452,57 @@ export default function MyProfile() {
         {/* Recent Transactions */}
         <View style={styles.transactionsCard}>
           <Text style={styles.transactionsTitle}>Historial de Transacciones</Text>
-          {recentTransactions.length === 0 ? (
-            <Text style={styles.noTransactions}>No hay transacciones recientes</Text>
+          
+          {/* Transaction Filters */}
+          <View style={styles.filterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+              <TouchableOpacity
+                style={[styles.filterButton, transactionFilter === 'all' && styles.filterButtonActive]}
+                onPress={() => setTransactionFilter('all')}
+              >
+                <Text style={[styles.filterButtonText, transactionFilter === 'all' && styles.filterButtonTextActive]}>
+                  Todos
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterButton, transactionFilter === 'sale' && styles.filterButtonActive]}
+                onPress={() => setTransactionFilter('sale')}
+              >
+                <Ionicons name="cart" size={14} color={transactionFilter === 'sale' ? '#fff' : '#3b82f6'} />
+                <Text style={[styles.filterButtonText, transactionFilter === 'sale' && styles.filterButtonTextActive]}>
+                  Ventas
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterButton, transactionFilter === 'commission' && styles.filterButtonActive]}
+                onPress={() => setTransactionFilter('commission')}
+              >
+                <Ionicons name="trending-up" size={14} color={transactionFilter === 'commission' ? '#fff' : '#22c55e'} />
+                <Text style={[styles.filterButtonText, transactionFilter === 'commission' && styles.filterButtonTextActive]}>
+                  Comisiones
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterButton, transactionFilter === 'deposit' && styles.filterButtonActive]}
+                onPress={() => setTransactionFilter('deposit')}
+              >
+                <Ionicons name="arrow-down-circle" size={14} color={transactionFilter === 'deposit' ? '#fff' : '#22c55e'} />
+                <Text style={[styles.filterButtonText, transactionFilter === 'deposit' && styles.filterButtonTextActive]}>
+                  Depósitos
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+          
+          {recentTransactions.filter(t => transactionFilter === 'all' || t.transaction_type === transactionFilter).length === 0 ? (
+            <Text style={styles.noTransactions}>
+              {transactionFilter === 'all' ? 'No hay transacciones recientes' : `No hay ${getTransactionLabel(transactionFilter).toLowerCase()}s recientes`}
+            </Text>
           ) : (
-            recentTransactions.slice(0, 10).map((transaction) => (
+            recentTransactions
+              .filter(t => transactionFilter === 'all' || t.transaction_type === transactionFilter)
+              .slice(0, 15)
+              .map((transaction) => (
               <View key={transaction.id} style={styles.transactionItem}>
                 <View style={styles.transactionLeft}>
                   <View style={[styles.transactionIconContainer, { backgroundColor: getTransactionColor(transaction.transaction_type) + '20' }]}>
