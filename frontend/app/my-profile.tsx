@@ -317,7 +317,7 @@ export default function MyProfile() {
           </View>
           <View style={styles.commissionRow}>
             <Ionicons name="trending-up" size={18} color="#22c55e" />
-            <Text style={styles.commissionText}>Comisión: {profile.commission_rate}%</Text>
+            <Text style={styles.commissionText}>Comisión: {profile.commission_rate || 10}%</Text>
           </View>
         </View>
 
