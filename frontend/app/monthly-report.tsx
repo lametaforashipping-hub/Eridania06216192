@@ -458,6 +458,7 @@ export default function MonthlyReport() {
         )}
         
         <View style={{ height: 40 }} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
