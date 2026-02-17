@@ -121,6 +121,7 @@ export default function ClientLoginScreen() {
               style={[styles.loginButton, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
+              data-testid="client-login-btn"
             >
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
