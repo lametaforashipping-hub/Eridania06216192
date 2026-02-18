@@ -92,7 +92,7 @@ app.add_middleware(
 async def startup_event():
     """Initialize services on startup"""
     from services.lottery_scheduler import start_scheduler
-    from services.notifications import notify_admin_pending_payments_summary
+    from services.notifications import notify_admin_pending_payments_summary, send_weekly_report_to_admins
     from utils.database import get_db
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     
@@ -122,6 +122,20 @@ async def startup_event():
         )
         payment_scheduler.start()
         logger.info("🚀 Started daily payment summary scheduler (8:00 AM UTC)")
+        
+        # Start weekly report scheduler (every Monday at 8 AM UTC)
+        weekly_scheduler = AsyncIOScheduler()
+        weekly_scheduler.add_job(
+            send_weekly_report_to_admins,
+            'cron',
+            day_of_week='mon',  # Monday
+            hour=8,
+            minute=0,
+            id='weekly_admin_report',
+            replace_existing=True
+        )
+        weekly_scheduler.start()
+        logger.info("🚀 Started weekly report scheduler (Mondays 8:00 AM UTC)")
         
     except Exception as e:
         logger.warning(f"Could not auto-start scheduler: {e}")
