@@ -262,11 +262,30 @@ async def notify_client_payment_confirmed(client_id: str, ticket_number: str, to
 
 
 async def notify_client_payment_rejected(client_id: str, ticket_number: str, reason: str = None):
-    """Send push notification to client when their payment is rejected"""
+    """Send push notification and email to client when their payment is rejected"""
     db = get_db()
     client = await db.users.find_one({"id": client_id})
     
-    if not client or not client.get("notification_token"):
+    if not client:
+        logger.warning(f"Client not found: {client_id}")
+        return
+    
+    # Send email notification
+    email_service = get_email_service()
+    if email_service and client.get("email"):
+        try:
+            email_service["payment_rejected"](
+                client_name=client.get("name", "Cliente"),
+                client_email=client["email"],
+                ticket_number=ticket_number,
+                reason=reason
+            )
+            logger.info(f"Payment rejection email sent to {client['email']}")
+        except Exception as e:
+            logger.error(f"Failed to send payment rejection email: {e}")
+    
+    # Send push notification
+    if not client.get("notification_token"):
         logger.info(f"No notification token for client {client_id}")
         return
     
