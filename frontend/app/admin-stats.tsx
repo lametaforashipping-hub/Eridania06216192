@@ -84,17 +84,29 @@ export default function AdminStatsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState('month');
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [extendedStats, setExtendedStats] = useState<ExtendedStats | null>(null);
   const reportRef = useRef<any>(null);
   const [exporting, setExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'clients' | 'lotteries'>('overview');
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/stats/dashboard?period=${period}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
+      const [dashRes, extRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/stats/dashboard?period=${period}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/api/admin/stats/extended?period=${period}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        })
+      ]);
+      
+      if (dashRes.ok) {
+        const data = await dashRes.json();
         setStats(data);
+      }
+      if (extRes.ok) {
+        const extData = await extRes.json();
+        setExtendedStats(extData);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
