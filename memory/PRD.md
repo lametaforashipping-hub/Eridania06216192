@@ -226,6 +226,29 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Botones Anterior/Siguiente siempre visibles
 - Indicador "Pág. X/Y" y total de boletos
 
+### 🔄 Sistema de Email con SendGrid (IMPLEMENTADO 18 Feb 2026 - PENDIENTE VERIFICACIÓN)
+**Servicio:** `/app/backend/services/email_service.py`
+
+**Funciones implementadas:**
+- `send_winner_notification()` - Email cuando cliente gana premio
+- `send_payment_confirmed_notification()` - Email cuando pago es aprobado
+- `send_payment_rejected_notification()` - Email cuando pago es rechazado
+
+**Integración:**
+- Integrado en `/app/backend/services/notifications.py`
+- Se envía email + notificación push + notificación in-app simultáneamente
+
+**Configuración requerida (.env):**
+```
+SENDGRID_API_KEY=SG.xxxxx
+SENDER_EMAIL=loteriamagica01@gmail.com
+```
+
+**⚠️ PENDIENTE:** Verificar sender en SendGrid:
+1. Ir a SendGrid → Settings → Sender Authentication
+2. Verificar `loteriamagica01@gmail.com` como Single Sender
+3. El sistema funcionará automáticamente una vez verificado
+
 
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
 **Nueva ruta:** `/quick-sales`
