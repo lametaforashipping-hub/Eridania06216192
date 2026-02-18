@@ -716,7 +716,7 @@ export default function Tickets() {
       {loading ? (
         <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
       ) : (
-        <>
+        <View style={styles.listWrapper}>
           <FlatList
             data={filteredTickets}
             renderItem={renderTicket}
@@ -733,54 +733,62 @@ export default function Tickets() {
                 </Text>
               </View>
             }
-            ListFooterComponent={
-              pagination && pagination.total_pages > 1 ? (
-                <View style={styles.paginationContainer}>
-                  <View style={styles.paginationInfo}>
-                    <Text style={styles.paginationText}>
-                      Página {pagination.page} de {pagination.total_pages} ({pagination.total} boletos)
-                    </Text>
-                  </View>
-                  <View style={styles.paginationButtons}>
-                    <TouchableOpacity
-                      style={[styles.paginationButton, !pagination.has_prev && styles.paginationButtonDisabled]}
-                      onPress={() => setPage(p => Math.max(1, p - 1))}
-                      disabled={!pagination.has_prev}
-                    >
-                      <Ionicons name="chevron-back" size={20} color={pagination.has_prev ? "#ffffff" : "#475569"} />
-                      <Text style={[styles.paginationButtonText, !pagination.has_prev && styles.paginationButtonTextDisabled]}>
-                        Anterior
-                      </Text>
-                    </TouchableOpacity>
-                    <View style={styles.pageLimitSelector}>
-                      {[25, 50, 100].map(l => (
-                        <TouchableOpacity
-                          key={l}
-                          style={[styles.limitButton, limit === l && styles.limitButtonActive]}
-                          onPress={() => { setLimit(l); setPage(1); }}
-                        >
-                          <Text style={[styles.limitButtonText, limit === l && styles.limitButtonTextActive]}>{l}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                    <TouchableOpacity
-                      style={[styles.paginationButton, !pagination.has_next && styles.paginationButtonDisabled]}
-                      onPress={() => setPage(p => p + 1)}
-                      disabled={!pagination.has_next}
-                    >
-                      <Text style={[styles.paginationButtonText, !pagination.has_next && styles.paginationButtonTextDisabled]}>
-                        Siguiente
-                      </Text>
-                      <Ionicons name="chevron-forward" size={20} color={pagination.has_next ? "#ffffff" : "#475569"} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : null
-            }
             numColumns={isDesktop ? 2 : 1}
             key={isDesktop ? 'desktop' : 'mobile'}
           />
-        </>
+          
+          {/* Fixed Pagination Component - Always visible at bottom */}
+          {pagination && pagination.total_pages > 1 && (
+            <View style={styles.fixedPaginationContainer}>
+              <View style={styles.paginationButtons}>
+                <TouchableOpacity
+                  style={[styles.paginationButton, !pagination.has_prev && styles.paginationButtonDisabled]}
+                  onPress={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={!pagination.has_prev}
+                  data-testid="pagination-prev"
+                >
+                  <Ionicons name="chevron-back" size={18} color={pagination.has_prev ? "#ffffff" : "#475569"} />
+                  <Text style={[styles.paginationButtonText, !pagination.has_prev && styles.paginationButtonTextDisabled]}>
+                    Ant.
+                  </Text>
+                </TouchableOpacity>
+                
+                <View style={styles.paginationCenter}>
+                  <Text style={styles.paginationText}>
+                    Pág. {pagination.page}/{pagination.total_pages}
+                  </Text>
+                  <View style={styles.pageLimitSelector}>
+                    {[25, 50, 100].map(l => (
+                      <TouchableOpacity
+                        key={l}
+                        style={[styles.limitButton, limit === l && styles.limitButtonActive]}
+                        onPress={() => { setLimit(l); setPage(1); }}
+                        data-testid={`limit-${l}`}
+                      >
+                        <Text style={[styles.limitButtonText, limit === l && styles.limitButtonTextActive]}>{l}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+                
+                <TouchableOpacity
+                  style={[styles.paginationButton, !pagination.has_next && styles.paginationButtonDisabled]}
+                  onPress={() => setPage(p => p + 1)}
+                  disabled={!pagination.has_next}
+                  data-testid="pagination-next"
+                >
+                  <Text style={[styles.paginationButtonText, !pagination.has_next && styles.paginationButtonTextDisabled]}>
+                    Sig.
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color={pagination.has_next ? "#ffffff" : "#475569"} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.totalCountText}>
+                {pagination.total} boletos en total
+              </Text>
+            </View>
+          )}
+        </View>
       )}
 
       {/* Action Modal */}
