@@ -301,3 +301,164 @@ async def get_admin_dashboard_stats(
         "daily_sales": [{"date": date, "value": round(value, 2)} for date, value in sorted_daily],
         "top_sellers": top_sellers
     }
+
+
+@router.get("/stats/extended")
+async def get_extended_stats(
+    period: str = Query("month", regex="^(day|week|month|year)$"),
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
+):
+    """Get extended statistics including client analytics"""
+    from datetime import timezone
+    db = get_db()
+    
+    now = datetime.now(timezone.utc)
+    
+    # Calculate date ranges
+    if period == "day":
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        prev_start = start_date - timedelta(days=1)
+    elif period == "week":
+        start_date = now - timedelta(days=now.weekday())
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        prev_start = start_date - timedelta(weeks=1)
+    elif period == "month":
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        prev_start = (start_date - timedelta(days=1)).replace(day=1)
+    else:  # year
+        start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        prev_start = start_date.replace(year=start_date.year - 1)
+    
+    prev_end = start_date
+    
+    # Client Analytics
+    all_clients = await db.users.find({"role": "cliente"}).to_list(10000)
+    total_clients = len(all_clients)
+    
+    # New clients in period
+    new_clients = [c for c in all_clients if c.get("created_at") and c["created_at"] >= start_date]
+    new_clients_count = len(new_clients)
+    
+    # Previous period new clients
+    prev_new_clients = [c for c in all_clients if c.get("created_at") and prev_start <= c["created_at"] < prev_end]
+    prev_new_clients_count = len(prev_new_clients)
+    
+    # Clients with plays (active)
+    active_client_ids = set()
+    client_tickets = await db.tickets.find({
+        "client_id": {"$exists": True},
+        "created_at": {"$gte": start_date}
+    }).to_list(10000)
+    
+    for ticket in client_tickets:
+        active_client_ids.add(ticket.get("client_id"))
+    
+    active_clients_count = len(active_client_ids)
+    
+    # Top clients by plays
+    client_stats = {}
+    for ticket in client_tickets:
+        client_id = ticket.get("client_id")
+        if client_id not in client_stats:
+            client_stats[client_id] = {"plays": 0, "total_spent": 0, "won": 0}
+        client_stats[client_id]["plays"] += 1
+        client_stats[client_id]["total_spent"] += ticket.get("total_amount", 0)
+        if ticket.get("status") in ["won", "paid"]:
+            client_stats[client_id]["won"] += ticket.get("potential_win", 0)
+    
+    # Get client names
+    top_clients = []
+    for client_id, stats in sorted(client_stats.items(), key=lambda x: x[1]["total_spent"], reverse=True)[:10]:
+        client = await db.users.find_one({"id": client_id})
+        if client:
+            top_clients.append({
+                "name": client.get("name", "Cliente"),
+                "phone": client.get("phone", ""),
+                "plays": stats["plays"],
+                "total_spent": round(stats["total_spent"], 2),
+                "won": round(stats["won"], 2)
+            })
+    
+    # Conversion rate (registered -> first play)
+    clients_with_plays = await db.tickets.distinct("client_id", {"client_id": {"$exists": True}})
+    conversion_rate = (len(clients_with_plays) / total_clients * 100) if total_clients > 0 else 0
+    
+    # Lottery analytics - detailed
+    lottery_analytics = {}
+    all_tickets = await db.tickets.find({
+        "created_at": {"$gte": start_date},
+        "status": {"$ne": "cancelled"}
+    }).to_list(10000)
+    
+    for ticket in all_tickets:
+        if ticket.get("ticket_type") == "multi_play" and ticket.get("plays"):
+            for play in ticket.get("plays", []):
+                lottery_name = play.get("lottery_name", "Otros")
+                if lottery_name not in lottery_analytics:
+                    lottery_analytics[lottery_name] = {"tickets": 0, "revenue": 0, "winners": 0, "prizes_paid": 0}
+                lottery_analytics[lottery_name]["tickets"] += 1
+                lottery_analytics[lottery_name]["revenue"] += play.get("amount", 0)
+        else:
+            lottery_name = ticket.get("lottery_name", "Otros")
+            if lottery_name not in lottery_analytics:
+                lottery_analytics[lottery_name] = {"tickets": 0, "revenue": 0, "winners": 0, "prizes_paid": 0}
+            lottery_analytics[lottery_name]["tickets"] += 1
+            lottery_analytics[lottery_name]["revenue"] += ticket.get("total_amount", ticket.get("amount", 0))
+            
+            if ticket.get("status") in ["won", "paid"]:
+                lottery_analytics[lottery_name]["winners"] += 1
+                lottery_analytics[lottery_name]["prizes_paid"] += ticket.get("potential_win", 0)
+    
+    # Sort by revenue
+    top_lotteries = []
+    total_revenue = sum(l["revenue"] for l in lottery_analytics.values())
+    for name, stats in sorted(lottery_analytics.items(), key=lambda x: x[1]["revenue"], reverse=True)[:15]:
+        top_lotteries.append({
+            "name": name,
+            "tickets": stats["tickets"],
+            "revenue": round(stats["revenue"], 2),
+            "percentage": round(stats["revenue"] / total_revenue * 100, 1) if total_revenue > 0 else 0,
+            "winners": stats["winners"],
+            "prizes_paid": round(stats["prizes_paid"], 2),
+            "profit_margin": round((stats["revenue"] - stats["prizes_paid"]) / stats["revenue"] * 100, 1) if stats["revenue"] > 0 else 0
+        })
+    
+    # Hourly distribution (for trends)
+    hourly_distribution = {}
+    for ticket in all_tickets:
+        if ticket.get("created_at"):
+            hour = ticket["created_at"].hour
+            hourly_distribution[hour] = hourly_distribution.get(hour, 0) + 1
+    
+    hourly_data = [{"hour": h, "count": hourly_distribution.get(h, 0)} for h in range(24)]
+    
+    # Weekly distribution
+    weekly_distribution = {}
+    day_names = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
+    for ticket in all_tickets:
+        if ticket.get("created_at"):
+            day = ticket["created_at"].weekday()
+            weekly_distribution[day] = weekly_distribution.get(day, 0) + 1
+    
+    weekly_data = [{"day": day_names[d], "count": weekly_distribution.get(d, 0)} for d in range(7)]
+    
+    return {
+        "period": period,
+        "client_analytics": {
+            "total_clients": total_clients,
+            "new_clients": new_clients_count,
+            "new_clients_growth": round((new_clients_count - prev_new_clients_count) / prev_new_clients_count * 100, 1) if prev_new_clients_count > 0 else 0,
+            "active_clients": active_clients_count,
+            "conversion_rate": round(conversion_rate, 1),
+            "top_clients": top_clients
+        },
+        "lottery_analytics": {
+            "top_lotteries": top_lotteries,
+            "total_lotteries_played": len(lottery_analytics)
+        },
+        "time_analytics": {
+            "hourly_distribution": hourly_data,
+            "weekly_distribution": weekly_data
+        }
+    }
+
