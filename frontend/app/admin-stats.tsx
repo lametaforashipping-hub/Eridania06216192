@@ -880,4 +880,141 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  // Tab styles
+  tabSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+    gap: 4,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+  },
+  tabButtonActive: {
+    backgroundColor: '#334155',
+  },
+  tabText: {
+    color: '#64748b',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  tabTextActive: {
+    color: '#22c55e',
+  },
+  // Client tab styles
+  clientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  clientStats: {
+    alignItems: 'flex-end',
+  },
+  clientWon: {
+    color: '#f59e0b',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+  },
+  emptyText: {
+    color: '#64748b',
+    fontSize: 14,
+    marginTop: 12,
+  },
+  // Lottery tab styles
+  lotteryHeader: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+    marginBottom: 4,
+  },
+  tableHeaderText: {
+    color: '#64748b',
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  lotteryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  lotteryDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  lotteryName: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
+  lotteryCell: {
+    color: '#94a3b8',
+    fontSize: 12,
+    textAlign: 'right',
+  },
+  lotteryRevenue: {
+    color: '#22c55e',
+    fontWeight: '600',
+  },
+  marginBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  marginText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  prizeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  prizeInfo: {
+    flex: 1,
+  },
+  prizeLotteryName: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  prizeCount: {
+    color: '#64748b',
+    fontSize: 12,
+  },
+  prizeAmount: {
+    color: '#f59e0b',
+    fontSize: 15,
+    fontWeight: '700',
+  },
 });
