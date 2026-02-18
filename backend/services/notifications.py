@@ -6,6 +6,23 @@ from utils.database import get_db
 
 logger = logging.getLogger(__name__)
 
+# Import email service (lazy import to avoid circular dependencies)
+def get_email_service():
+    try:
+        from services.email_service import (
+            send_winner_notification as email_winner,
+            send_payment_confirmed_notification as email_payment_confirmed,
+            send_payment_rejected_notification as email_payment_rejected
+        )
+        return {
+            "winner": email_winner,
+            "payment_confirmed": email_payment_confirmed,
+            "payment_rejected": email_payment_rejected
+        }
+    except ImportError as e:
+        logger.warning(f"Email service not available: {e}")
+        return None
+
 
 async def send_push_notification(expo_push_tokens: List[str], title: str, body: str, data: dict = None):
     """
