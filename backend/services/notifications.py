@@ -327,12 +327,34 @@ async def notify_client_payment_rejected(client_id: str, ticket_number: str, rea
     logger.info(f"Payment rejection sent to client {client_id}")
 
 
-async def notify_client_winner(client_id: str, ticket_number: str, prize: float, lottery_name: str):
-    """Send push notification to client when they win"""
+async def notify_client_winner(client_id: str, ticket_number: str, prize: float, lottery_name: str, winning_numbers: str = ""):
+    """Send push notification and email to client when they win"""
     db = get_db()
     client = await db.users.find_one({"id": client_id})
     
-    if not client or not client.get("notification_token"):
+    if not client:
+        logger.warning(f"Client not found: {client_id}")
+        return
+    
+    # Send email notification
+    email_service = get_email_service()
+    if email_service and client.get("email"):
+        try:
+            email_service["winner"](
+                client_name=client.get("name", "Cliente"),
+                client_email=client["email"],
+                ticket_number=ticket_number,
+                lottery_name=lottery_name,
+                winning_numbers=winning_numbers,
+                prize_amount=prize,
+                currency="RD$"
+            )
+            logger.info(f"Winner email sent to {client['email']}")
+        except Exception as e:
+            logger.error(f"Failed to send winner email: {e}")
+    
+    # Send push notification
+    if not client.get("notification_token"):
         logger.info(f"No notification token for client {client_id}")
         return
     
