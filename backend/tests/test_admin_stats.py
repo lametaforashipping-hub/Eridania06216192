@@ -143,9 +143,9 @@ class TestDashboardStatsEndpoint:
             assert "value" in item
     
     def test_dashboard_stats_unauthorized(self):
-        """Test dashboard stats without auth returns 401"""
+        """Test dashboard stats without auth returns 403"""
         response = requests.get(f"{BASE_URL}/api/admin/stats/dashboard")
-        assert response.status_code == 401
+        assert response.status_code == 403  # FastAPI returns 403 when no credentials provided
 
 
 class TestExtendedStatsEndpoint:
@@ -279,9 +279,9 @@ class TestExtendedStatsEndpoint:
         assert response.status_code == 422
     
     def test_extended_stats_unauthorized(self):
-        """Test extended stats without auth returns 401"""
+        """Test extended stats without auth returns 403"""
         response = requests.get(f"{BASE_URL}/api/admin/stats/extended")
-        assert response.status_code == 401
+        assert response.status_code == 403  # FastAPI returns 403 when no credentials provided
 
 
 class TestDataConsistency:
