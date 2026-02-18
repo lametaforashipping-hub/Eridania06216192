@@ -432,6 +432,249 @@ export default function AdminStatsScreen() {
               ))}
             </View>
           )}
+            </>
+          )}
+
+          {/* Clients Tab */}
+          {activeTab === 'clients' && extendedStats && (
+            <>
+              {/* Client KPIs */}
+              <View style={styles.summaryGrid}>
+                <View style={[styles.summaryCard, styles.summaryCardLarge]}>
+                  <View style={styles.cardIcon}>
+                    <Ionicons name="people" size={24} color="#22c55e" />
+                  </View>
+                  <Text style={styles.cardLabel}>Total Clientes</Text>
+                  <Text style={styles.cardValue}>{extendedStats.client_analytics.total_clients}</Text>
+                </View>
+
+                <View style={styles.summaryCard}>
+                  <View style={[styles.cardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+                    <Ionicons name="person-add" size={20} color="#3b82f6" />
+                  </View>
+                  <Text style={styles.cardLabel}>Nuevos</Text>
+                  <Text style={[styles.cardValue, styles.cardValueSmall]}>{extendedStats.client_analytics.new_clients}</Text>
+                  <View style={styles.growthBadge}>
+                    <Text style={[styles.growthTextSmall, { color: getGrowthColor(extendedStats.client_analytics.new_clients_growth) }]}>
+                      {extendedStats.client_analytics.new_clients_growth > 0 ? '+' : ''}{extendedStats.client_analytics.new_clients_growth.toFixed(1)}%
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.summaryCard}>
+                  <View style={[styles.cardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.2)' }]}>
+                    <Ionicons name="flash" size={20} color="#8b5cf6" />
+                  </View>
+                  <Text style={styles.cardLabel}>Activos</Text>
+                  <Text style={[styles.cardValue, styles.cardValueSmall]}>{extendedStats.client_analytics.active_clients}</Text>
+                </View>
+
+                <View style={styles.summaryCard}>
+                  <View style={[styles.cardIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
+                    <Ionicons name="trending-up" size={20} color="#ec4899" />
+                  </View>
+                  <Text style={styles.cardLabel}>Conversión</Text>
+                  <Text style={[styles.cardValue, styles.cardValueSmall]}>{extendedStats.client_analytics.conversion_rate}%</Text>
+                </View>
+              </View>
+
+              {/* Top Clients */}
+              {extendedStats.client_analytics.top_clients.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Top Clientes</Text>
+                  {extendedStats.client_analytics.top_clients.map((client, index) => (
+                    <View key={index} style={styles.clientRow}>
+                      <View style={styles.sellerRank}>
+                        <Text style={styles.rankText}>#{index + 1}</Text>
+                      </View>
+                      <View style={styles.sellerInfo}>
+                        <Text style={styles.sellerName}>{client.name}</Text>
+                        <Text style={styles.sellerMeta}>{client.phone} • {client.plays} jugadas</Text>
+                      </View>
+                      <View style={styles.clientStats}>
+                        <Text style={styles.sellerSales}>{formatCurrency(client.total_spent)}</Text>
+                        {client.won > 0 && (
+                          <Text style={styles.clientWon}>Ganado: {formatCurrency(client.won)}</Text>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Hourly Distribution Chart */}
+              {extendedStats.time_analytics.hourly_distribution.some(h => h.count > 0) && (
+                <View style={styles.chartSection}>
+                  <Text style={styles.sectionTitle}>Actividad por Hora</Text>
+                  <View style={styles.chartContainer}>
+                    <BarChart
+                      data={extendedStats.time_analytics.hourly_distribution.map((h, i) => ({
+                        value: h.count,
+                        label: i % 3 === 0 ? `${h.hour}h` : '',
+                        frontColor: h.count > 0 ? '#8b5cf6' : '#334155',
+                      }))}
+                      width={isDesktop ? 500 : width - 80}
+                      height={150}
+                      barWidth={isDesktop ? 16 : 10}
+                      spacing={isDesktop ? 6 : 3}
+                      noOfSections={4}
+                      yAxisColor="#334155"
+                      xAxisColor="#334155"
+                      yAxisTextStyle={{ color: '#94a3b8', fontSize: 10 }}
+                      xAxisLabelTextStyle={{ color: '#94a3b8', fontSize: 8 }}
+                      hideRules
+                      barBorderRadius={3}
+                      isAnimated
+                    />
+                  </View>
+                </View>
+              )}
+
+              {/* Weekly Distribution */}
+              {extendedStats.time_analytics.weekly_distribution.some(d => d.count > 0) && (
+                <View style={styles.chartSection}>
+                  <Text style={styles.sectionTitle}>Actividad por Día de la Semana</Text>
+                  <View style={styles.chartContainer}>
+                    <BarChart
+                      data={extendedStats.time_analytics.weekly_distribution.map((d, i) => ({
+                        value: d.count,
+                        label: d.day,
+                        frontColor: ['#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#14b8a6', '#ef4444'][i],
+                      }))}
+                      width={isDesktop ? 400 : width - 80}
+                      height={150}
+                      barWidth={isDesktop ? 40 : 30}
+                      spacing={isDesktop ? 15 : 10}
+                      noOfSections={4}
+                      yAxisColor="#334155"
+                      xAxisColor="#334155"
+                      yAxisTextStyle={{ color: '#94a3b8', fontSize: 10 }}
+                      xAxisLabelTextStyle={{ color: '#94a3b8', fontSize: 10 }}
+                      hideRules
+                      barBorderRadius={4}
+                      isAnimated
+                    />
+                  </View>
+                </View>
+              )}
+
+              {extendedStats.client_analytics.total_clients === 0 && (
+                <View style={styles.emptyState}>
+                  <Ionicons name="people-outline" size={48} color="#64748b" />
+                  <Text style={styles.emptyText}>No hay clientes registrados aún</Text>
+                </View>
+              )}
+            </>
+          )}
+
+          {/* Lotteries Tab */}
+          {activeTab === 'lotteries' && extendedStats && (
+            <>
+              {/* Lottery Summary */}
+              <View style={styles.lotteryHeader}>
+                <View style={[styles.summaryCard, { flex: 1 }]}>
+                  <View style={[styles.cardIcon, { backgroundColor: 'rgba(34, 197, 94, 0.2)' }]}>
+                    <Ionicons name="trophy" size={20} color="#22c55e" />
+                  </View>
+                  <Text style={styles.cardLabel}>Loterías Jugadas</Text>
+                  <Text style={[styles.cardValue, styles.cardValueSmall]}>{extendedStats.lottery_analytics.total_lotteries_played}</Text>
+                </View>
+              </View>
+
+              {/* Lottery Performance Table */}
+              {extendedStats.lottery_analytics.top_lotteries.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Rendimiento por Lotería</Text>
+                  
+                  {/* Table Header */}
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableHeaderText, { flex: 2 }]}>Lotería</Text>
+                    <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Tickets</Text>
+                    <Text style={[styles.tableHeaderText, { flex: 1.5, textAlign: 'right' }]}>Ingresos</Text>
+                    <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>Margen</Text>
+                  </View>
+
+                  {extendedStats.lottery_analytics.top_lotteries.map((lottery, index) => (
+                    <View key={index} style={styles.lotteryRow}>
+                      <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={[styles.lotteryDot, { backgroundColor: lotteryColors[index % lotteryColors.length] }]} />
+                        <Text style={styles.lotteryName} numberOfLines={1}>{lottery.name}</Text>
+                      </View>
+                      <Text style={[styles.lotteryCell, { flex: 1 }]}>{lottery.tickets}</Text>
+                      <Text style={[styles.lotteryCell, styles.lotteryRevenue, { flex: 1.5 }]}>{formatCurrency(lottery.revenue)}</Text>
+                      <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                        <View style={[styles.marginBadge, { backgroundColor: lottery.profit_margin >= 0 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)' }]}>
+                          <Text style={[styles.marginText, { color: lottery.profit_margin >= 0 ? '#22c55e' : '#ef4444' }]}>
+                            {lottery.profit_margin.toFixed(0)}%
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Revenue Distribution Pie Chart */}
+              {extendedStats.lottery_analytics.top_lotteries.length > 0 && (
+                <View style={styles.chartSection}>
+                  <Text style={styles.sectionTitle}>Distribución de Ingresos</Text>
+                  <View style={styles.pieContainer}>
+                    <PieChart
+                      data={extendedStats.lottery_analytics.top_lotteries.slice(0, 8).map((l, i) => ({
+                        value: l.revenue,
+                        color: lotteryColors[i % lotteryColors.length],
+                        text: `${l.percentage}%`,
+                      }))}
+                      donut
+                      radius={90}
+                      innerRadius={55}
+                      centerLabelComponent={() => (
+                        <View>
+                          <Text style={styles.pieCenter}>{extendedStats.lottery_analytics.total_lotteries_played}</Text>
+                          <Text style={styles.pieCenterLabel}>Loterías</Text>
+                        </View>
+                      )}
+                    />
+                    <View style={styles.legend}>
+                      {extendedStats.lottery_analytics.top_lotteries.slice(0, 6).map((lottery, index) => (
+                        <View key={index} style={styles.legendItem}>
+                          <View style={[styles.legendDot, { backgroundColor: lotteryColors[index % lotteryColors.length] }]} />
+                          <Text style={styles.legendText} numberOfLines={1}>
+                            {lottery.name}: {lottery.percentage}%
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Winners & Prizes Summary */}
+              {extendedStats.lottery_analytics.top_lotteries.some(l => l.winners > 0) && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Resumen de Premios</Text>
+                  {extendedStats.lottery_analytics.top_lotteries
+                    .filter(l => l.winners > 0)
+                    .map((lottery, index) => (
+                      <View key={index} style={styles.prizeRow}>
+                        <View style={styles.prizeInfo}>
+                          <Text style={styles.prizeLotteryName}>{lottery.name}</Text>
+                          <Text style={styles.prizeCount}>{lottery.winners} ganador(es)</Text>
+                        </View>
+                        <Text style={styles.prizeAmount}>{formatCurrency(lottery.prizes_paid)}</Text>
+                      </View>
+                    ))}
+                </View>
+              )}
+
+              {extendedStats.lottery_analytics.top_lotteries.length === 0 && (
+                <View style={styles.emptyState}>
+                  <Ionicons name="trophy-outline" size={48} color="#64748b" />
+                  <Text style={styles.emptyText}>No hay datos de loterías para este período</Text>
+                </View>
+              )}
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
