@@ -1,17 +1,24 @@
-"""Email service using SendGrid for lottery notifications"""
+"""Email service using SMTP for lottery notifications"""
 import os
+import ssl
+import smtplib
 import logging
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
 
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@loteria.com')
+# SMTP Configuration
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.hostinger.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', SMTP_USER)
+
 
 def send_email(to_email: str, subject: str, html_content: str) -> bool:
     """
-    Send an email using SendGrid
+    Send an email using SMTP
     
     Args:
         to_email: Recipient email address
@@ -21,27 +28,31 @@ def send_email(to_email: str, subject: str, html_content: str) -> bool:
     Returns:
         True if email was sent successfully, False otherwise
     """
-    if not SENDGRID_API_KEY:
-        logger.warning("SENDGRID_API_KEY not configured - email not sent")
+    if not SMTP_USER or not SMTP_PASSWORD:
+        logger.warning("SMTP credentials not configured - email not sent")
         return False
     
     try:
-        message = Mail(
-            from_email=Email(SENDER_EMAIL, "Lotería Mágica"),
-            to_emails=To(to_email),
-            subject=subject,
-            html_content=Content("text/html", html_content)
-        )
+        # Create message
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = f"Lotería Mágica <{SENDER_EMAIL}>"
+        message["To"] = to_email
         
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
+        # Add HTML content
+        html_part = MIMEText(html_content, "html")
+        message.attach(html_part)
         
-        if response.status_code in [200, 201, 202]:
-            logger.info(f"Email sent successfully to {to_email}")
-            return True
-        else:
-            logger.error(f"SendGrid returned status {response.status_code}")
-            return False
+        # Connect and send
+        context = ssl.create_default_context()
+        
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls(context=context)
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SENDER_EMAIL, to_email, message.as_string())
+        
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
             
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
