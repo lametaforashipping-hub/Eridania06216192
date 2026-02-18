@@ -50,6 +50,26 @@ interface DashboardStats {
   top_sellers: { name: string; sales: number; tickets: number }[];
 }
 
+interface ExtendedStats {
+  period: string;
+  client_analytics: {
+    total_clients: number;
+    new_clients: number;
+    new_clients_growth: number;
+    active_clients: number;
+    conversion_rate: number;
+    top_clients: { name: string; phone: string; plays: number; total_spent: number; won: number }[];
+  };
+  lottery_analytics: {
+    top_lotteries: { name: string; tickets: number; revenue: number; percentage: number; winners: number; prizes_paid: number; profit_margin: number }[];
+    total_lotteries_played: number;
+  };
+  time_analytics: {
+    hourly_distribution: { hour: number; count: number }[];
+    weekly_distribution: { day: string; count: number }[];
+  };
+}
+
 const PERIODS = [
   { key: 'day', label: 'Hoy' },
   { key: 'week', label: 'Semana' },
