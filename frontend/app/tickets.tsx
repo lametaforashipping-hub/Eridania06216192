@@ -1935,4 +1935,26 @@ const styles = StyleSheet.create({
   limitButtonTextActive: {
     color: '#ffffff',
   },
+  // Fixed pagination styles
+  listWrapper: {
+    flex: 1,
+  },
+  fixedPaginationContainer: {
+    backgroundColor: '#1e293b',
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  paginationCenter: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  totalCountText: {
+    textAlign: 'center',
+    color: '#64748b',
+    fontSize: 11,
+    marginTop: 8,
+  },
 });
