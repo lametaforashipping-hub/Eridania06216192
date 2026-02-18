@@ -156,7 +156,7 @@ async def health_check():
         # Verify MongoDB connection is alive
         await client.admin.command('ping')
         return {"status": "healthy", "database": "connected"}
-    except Exception as e:
+    except Exception:
         # Return healthy even if DB check fails to prevent container restarts
         # The app can still serve static content and will retry DB connections
         return {"status": "healthy", "database": "reconnecting"}
