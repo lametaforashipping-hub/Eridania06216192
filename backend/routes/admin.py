@@ -312,7 +312,7 @@ async def get_extended_stats(
     from datetime import timezone
     db = get_db()
     
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()  # Use naive datetime for MongoDB comparison
     
     # Calculate date ranges
     if period == "day":
@@ -335,7 +335,7 @@ async def get_extended_stats(
     all_clients = await db.users.find({"role": "cliente"}).to_list(10000)
     total_clients = len(all_clients)
     
-    # New clients in period
+    # New clients in period - compare with naive datetime
     new_clients = [c for c in all_clients if c.get("created_at") and c["created_at"] >= start_date]
     new_clients_count = len(new_clients)
     
