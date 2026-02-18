@@ -200,11 +200,31 @@ async def notify_new_lottery_results(results: List[dict]):
 
 
 async def notify_client_payment_confirmed(client_id: str, ticket_number: str, total_amount: float):
-    """Send push notification to client when their payment is confirmed"""
+    """Send push notification and email to client when their payment is confirmed"""
     db = get_db()
     client = await db.users.find_one({"id": client_id})
     
-    if not client or not client.get("notification_token"):
+    if not client:
+        logger.warning(f"Client not found: {client_id}")
+        return
+    
+    # Send email notification
+    email_service = get_email_service()
+    if email_service and client.get("email"):
+        try:
+            email_service["payment_confirmed"](
+                client_name=client.get("name", "Cliente"),
+                client_email=client["email"],
+                ticket_number=ticket_number,
+                amount=total_amount,
+                currency="RD$"
+            )
+            logger.info(f"Payment confirmation email sent to {client['email']}")
+        except Exception as e:
+            logger.error(f"Failed to send payment confirmation email: {e}")
+    
+    # Send push notification
+    if not client.get("notification_token"):
         logger.info(f"No notification token for client {client_id}")
         return
     
