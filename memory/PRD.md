@@ -226,8 +226,17 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 - Botones Anterior/Siguiente siempre visibles
 - Indicador "Pág. X/Y" y total de boletos
 
-### 🔄 Sistema de Email con SendGrid (IMPLEMENTADO 18 Feb 2026 - PENDIENTE VERIFICACIÓN)
+### ✅ Sistema de Email con SMTP Hostinger (COMPLETADO 18 Feb 2026)
 **Servicio:** `/app/backend/services/email_service.py`
+
+**Configuración SMTP (.env):**
+```
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=587
+SMTP_USER=metafora@lametafora.net
+SMTP_PASSWORD=****
+SENDER_EMAIL=metafora@lametafora.net
+```
 
 **Funciones implementadas:**
 - `send_winner_notification()` - Email cuando cliente gana premio
@@ -237,17 +246,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
 **Integración:**
 - Integrado en `/app/backend/services/notifications.py`
 - Se envía email + notificación push + notificación in-app simultáneamente
-
-**Configuración requerida (.env):**
-```
-SENDGRID_API_KEY=SG.xxxxx
-SENDER_EMAIL=loteriamagica01@gmail.com
-```
-
-**⚠️ PENDIENTE:** Verificar sender en SendGrid:
-1. Ir a SendGrid → Settings → Sender Authentication
-2. Verificar `loteriamagica01@gmail.com` como Single Sender
-3. El sistema funcionará automáticamente una vez verificado
+- **ESTADO: ✅ FUNCIONANDO**
 
 
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
