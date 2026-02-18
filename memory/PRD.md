@@ -181,7 +181,7 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `/app/frontend/app/company-profile.tsx` (helper getAbsoluteUrl)
   - `/app/frontend/src/components/sales/components/TicketModal.tsx` (getAbsoluteLogoUrl)
 
-### ✅ Dashboard de Estadísticas Avanzadas (COMPLETADO 17 Feb 2026)
+### ✅ Dashboard de Estadísticas Avanzadas (COMPLETADO 18 Feb 2026)
 **Nueva ruta:** `/admin-stats`
 
 **Backend - Endpoint `GET /api/admin/stats/dashboard`:**
@@ -194,22 +194,25 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `daily_sales`: ventas diarias para gráficos
   - `top_sellers`: ranking de vendedores
 
+**Backend - Endpoint `GET /api/admin/stats/extended`:** (NUEVO 18 Feb 2026)
+- Analytics de clientes: total, nuevos, activos, tasa de conversión, top clientes
+- Analytics de loterías: rendimiento por lotería con ingresos, tickets, margen de ganancia
+- Analytics de tiempo: distribución por hora y día de la semana
+
 **Frontend - Pantalla `/admin-stats`:**
 - Selector de período (Hoy, Semana, Mes, Año)
-- 6 tarjetas KPI con íconos y valores
-- Indicadores de crecimiento (%, verde/rojo)
-- Gráfico de barras: Ventas por Día
-- Gráfico de barras: Ventas por Lotería
-- Gráfico circular: Estado de Boletos
-- Lista: Top Vendedores
+- **3 pestañas:** General, Clientes, Loterías
+- **Pestaña General:** 6 tarjetas KPI, gráficos de barras y circular, top vendedores
+- **Pestaña Clientes:** KPIs de clientes, top clientes, gráficos de actividad horaria/semanal
+- **Pestaña Loterías:** Tabla de rendimiento con tickets/ingresos/margen, pie chart de distribución
 - Exportar a imagen PNG
 
 **Archivos:**
-- `/app/backend/routes/admin.py` (nuevo endpoint stats/dashboard)
-- `/app/frontend/app/admin-stats.tsx` (nueva pantalla)
+- `/app/backend/routes/admin.py` (endpoints stats/dashboard y stats/extended)
+- `/app/frontend/app/admin-stats.tsx` (pantalla con tabs)
 - `/app/frontend/app/dashboard.tsx` (enlace al menú)
 
-### ✅ Paginación en Vista de Tickets (COMPLETADO 17 Feb 2026)
+### ✅ Paginación en Vista de Tickets - FIX UI (COMPLETADO 18 Feb 2026)
 **Endpoint `GET /api/tickets` actualizado:**
 - Parámetros: `page` (default 1), `limit` (default 50, max 200)
 - Retorna:
@@ -218,10 +221,10 @@ Sistema de gestión de loterías para República Dominicana y Estados Unidos. Pe
   - `status_counts`: conteo por estado para filtros
 
 **Frontend `/tickets` actualizado:**
-- Controles de paginación al final de la lista
+- **FIX:** Controles de paginación ahora en posición FIJA en la parte inferior (no dentro del scroll)
 - Selector de cantidad por página (25, 50, 100)
-- Botones Anterior/Siguiente
-- Indicador "Página X de Y (total boletos)"
+- Botones Anterior/Siguiente siempre visibles
+- Indicador "Pág. X/Y" y total de boletos
 
 
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
