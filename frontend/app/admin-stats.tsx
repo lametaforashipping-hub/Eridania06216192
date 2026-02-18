@@ -242,7 +242,34 @@ export default function AdminStatsScreen() {
             ))}
           </View>
 
-          {/* Summary Cards */}
+          {/* Tab Selector */}
+          <View style={styles.tabSelector}>
+            <TouchableOpacity
+              style={[styles.tabButton, activeTab === 'overview' && styles.tabButtonActive]}
+              onPress={() => setActiveTab('overview')}
+            >
+              <Ionicons name="stats-chart" size={18} color={activeTab === 'overview' ? '#22c55e' : '#64748b'} />
+              <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>General</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, activeTab === 'clients' && styles.tabButtonActive]}
+              onPress={() => setActiveTab('clients')}
+            >
+              <Ionicons name="people" size={18} color={activeTab === 'clients' ? '#22c55e' : '#64748b'} />
+              <Text style={[styles.tabText, activeTab === 'clients' && styles.tabTextActive]}>Clientes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, activeTab === 'lotteries' && styles.tabButtonActive]}
+              onPress={() => setActiveTab('lotteries')}
+            >
+              <Ionicons name="trophy" size={18} color={activeTab === 'lotteries' ? '#22c55e' : '#64748b'} />
+              <Text style={[styles.tabText, activeTab === 'lotteries' && styles.tabTextActive]}>Loterías</Text>
+            </TouchableOpacity>
+          </View>
+
+          {activeTab === 'overview' && (
+            <>
+              {/* Summary Cards */}
           <View style={styles.summaryGrid}>
             <View style={[styles.summaryCard, styles.summaryCardLarge]}>
               <View style={styles.cardIcon}>
