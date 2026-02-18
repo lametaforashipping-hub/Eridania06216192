@@ -248,6 +248,24 @@ SENDER_EMAIL=metafora@lametafora.net
 - Se envía email + notificación push + notificación in-app simultáneamente
 - **ESTADO: ✅ FUNCIONANDO**
 
+### ✅ Reportes Semanales Automáticos (COMPLETADO 18 Feb 2026)
+**Scheduler:** Cada lunes a las 8:00 AM UTC
+
+**Contenido del reporte:**
+- Ventas totales de la semana
+- Ganancia neta
+- Boletos vendidos
+- Premios pagados
+- Top 5 vendedores
+- Top 5 loterías
+- Nuevos clientes registrados
+
+**Archivos:**
+- `/app/backend/services/notifications.py` → función `send_weekly_report_to_admins()`
+- `/app/backend/server.py` → scheduler configurado
+
+**ESTADO: ✅ FUNCIONANDO** - Se envía automáticamente a todos los admins con email
+
 
 ### ✅ Pantalla de Venta Rápida para Móvil (COMPLETADO 16 Feb 2026)
 **Nueva ruta:** `/quick-sales`
