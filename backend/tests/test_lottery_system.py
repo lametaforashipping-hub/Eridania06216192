@@ -10,7 +10,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://number-selection-app.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://winning-hub.preview.emergentagent.com').rstrip('/')
 
 class TestAuth:
     """Authentication endpoint tests"""

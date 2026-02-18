@@ -14,7 +14,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://number-selection-app.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://winning-hub.preview.emergentagent.com').rstrip('/')
 
 # Default weekly schedule from server.py
 DEFAULT_WEEKLY_SCHEDULE = {
