@@ -432,7 +432,7 @@ export default function AdminStatsScreen() {
               ))}
             </View>
           )}
-            </>
+        </>
           )}
 
           {/* Clients Tab */}
