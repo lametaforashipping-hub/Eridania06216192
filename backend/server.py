@@ -97,22 +97,11 @@ async def startup_event():
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     
     try:
-        # Check if scheduler should auto-start from saved config
-        db = get_db()
-        config = await db.system_config.find_one({"key": "lottery_scheduler"})
+        # Create a single shared scheduler for all cron jobs
+        shared_scheduler = AsyncIOScheduler()
         
-        if config and config.get("enabled", False):
-            interval = config.get("interval_minutes", 5)
-            start_scheduler(interval_minutes=interval)
-            logger.info(f"🚀 Auto-started lottery scheduler (interval: {interval} min)")
-        else:
-            # Start with default 5 minutes if no config exists
-            start_scheduler(interval_minutes=5)
-            logger.info("🚀 Started lottery scheduler with default 5 min interval")
-        
-        # Start daily payment summary scheduler
-        payment_scheduler = AsyncIOScheduler()
-        payment_scheduler.add_job(
+        # Add daily payment summary job
+        shared_scheduler.add_job(
             notify_admin_pending_payments_summary,
             'cron',
             hour=8,  # 8 AM UTC
@@ -120,12 +109,10 @@ async def startup_event():
             id='daily_payment_summary',
             replace_existing=True
         )
-        payment_scheduler.start()
-        logger.info("🚀 Started daily payment summary scheduler (8:00 AM UTC)")
+        logger.info("🚀 Added daily payment summary job (8:00 AM UTC)")
         
-        # Start weekly report scheduler (every Monday at 8 AM UTC)
-        weekly_scheduler = AsyncIOScheduler()
-        weekly_scheduler.add_job(
+        # Add weekly report job (every Monday at 8 AM UTC)
+        shared_scheduler.add_job(
             send_weekly_report_to_admins,
             'cron',
             day_of_week='mon',  # Monday
@@ -134,11 +121,32 @@ async def startup_event():
             id='weekly_admin_report',
             replace_existing=True
         )
-        weekly_scheduler.start()
-        logger.info("🚀 Started weekly report scheduler (Mondays 8:00 AM UTC)")
+        logger.info("🚀 Added weekly report job (Mondays 8:00 AM UTC)")
+        
+        # Start the shared scheduler
+        shared_scheduler.start()
+        logger.info("🚀 Cron scheduler started")
+        
+        # Start lottery results scheduler (separate scheduler for interval jobs)
+        try:
+            db = get_db()
+            config = await db.system_config.find_one({"key": "lottery_scheduler"})
+            
+            if config and config.get("enabled", False):
+                interval = config.get("interval_minutes", 5)
+                start_scheduler(interval_minutes=interval)
+                logger.info(f"🚀 Auto-started lottery scheduler (interval: {interval} min)")
+            else:
+                start_scheduler(interval_minutes=5)
+                logger.info("🚀 Started lottery scheduler with default 5 min interval")
+        except Exception as db_error:
+            logger.warning(f"Could not start lottery scheduler (DB not ready): {db_error}")
+            # Start with default anyway
+            start_scheduler(interval_minutes=5)
+            logger.info("🚀 Started lottery scheduler with default 5 min interval (fallback)")
         
     except Exception as e:
-        logger.warning(f"Could not auto-start scheduler: {e}")
+        logger.warning(f"Could not initialize schedulers: {e}")
 
 
 @app.get("/health")
