@@ -434,3 +434,211 @@ async def notify_admin_pending_payments_summary():
     )
     
     logger.info(f"Pending payments summary sent to {len(tokens)} admins")
+
+
+
+async def send_weekly_report_to_admins():
+    """Send weekly sales and statistics report to admins via email"""
+    from datetime import datetime, timedelta
+    
+    db = get_db()
+    email_service = get_email_service()
+    
+    if not email_service:
+        logger.warning("Email service not available for weekly report")
+        return
+    
+    # Calculate date range (last 7 days)
+    now = datetime.utcnow()
+    start_date = now - timedelta(days=7)
+    
+    # Get weekly statistics
+    try:
+        # Total sales
+        sales_pipeline = [
+            {"$match": {"created_at": {"$gte": start_date}, "status": {"$ne": "cancelled"}}},
+            {"$group": {"_id": None, "total": {"$sum": "$total_amount"}, "count": {"$sum": 1}}}
+        ]
+        sales_result = await db.tickets.aggregate(sales_pipeline).to_list(1)
+        total_sales = sales_result[0]["total"] if sales_result else 0
+        total_tickets = sales_result[0]["count"] if sales_result else 0
+        
+        # Prizes paid
+        prizes_pipeline = [
+            {"$match": {"created_at": {"$gte": start_date}, "status": "won"}},
+            {"$group": {"_id": None, "total": {"$sum": "$total_won"}}}
+        ]
+        prizes_result = await db.tickets.aggregate(prizes_pipeline).to_list(1)
+        total_prizes = prizes_result[0]["total"] if prizes_result else 0
+        
+        # Top sellers
+        sellers_pipeline = [
+            {"$match": {"created_at": {"$gte": start_date}, "status": {"$ne": "cancelled"}}},
+            {"$group": {"_id": "$seller_id", "sales": {"$sum": "$total_amount"}, "tickets": {"$sum": 1}}},
+            {"$sort": {"sales": -1}},
+            {"$limit": 5}
+        ]
+        top_sellers_raw = await db.tickets.aggregate(sellers_pipeline).to_list(5)
+        
+        # Get seller names
+        top_sellers = []
+        for seller in top_sellers_raw:
+            user = await db.users.find_one({"id": seller["_id"]})
+            top_sellers.append({
+                "name": user.get("name", "Desconocido") if user else "Desconocido",
+                "sales": seller["sales"],
+                "tickets": seller["tickets"]
+            })
+        
+        # New clients this week
+        new_clients = await db.users.count_documents({
+            "role": "cliente",
+            "created_at": {"$gte": start_date}
+        })
+        
+        # Top lotteries
+        lotteries_pipeline = [
+            {"$match": {"created_at": {"$gte": start_date}, "status": {"$ne": "cancelled"}}},
+            {"$unwind": "$plays"},
+            {"$group": {"_id": "$plays.lottery", "revenue": {"$sum": "$plays.amount"}}},
+            {"$sort": {"revenue": -1}},
+            {"$limit": 5}
+        ]
+        top_lotteries = await db.tickets.aggregate(lotteries_pipeline).to_list(5)
+        
+        # Build sellers HTML
+        sellers_html = ""
+        for i, seller in enumerate(top_sellers, 1):
+            sellers_html += f"""
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #334155;">#{i} {seller['name']}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #334155; text-align: right;">{seller['tickets']}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #334155; text-align: right; color: #22c55e;">RD$ {seller['sales']:,.0f}</td>
+                </tr>
+            """
+        
+        # Build lotteries HTML
+        lotteries_html = ""
+        for lottery in top_lotteries:
+            lotteries_html += f"""
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #334155;">{lottery['_id']}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #334155; text-align: right; color: #22c55e;">RD$ {lottery['revenue']:,.0f}</td>
+                </tr>
+            """
+        
+        # Net profit
+        net_profit = total_sales - total_prizes
+        profit_color = "#22c55e" if net_profit >= 0 else "#ef4444"
+        
+        # Build email HTML
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; background-color: #0f172a; margin: 0; padding: 20px; }}
+                .container {{ max-width: 600px; margin: 0 auto; background: #1e293b; border-radius: 12px; overflow: hidden; }}
+                .header {{ background: linear-gradient(135deg, #22c55e, #16a34a); padding: 25px; text-align: center; }}
+                .header h1 {{ color: white; margin: 0; font-size: 24px; }}
+                .header p {{ color: rgba(255,255,255,0.9); margin: 5px 0 0; font-size: 14px; }}
+                .content {{ padding: 25px; color: #e2e8f0; }}
+                .kpi-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }}
+                .kpi-card {{ background: #334155; padding: 15px; border-radius: 8px; text-align: center; }}
+                .kpi-value {{ font-size: 24px; font-weight: bold; color: #22c55e; }}
+                .kpi-label {{ font-size: 12px; color: #94a3b8; margin-top: 5px; }}
+                .section {{ margin-top: 20px; }}
+                .section-title {{ font-size: 16px; font-weight: bold; color: #f8fafc; margin-bottom: 10px; border-bottom: 2px solid #22c55e; padding-bottom: 5px; }}
+                table {{ width: 100%; border-collapse: collapse; color: #e2e8f0; font-size: 14px; }}
+                .footer {{ background: #0f172a; padding: 15px; text-align: center; color: #64748b; font-size: 12px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📊 Reporte Semanal</h1>
+                    <p>{start_date.strftime('%d/%m/%Y')} - {now.strftime('%d/%m/%Y')}</p>
+                </div>
+                <div class="content">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-value">RD$ {total_sales:,.0f}</div>
+                            <div class="kpi-label">Ventas Totales</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" style="color: {profit_color};">RD$ {net_profit:,.0f}</div>
+                            <div class="kpi-label">Ganancia Neta</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value">{total_tickets}</div>
+                            <div class="kpi-label">Boletos Vendidos</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-value" style="color: #f59e0b;">RD$ {total_prizes:,.0f}</div>
+                            <div class="kpi-label">Premios Pagados</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">🏆 Top Vendedores</div>
+                        <table>
+                            <tr style="color: #94a3b8;">
+                                <th style="text-align: left; padding: 8px;">Vendedor</th>
+                                <th style="text-align: right; padding: 8px;">Boletos</th>
+                                <th style="text-align: right; padding: 8px;">Ventas</th>
+                            </tr>
+                            {sellers_html if sellers_html else '<tr><td colspan="3" style="padding: 8px; color: #64748b;">Sin datos</td></tr>'}
+                        </table>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">🎰 Top Loterías</div>
+                        <table>
+                            <tr style="color: #94a3b8;">
+                                <th style="text-align: left; padding: 8px;">Lotería</th>
+                                <th style="text-align: right; padding: 8px;">Ingresos</th>
+                            </tr>
+                            {lotteries_html if lotteries_html else '<tr><td colspan="2" style="padding: 8px; color: #64748b;">Sin datos</td></tr>'}
+                        </table>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">👥 Nuevos Clientes</div>
+                        <p style="font-size: 28px; font-weight: bold; color: #3b82f6; margin: 10px 0;">{new_clients}</p>
+                        <p style="color: #94a3b8; font-size: 12px;">registrados esta semana</p>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>Lotería Mágica - Reporte automático semanal</p>
+                    <p>Este reporte se genera cada lunes a las 8:00 AM</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Get admin emails
+        admins = await db.users.find({"role": {"$in": ["super_admin", "admin"]}}).to_list(100)
+        
+        # Import send_email from email_service
+        from services.email_service import send_email
+        
+        emails_sent = 0
+        for admin in admins:
+            if admin.get("email"):
+                try:
+                    result = send_email(
+                        admin["email"],
+                        f"📊 Reporte Semanal - Lotería Mágica ({start_date.strftime('%d/%m')} - {now.strftime('%d/%m')})",
+                        html_content
+                    )
+                    if result:
+                        emails_sent += 1
+                except Exception as e:
+                    logger.error(f"Failed to send weekly report to {admin['email']}: {e}")
+        
+        logger.info(f"Weekly report sent to {emails_sent} admins")
+        
+    except Exception as e:
+        logger.error(f"Error generating weekly report: {e}")
