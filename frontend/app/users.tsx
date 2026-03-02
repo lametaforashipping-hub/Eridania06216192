@@ -48,9 +48,11 @@ export default function Users() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Form states
   const [newEmail, setNewEmail] = useState('');
@@ -65,6 +67,7 @@ export default function Users() {
   const [newCountry, setNewCountry] = useState('RD');
   const [newTerminalId, setNewTerminalId] = useState('');
   const [depositAmount, setDepositAmount] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
 
   const fetchUsers = useCallback(async () => {
     if (!token) return;
@@ -208,6 +211,90 @@ export default function Users() {
     setNewTerminalId(user.terminal_id || '');
     setNewCountry(user.country || 'RD');
     setShowEditModal(true);
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    if (user.role === 'super_admin') {
+      Alert.alert('Error', 'No puedes eliminar a un super admin');
+      return;
+    }
+
+    Alert.alert(
+      'Confirmar Eliminación',
+      `¿Estás seguro de eliminar a "${user.name}"?\n\nEsta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              const response = await fetch(`${API_URL}/api/users/${user.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+
+              if (response.ok) {
+                Alert.alert('Éxito', 'Usuario eliminado correctamente');
+                fetchUsers();
+              } else {
+                const data = await response.json();
+                Alert.alert('Error', data.detail || 'No se pudo eliminar el usuario');
+              }
+            } catch (error) {
+              console.error('Delete user error:', error);
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const openPasswordModal = (user: User) => {
+    setSelectedUser(user);
+    setResetPassword('');
+    setShowPasswordModal(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser || !resetPassword) {
+      Alert.alert('Error', 'Ingresa la nueva contraseña');
+      return;
+    }
+
+    if (resetPassword.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/api/users/${selectedUser.id}/password?new_password=${encodeURIComponent(resetPassword)}`,
+        {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+
+      if (response.ok) {
+        Alert.alert('Éxito', `Contraseña de "${selectedUser.name}" actualizada correctamente`);
+        setShowPasswordModal(false);
+        setResetPassword('');
+      } else {
+        const data = await response.json();
+        Alert.alert('Error', data.detail || 'No se pudo cambiar la contraseña');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleDeposit = async () => {
@@ -388,6 +475,7 @@ export default function Users() {
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => openEditModal(item)}
+            data-testid={`edit-user-${item.id}`}
           >
             <Ionicons name="create" size={18} color="#3b82f6" />
             <Text style={[styles.actionText, { color: '#3b82f6' }]}>Editar</Text>
@@ -402,6 +490,28 @@ export default function Users() {
             <Ionicons name="wallet" size={18} color="#22c55e" />
             <Text style={styles.actionText}>Depositar</Text>
           </TouchableOpacity>
+          {currentUser?.role === 'super_admin' && (
+            <>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => openPasswordModal(item)}
+                data-testid={`password-user-${item.id}`}
+              >
+                <Ionicons name="key" size={18} color="#f59e0b" />
+                <Text style={[styles.actionText, { color: '#f59e0b' }]}>Clave</Text>
+              </TouchableOpacity>
+              {item.role !== 'super_admin' && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleDeleteUser(item)}
+                  data-testid={`delete-user-${item.id}`}
+                >
+                  <Ionicons name="trash" size={18} color="#ef4444" />
+                  <Text style={[styles.actionText, { color: '#ef4444' }]}>Eliminar</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
         </View>
       ) : (
         <View style={styles.protectedNotice}>
@@ -764,6 +874,71 @@ export default function Users() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Password Reset Modal */}
+      <Modal visible={showPasswordModal} transparent animationType="slide">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+              <TouchableOpacity onPress={() => { setShowPasswordModal(false); setSelectedUser(null); setResetPassword(''); }}>
+                <Ionicons name="close" size={24} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.passwordUserInfo}>
+              <View style={styles.userAvatar}>
+                <Text style={styles.userAvatarText}>
+                  {selectedUser?.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.passwordUserDetails}>
+                <Text style={styles.passwordUserName}>{selectedUser?.name}</Text>
+                <Text style={styles.passwordUserEmail}>{selectedUser?.email}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.inputLabel}>Nueva Contraseña</Text>
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                value={resetPassword}
+                onChangeText={setResetPassword}
+                placeholder="Mínimo 6 caracteres"
+                placeholderTextColor="#64748b"
+                secureTextEntry
+                data-testid="new-password-input"
+              />
+              <Ionicons name="key" size={20} color="#f59e0b" style={styles.passwordIcon} />
+            </View>
+
+            <Text style={styles.passwordNote}>
+              La contraseña anterior será reemplazada. El usuario deberá usar la nueva contraseña para iniciar sesión.
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => { setShowPasswordModal(false); setResetPassword(''); }}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitButton, { backgroundColor: '#f59e0b' }]}
+                onPress={handleResetPassword}
+                disabled={updating}
+                data-testid="save-password-button"
+              >
+                {updating ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Cambiar Contraseña</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1089,5 +1264,68 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginLeft: 8,
     fontStyle: 'italic',
+  },
+  // Password modal styles
+  passwordUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  passwordUserDetails: {
+    marginLeft: 12,
+  },
+  passwordUserName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  passwordUserEmail: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginTop: 2,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  passwordIcon: {
+    marginRight: 12,
+  },
+  passwordNote: {
+    fontSize: 12,
+    color: '#64748b',
+    fontStyle: 'italic',
+    marginBottom: 20,
+    lineHeight: 18,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: '#334155',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#94a3b8',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

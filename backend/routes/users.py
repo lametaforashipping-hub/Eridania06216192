@@ -316,3 +316,87 @@ async def update_notification_token(user_id: str, token: str, current_user: dict
     db = get_db()
     await db.users.update_one({"id": user_id}, {"$set": {"notification_token": token}})
     return {"message": "Token actualizado"}
+
+
+
+@router.delete("/{user_id}")
+async def delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a user (super_admin only)"""
+    if current_user["role"] != "super_admin":
+        raise HTTPException(status_code=403, detail="Solo super admin puede eliminar usuarios")
+    
+    if current_user["id"] == user_id:
+        raise HTTPException(status_code=400, detail="No puedes eliminar tu propia cuenta")
+    
+    db = get_db()
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Don't allow deleting other super_admins
+    if user.get("role") == "super_admin":
+        raise HTTPException(status_code=400, detail="No puedes eliminar a otro super admin")
+    
+    # Delete user
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return {"message": "Usuario eliminado exitosamente"}
+
+
+@router.put("/{user_id}/password")
+async def reset_user_password(
+    user_id: str, 
+    new_password: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reset a user's password (super_admin only)"""
+    if current_user["role"] != "super_admin":
+        raise HTTPException(status_code=403, detail="Solo super admin puede cambiar contraseñas")
+    
+    db = get_db()
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Hash the new password
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    hashed_password = pwd_context.hash(new_password)
+    
+    # Update password
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password": hashed_password, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"message": "Contraseña actualizada exitosamente"}
+
+
+@router.get("/{user_id}/credentials")
+async def get_user_credentials(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Get user credentials info (super_admin only) - Note: passwords are hashed and cannot be recovered"""
+    if current_user["role"] != "super_admin":
+        raise HTTPException(status_code=403, detail="Solo super admin puede ver esta información")
+    
+    db = get_db()
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return {
+        "id": user["id"],
+        "email": user.get("email", ""),
+        "name": user.get("name", ""),
+        "role": user.get("role", ""),
+        "phone": user.get("phone", ""),
+        "created_at": user.get("created_at"),
+        "note": "Las contraseñas están encriptadas. Use 'Resetear Contraseña' para cambiarla."
+    }
