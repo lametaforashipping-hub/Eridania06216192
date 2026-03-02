@@ -177,6 +177,7 @@ export default function Dashboard() {
     { icon: 'hardware-chip-outline', emoji: '💻', label: 'Terminales', route: '/terminals', roles: ['super_admin', 'admin'], color: '#22c55e' },
     { icon: 'stats-chart-outline', emoji: '📈', label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
     { icon: 'analytics-outline', emoji: '📊', label: 'Dashboard', route: '/admin-stats', roles: ['super_admin', 'admin'], color: '#7c3aed' },
+    { icon: 'flag-outline', emoji: '🎯', label: 'Metas Ventas', route: '/sales-goals', roles: ['super_admin', 'admin'], color: '#ec4899' },
     { icon: 'calculator-outline', emoji: '🧮', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: 'receipt-outline', emoji: '💰', label: 'Comisiones', route: '/commission-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
     { icon: 'cash-outline', emoji: '💵', label: 'Pagar Premios', route: '/pay-prizes', roles: ['super_admin', 'admin'], color: '#10b981' },

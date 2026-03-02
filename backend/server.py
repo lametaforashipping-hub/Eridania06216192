@@ -54,6 +54,7 @@ from routes import (
 from routes.bank_accounts import router as bank_accounts_router
 from routes.clients import router as clients_router
 from routes.payments import router as payments_router
+from routes.goals import router as goals_router
 
 # Register all routers with the API router
 api_router.include_router(auth_router)
@@ -74,6 +75,7 @@ api_router.include_router(bank_accounts_router)
 api_router.include_router(lottery_results_router)
 api_router.include_router(clients_router)
 api_router.include_router(payments_router)
+api_router.include_router(goals_router)
 
 # Include the main API router
 app.include_router(api_router)
