@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 import * as Print from 'expo-print';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -396,7 +397,7 @@ export default function Tickets() {
             <span class="status-badge">${statusText[ticket.status] || ticket.status.toUpperCase()}</span>
           </div>
           <div class="info-section">
-            <div class="date-info">${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}</div>
+            <div class="date-info">${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Santo_Domingo' })} - ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit', timeZone: 'America/Santo_Domingo'})}</div>
             ${ticket.customer_name ? `<div class="customer-info">CLIENTE: ${ticket.customer_name.toUpperCase()}</div>` : ''}
           </div>
           <div class="body">
@@ -624,7 +625,7 @@ export default function Tickets() {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Fecha:</Text>
               <Text style={styles.detailValue}>
-                {new Date(item.created_at).toLocaleString('es-DO')}
+                {formatDateTime(item.created_at)}
               </Text>
             </View>
           </View>
@@ -964,10 +965,10 @@ export default function Tickets() {
                 
                 <View style={styles.receiptDateRow}>
                   <Text style={styles.receiptDate}>
-                    {new Date(selectedTicket.created_at).toLocaleDateString('es-DO')}
+                    {formatDate(selectedTicket.created_at)}
                   </Text>
                   <Text style={styles.receiptTime}>
-                    {new Date(selectedTicket.created_at).toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}
+                    {formatTime(selectedTicket.created_at)}
                   </Text>
                 </View>
                 
