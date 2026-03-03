@@ -79,6 +79,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-DO', {
+      timeZone: 'America/Santo_Domingo',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -379,7 +380,7 @@ const generateTicketHTML = (ticket: MultiPlayTicketResponse, company: CompanyPro
         <div class="ticket-number-value">${ticket.ticket_number}</div>
       </div>
       <div style="text-align: center; font-size: 11px; color: #666;">
-        ${new Date(ticket.created_at).toLocaleString('es-DO')}
+        ${new Date(ticket.created_at).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}
       </div>
       <div class="divider"></div>
       ${playsHtml}

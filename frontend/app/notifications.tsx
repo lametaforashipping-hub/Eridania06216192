@@ -122,7 +122,7 @@ export default function Notifications() {
     if (diffMins < 60) return `Hace ${diffMins} min`;
     if (diffHours < 24) return `Hace ${diffHours} h`;
     if (diffDays < 7) return `Hace ${diffDays} días`;
-    return date.toLocaleDateString('es-DO');
+    return date.toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'});
   };
 
   const handleNotificationPress = (item: Notification) => {

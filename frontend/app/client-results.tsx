@@ -83,6 +83,7 @@ export default function ClientResultsScreen() {
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('es-DO', {
+      timeZone: 'America/Santo_Domingo',
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -92,6 +93,7 @@ export default function ClientResultsScreen() {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('es-DO', {
+      timeZone: 'America/Santo_Domingo',
       hour: '2-digit',
       minute: '2-digit',
     });

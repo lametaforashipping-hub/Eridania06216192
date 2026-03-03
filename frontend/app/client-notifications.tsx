@@ -127,6 +127,7 @@ export default function ClientNotificationsScreen() {
       return `Hace ${diffDays}d`;
     } else {
       return date.toLocaleDateString('es-DO', {
+        timeZone: 'America/Santo_Domingo',
         day: '2-digit',
         month: 'short',
       });

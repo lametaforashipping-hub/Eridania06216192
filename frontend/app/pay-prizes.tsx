@@ -123,6 +123,7 @@ export default function PayPrizes() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-DO', {
+      timeZone: 'America/Santo_Domingo',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

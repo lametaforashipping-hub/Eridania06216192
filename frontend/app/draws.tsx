@@ -324,10 +324,10 @@ export default function Draws() {
           <View>
             <Text style={styles.lotteryName}>{item.lottery_name}</Text>
             <Text style={styles.drawTime}>
-              {drawDate.toLocaleDateString('es-DO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+              {drawDate.toLocaleDateString('es-DO', { timeZone: 'America/Santo_Domingo', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
             </Text>
             <Text style={styles.drawHour}>
-              {drawDate.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}
+              {drawDate.toLocaleTimeString('es-DO', { timeZone: 'America/Santo_Domingo', hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
           <View style={styles.statsContainer}>

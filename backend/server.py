@@ -98,6 +98,10 @@ async def startup_event():
     from utils.database import get_db
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
     
+    async def _run_ticket_expiry():
+        from services.ticket_expiry import expire_old_pending_tickets
+        await expire_old_pending_tickets()
+    
     try:
         # Create a single shared scheduler for all cron jobs
         shared_scheduler = AsyncIOScheduler()
@@ -106,12 +110,12 @@ async def startup_event():
         shared_scheduler.add_job(
             notify_admin_pending_payments_summary,
             'cron',
-            hour=8,  # 8 AM UTC
+            hour=8,  # 8 AM UTC (4 AM DR)
             minute=0,
             id='daily_payment_summary',
             replace_existing=True
         )
-        logger.info("🚀 Added daily payment summary job (8:00 AM UTC)")
+        logger.info("Added daily payment summary job (8:00 AM UTC)")
         
         # Add weekly report job (every Monday at 8 AM UTC)
         shared_scheduler.add_job(
@@ -123,7 +127,17 @@ async def startup_event():
             id='weekly_admin_report',
             replace_existing=True
         )
-        logger.info("🚀 Added weekly report job (Mondays 8:00 AM UTC)")
+        logger.info("Added weekly report job (Mondays 8:00 AM UTC)")
+        
+        # Add ticket expiry job - runs every 30 minutes to mark old pending tickets as lost
+        shared_scheduler.add_job(
+            _run_ticket_expiry,
+            'interval',
+            minutes=30,
+            id='ticket_expiry',
+            replace_existing=True
+        )
+        logger.info("Added ticket expiry job (every 30 min)")
         
         # Start the shared scheduler
         shared_scheduler.start()

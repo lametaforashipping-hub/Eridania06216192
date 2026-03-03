@@ -294,7 +294,7 @@ export default function BankAccounts() {
         <Text style={styles.depositRef}>Ref: {item.reference_number}</Text>
       )}
       <Text style={styles.depositDate}>
-        {new Date(item.created_at).toLocaleString()}
+        {new Date(item.created_at).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}
       </Text>
     </TouchableOpacity>
   );

@@ -180,7 +180,7 @@ export default function Stats() {
                     </Text>
                     <Text style={[styles.tableCell, styles.dateCell]}>
                       {stat.last_drawn
-                        ? new Date(stat.last_drawn).toLocaleDateString('es-DO')
+                        ? new Date(stat.last_drawn).toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'})
                         : '-'}
                     </Text>
                   </View>

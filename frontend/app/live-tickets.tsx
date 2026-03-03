@@ -216,7 +216,7 @@ export default function LiveTickets() {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return date.toLocaleTimeString('es-DO', { timeZone: 'America/Santo_Domingo', hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
   const renderTicket = ({ item, index }: { item: Ticket; index: number }) => {
@@ -352,7 +352,7 @@ export default function LiveTickets() {
           </View>
         )}
         <Text style={styles.lastUpdateText}>
-          Última actualización: {lastUpdate.toLocaleTimeString('es-DO')}
+          Última actualización: {lastUpdate.toLocaleTimeString('es-DO', {timeZone: 'America/Santo_Domingo'})}
         </Text>
       </View>
 
@@ -431,7 +431,7 @@ export default function LiveTickets() {
                 <View style={styles.modalRow}>
                   <Text style={styles.modalLabel}>Creado:</Text>
                   <Text style={styles.modalValue}>
-                    {new Date(selectedTicket.created_at).toLocaleString('es-DO')}
+                    {new Date(selectedTicket.created_at).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}
                   </Text>
                 </View>
 

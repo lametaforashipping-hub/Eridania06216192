@@ -97,6 +97,7 @@ export default function CommissionReport() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleString('es-DO', {
+      timeZone: 'America/Santo_Domingo',
       day: '2-digit',
       month: 'short',
       hour: '2-digit',

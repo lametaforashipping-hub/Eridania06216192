@@ -272,7 +272,7 @@ export default function ClientDashboardScreen() {
                 <View style={styles.ticketInfo}>
                   <Text style={styles.ticketAmount}>{formatCurrency(ticket.total_amount || ticket.amount || 0)}</Text>
                   <Text style={styles.ticketDate}>
-                    {new Date(ticket.created_at).toLocaleDateString('es-DO')}
+                    {new Date(ticket.created_at).toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'})}
                   </Text>
                 </View>
                 {ticket.status === 'pending_payment' && (

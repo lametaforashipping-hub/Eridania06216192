@@ -131,7 +131,7 @@ export default function MonitoringLive() {
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>📡 Monitoreo en Vivo</Text>
           <Text style={styles.headerSubtitle}>
-            Actualizado: {lastUpdate.toLocaleTimeString('es-DO')}
+            Actualizado: {lastUpdate.toLocaleTimeString('es-DO', {timeZone: 'America/Santo_Domingo'})}
           </Text>
         </View>
         <TouchableOpacity onPress={onRefresh}>
