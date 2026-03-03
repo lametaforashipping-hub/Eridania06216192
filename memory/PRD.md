@@ -4,7 +4,7 @@
 Aplicacion completa de loteria con roles de Admin, Vendedor y Cliente. Incluye venta de tickets, resultados automaticos, pagos digitales, notificaciones y panel administrativo.
 
 ## Estado Actual: Produccion Lista
-La aplicacion web esta completa. Build Android generado exitosamente. Deployment fixes aplicados.
+La aplicacion web esta completa. Build Android v1.0.1 generado. Deployment fixes aplicados.
 
 ## Funcionalidades Implementadas
 
@@ -39,34 +39,25 @@ La aplicacion web esta completa. Build Android generado exitosamente. Deployment
 - Reportes semanales automaticos
 - Notificaciones push
 
-### Timezone y Automatizacion (Mar 2026)
-- CORREGIDO (RAIZ): serialize_doc() agrega 'Z' a isoformat() para indicar UTC
-- NUEVO: Auto-expiracion de tickets pendientes -> "perdido" (cada 30 min)
-- OPTIMIZADO: MongoDB aggregation pipelines en admin stats
-
-### Build Android (Mar 2026)
-- ELIMINADO: expo-barcode-scanner (incompatible con SDK 54)
-- CORREGIDO: Colores hex, iconos cuadrados, splash-image reference
-- CREADO: eas.json para builds
-- BUILD EXITOSO: v1.0.1 APK generado
-
 ### Deployment Fixes (Mar 2026)
-- CORREGIDO: Rutas hardcodeadas en clients.py y company.py (ahora usan os.path.join)
+- CORREGIDO: Rutas hardcodeadas en clients.py y company.py
 - AGREGADO: CORS_ORIGINS=* en backend/.env
-- OPTIMIZADO: bulk_write() en draws.py (eliminado patron N+1)
+- OPTIMIZADO: bulk_write() en draws.py
+- CORREGIDO: URL Florida midday scraper (404 -> URL correcta)
+- ELIMINADO: resultados.com.do del scraper (sitio caido, DNS failure)
 
 ## Arquitectura
 ```
 Backend: FastAPI + MongoDB (Motor async)
 Frontend: Expo/React Native Web (SDK 54)
 Email: Hostinger SMTP
-Scheduler: APScheduler (payment summary, weekly report, lottery results, ticket expiry)
+Scheduler: APScheduler
 ```
 
 ## Tareas Pendientes
-- P0: Completar deploy a produccion (en proceso)
+- P0: Re-deploy a produccion con fixes
 - P1: Conectar dominio (loteriamagica.com)
-- P2: Build iOS (esperando activacion Apple Developer Program)
+- P2: Build iOS (esperando Apple Developer Program)
 
 ## Credenciales de Test
 - Admin: admin@loteria.com / admin123

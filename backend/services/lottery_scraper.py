@@ -409,7 +409,7 @@ class LotteryScraper:
         
         # Source 1: LotteryUSA (without trailing slash)
         for url, key in [
-            ("https://www.lotteryusa.com/florida/pick-3/midday", "florida_dia"),
+            ("https://www.lotteryusa.com/florida/midday-pick-3/", "florida_dia"),
             ("https://www.lotteryusa.com/florida/pick-3", "florida_noche"),
         ]:
             html = await self.fetch_page(url)
@@ -914,7 +914,6 @@ class LotteryScraper:
             self.scrape_gana_mas(),
             self.scrape_pega3_mas(),
             # Additional sources for missing lotteries
-            self.scrape_resultados_rd(),
             self.scrape_loterias_en_vivo(),
         ]
         
