@@ -5,6 +5,7 @@ import uuid
 import random
 from typing import Optional
 from pydantic import BaseModel
+from pymongo import UpdateOne, InsertOne
 from models.schemas import DrawCreate
 from models.enums import UserRole, TicketStatus, TransactionType
 from utils.database import get_db
@@ -88,18 +89,21 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
     total_paid = 0.0
     winner_notifications = []
     
+    ticket_ops = []
+    transaction_ops = []
+    
     for ticket in pending_tickets:
         prize = calculate_prize(ticket, lottery, winning_numbers, draw_data.position)
         
         if prize > 0:
-            await db.tickets.update_one(
+            ticket_ops.append(UpdateOne(
                 {"id": ticket["id"]},
                 {"$set": {"status": TicketStatus.WON.value, "draw_id": draw["id"], "potential_win": prize}}
-            )
+            ))
             total_winners += 1
             total_paid += prize
             
-            await db.transactions.insert_one({
+            transaction_ops.append(InsertOne({
                 "id": str(uuid.uuid4()),
                 "user_id": ticket["seller_id"],
                 "user_name": ticket["seller_name"],
@@ -109,7 +113,7 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
                 "description": f"Premio ganado - {lottery['name']} - {ticket['numbers']}",
                 "reference_id": ticket["id"],
                 "created_at": datetime.utcnow()
-            })
+            }))
             
             winner_notifications.append({
                 "user_id": ticket["seller_id"],
@@ -117,10 +121,15 @@ async def create_draw(draw_data: DrawCreate, current_user: dict = Depends(requir
                 "prize": prize
             })
         else:
-            await db.tickets.update_one(
+            ticket_ops.append(UpdateOne(
                 {"id": ticket["id"]},
                 {"$set": {"status": TicketStatus.LOST.value, "draw_id": draw["id"]}}
-            )
+            ))
+    
+    if ticket_ops:
+        await db.tickets.bulk_write(ticket_ops)
+    if transaction_ops:
+        await db.transactions.bulk_write(transaction_ops)
     
     draw["total_tickets"] = len(pending_tickets)
     draw["total_winners"] = total_winners

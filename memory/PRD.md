@@ -4,7 +4,7 @@
 Aplicacion completa de loteria con roles de Admin, Vendedor y Cliente. Incluye venta de tickets, resultados automaticos, pagos digitales, notificaciones y panel administrativo.
 
 ## Estado Actual: Produccion Lista
-La aplicacion web esta completa con todas las funcionalidades solicitadas. Build de Android corregido.
+La aplicacion web esta completa. Build Android generado exitosamente. Deployment fixes aplicados.
 
 ## Funcionalidades Implementadas
 
@@ -41,18 +41,19 @@ La aplicacion web esta completa con todas las funcionalidades solicitadas. Build
 
 ### Timezone y Automatizacion (Mar 2026)
 - CORREGIDO (RAIZ): serialize_doc() agrega 'Z' a isoformat() para indicar UTC
-- CORREGIDO: Todas las llamadas manuales a .isoformat() tambien tienen 'Z'
 - NUEVO: Auto-expiracion de tickets pendientes -> "perdido" (cada 30 min)
 - OPTIMIZADO: MongoDB aggregation pipelines en admin stats
 
-### Correccion Build Android (Mar 2026)
-- ELIMINADO: expo-barcode-scanner (incompatible con SDK 54, no se usaba en el codigo)
-- CORREGIDO: Colores hex invalidos en app.json (#000 -> #000000)
-- CORREGIDO: Iconos no cuadrados (512x513 -> 512x512) para icon.png, adaptive-icon.png, favicon.png
-- CORREGIDO: Referencia splash-icon.png -> splash-image.png (archivo correcto)
-- ELIMINADO: package-lock.json duplicado (conflicto con yarn.lock)
-- CREADO: eas.json con configuracion de build (development, preview, production)
-- VERIFICADO: expo-doctor 17/17 checks passed
+### Build Android (Mar 2026)
+- ELIMINADO: expo-barcode-scanner (incompatible con SDK 54)
+- CORREGIDO: Colores hex, iconos cuadrados, splash-image reference
+- CREADO: eas.json para builds
+- BUILD EXITOSO: v1.0.1 APK generado
+
+### Deployment Fixes (Mar 2026)
+- CORREGIDO: Rutas hardcodeadas en clients.py y company.py (ahora usan os.path.join)
+- AGREGADO: CORS_ORIGINS=* en backend/.env
+- OPTIMIZADO: bulk_write() en draws.py (eliminado patron N+1)
 
 ## Arquitectura
 ```
@@ -63,9 +64,9 @@ Scheduler: APScheduler (payment summary, weekly report, lottery results, ticket 
 ```
 
 ## Tareas Pendientes
-- P0: Ejecutar build EAS nuevamente (usuario debe ejecutar en su maquina)
-- P1: Deploy a produccion
-- P2: Conectar dominio (loteriamagica.com)
+- P0: Completar deploy a produccion (en proceso)
+- P1: Conectar dominio (loteriamagica.com)
+- P2: Build iOS (esperando activacion Apple Developer Program)
 
 ## Credenciales de Test
 - Admin: admin@loteria.com / admin123
