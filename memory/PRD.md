@@ -12,7 +12,7 @@ La aplicación está completa con todas las funcionalidades solicitadas.
 - Login/autenticación JWT con roles
 - Venta de tickets (individual y multi-play)
 - Resultados automáticos vía web scraping
-- Dashboard de estadísticas avanzadas (General, Clientes, Loterías)
+- Dashboard de estadísticas avanzadas
 - Gestión de loterías y horarios
 - Sistema de comisiones
 - Reporte mensual del vendedor
@@ -23,41 +23,42 @@ La aplicación está completa con todas las funcionalidades solicitadas.
 ### Portal de Clientes
 - Registro y perfil de cliente
 - Compra digital de tickets
-- Upload de comprobante de pago (Zelle/transferencia)
+- Upload de comprobante de pago
 - Notificaciones en tiempo real
 - Vista de resultados
-- Dashboard personalizado
 
 ### Administración Avanzada
-- Panel de estadísticas con aggregation pipelines (optimizado)
+- Panel de estadísticas con aggregation pipelines
 - Paginación en vista de tickets
 - Gestión de metas de ventas
-- Gestión de usuarios (Super Admin: editar, eliminar, resetear contraseña)
+- Super Admin: editar, eliminar, resetear contraseña de usuarios
 - Confirmación manual de pagos
 
 ### Notificaciones y Emails
-- Servicio de email via Hostinger SMTP
+- Email via Hostinger SMTP
 - Reportes semanales automáticos
 - Notificaciones push
 
-### Timezone y Automatización (Última Sesión - Mar 2026)
-- **CORREGIDO**: Timezone República Dominicana (America/Santo_Domingo) en TODOS los archivos frontend (13+ archivos)
-- **NUEVO**: Auto-expiración de tickets pendientes → "perdido" (job cada 30 min)
-- **OPTIMIZADO**: Consultas de BD con MongoDB aggregation pipelines (admin stats)
-- **VERIFICADO**: Cierre automático de lotería 15 min antes del sorteo
-- **ELIMINADO**: Todos los `.to_list(None)` del backend
+### Timezone y Automatización (Mar 2026)
+- **CORREGIDO (RAÍZ)**: serialize_doc() agrega 'Z' a isoformat() para indicar UTC
+- **CORREGIDO**: Todas las llamadas manuales a .isoformat() también tienen 'Z'
+- **CORREGIDO**: users.py/get_my_profile devuelve datos serializados (no raw MongoDB)
+- **CORREGIDO**: timeZone: 'America/Santo_Domingo' en 13+ archivos frontend
+- **NUEVO**: Auto-expiración de tickets pendientes → "perdido" (cada 30 min)
+- **OPTIMIZADO**: MongoDB aggregation pipelines en admin stats
+- **VERIFICADO**: Cierre automático 15 min antes del sorteo
 
 ## Arquitectura
 ```
 Backend: FastAPI + MongoDB (Motor async)
 Frontend: Expo/React Native Web
-Email: Hostinger SMTP directo
+Email: Hostinger SMTP
 Scheduler: APScheduler (payment summary, weekly report, lottery results, ticket expiry)
 ```
 
 ## Tareas Pendientes
 - P0: Deploy a producción
-- P1: Conectar dominio personalizado (loteriamagica.com)
+- P1: Conectar dominio (loteriamagica.com)
 
 ## Credenciales de Test
 - Admin: admin@loteria.com / admin123
