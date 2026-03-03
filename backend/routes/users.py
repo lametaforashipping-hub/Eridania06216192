@@ -26,11 +26,11 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     tomorrow = today + timedelta(days=1)
     
-    # Get today's stats
-    today_tickets = await db.tickets.find({
-        "seller_id": user_id,
-        "created_at": {"$gte": today, "$lt": tomorrow}
-    }).to_list(1000)
+    # Get today's stats - optimized with projection
+    today_tickets = await db.tickets.find(
+        {"seller_id": user_id, "created_at": {"$gte": today, "$lt": tomorrow}},
+        {"total_amount": 1, "amount": 1, "win_amount": 1, "status": 1}
+    ).to_list(1000)
     
     today_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in today_tickets)
     today_wins = sum(t.get("win_amount", 0) for t in today_tickets if t.get("status") == "won")
@@ -56,12 +56,12 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
         {"_id": 0}
     ).sort("created_at", -1).limit(10).to_list(10)
     
-    # Weekly stats
+    # Weekly stats - optimized with projection
     week_ago = today - timedelta(days=7)
-    week_tickets = await db.tickets.find({
-        "seller_id": user_id,
-        "created_at": {"$gte": week_ago}
-    }).to_list(5000)
+    week_tickets = await db.tickets.find(
+        {"seller_id": user_id, "created_at": {"$gte": week_ago}},
+        {"total_amount": 1, "amount": 1}
+    ).to_list(2000)
     
     week_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in week_tickets)
     week_commission = week_sales * (commission_rate / 100)
@@ -137,17 +137,17 @@ async def get_monthly_report(
     else:
         end_date = datetime(year, month + 1, 1)
     
-    # Get tickets for the month
-    tickets = await db.tickets.find({
-        "seller_id": user_id,
-        "created_at": {"$gte": start_date, "$lt": end_date}
-    }, {"_id": 0}).to_list(None)
+    # Get tickets for the month - optimized with limit
+    tickets = await db.tickets.find(
+        {"seller_id": user_id, "created_at": {"$gte": start_date, "$lt": end_date}},
+        {"_id": 0, "created_at": 1, "total_amount": 1, "amount": 1, "status": 1}
+    ).to_list(5000)
     
-    # Get transactions for the month
-    transactions = await db.transactions.find({
-        "user_id": user_id,
-        "created_at": {"$gte": start_date, "$lt": end_date}
-    }, {"_id": 0}).to_list(None)
+    # Get transactions for the month - optimized with limit
+    transactions = await db.transactions.find(
+        {"user_id": user_id, "created_at": {"$gte": start_date, "$lt": end_date}},
+        {"_id": 0, "created_at": 1, "amount": 1, "type": 1}
+    ).to_list(5000)
     
     # Calculate daily stats
     daily_stats = {}

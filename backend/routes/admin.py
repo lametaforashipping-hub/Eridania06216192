@@ -98,12 +98,12 @@ async def get_seller_profile_for_admin(
         if seller.get("created_by") != current_user["id"] and seller_id != current_user["id"]:
             raise HTTPException(status_code=403, detail="No tienes acceso a este vendedor")
     
-    # Get today's stats
+    # Get today's stats - optimized with projection
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_tickets = await db.tickets.find({
-        "seller_id": seller_id,
-        "created_at": {"$gte": today_start}
-    }).to_list(10000)
+    today_tickets = await db.tickets.find(
+        {"seller_id": seller_id, "created_at": {"$gte": today_start}},
+        {"amount": 1, "total_amount": 1, "status": 1, "prize": 1, "total_prize": 1}
+    ).to_list(1000)
     
     today_sales = sum(t.get("amount") or t.get("total_amount", 0) for t in today_tickets if t.get("status") != TicketStatus.CANCELLED.value)
     today_wins = sum(t.get("prize") or t.get("total_prize", 0) for t in today_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
