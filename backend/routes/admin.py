@@ -201,83 +201,127 @@ async def get_admin_dashboard_stats(
         vendor_ids = [v["id"] for v in vendedores] + [current_user["id"]]
         base_query["seller_id"] = {"$in": vendor_ids}
     
-    # Current period tickets
-    current_query = {**base_query, "created_at": {"$gte": start_date}}
-    current_tickets = await db.tickets.find(current_query).to_list(10000)
+    # Use aggregation pipeline for current period stats
+    cancelled = TicketStatus.CANCELLED.value
+    won_statuses = [TicketStatus.WON.value, TicketStatus.PAID.value]
     
-    # Previous period tickets
-    prev_query = {**base_query, "created_at": {"$gte": prev_start, "$lt": prev_end}}
-    prev_tickets = await db.tickets.find(prev_query).to_list(10000)
+    current_match = {**base_query, "created_at": {"$gte": start_date}}
     
-    # Calculate current stats
-    current_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in current_tickets if t.get("status") != TicketStatus.CANCELLED.value)
-    current_won = sum(t.get("total_prize", t.get("prize", 0)) or 0 for t in current_tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
-    current_tickets_count = len([t for t in current_tickets if t.get("status") != TicketStatus.CANCELLED.value])
+    # Aggregation: summary stats for current period
+    summary_pipeline = [
+        {"$match": current_match},
+        {"$group": {
+            "_id": None,
+            "total_sales": {"$sum": {"$cond": [
+                {"$ne": ["$status", cancelled]},
+                {"$ifNull": ["$total_amount", {"$ifNull": ["$amount", 0]}]},
+                0
+            ]}},
+            "total_won": {"$sum": {"$cond": [
+                {"$in": ["$status", won_statuses]},
+                {"$ifNull": ["$total_prize", {"$ifNull": ["$prize", 0]}]},
+                0
+            ]}},
+            "total_tickets": {"$sum": {"$cond": [{"$ne": ["$status", cancelled]}, 1, 0]}}
+        }}
+    ]
+    summary_result = await db.tickets.aggregate(summary_pipeline).to_list(1)
+    current_sales = summary_result[0]["total_sales"] if summary_result else 0
+    current_won = summary_result[0]["total_won"] if summary_result else 0
+    current_tickets_count = summary_result[0]["total_tickets"] if summary_result else 0
     
-    # Calculate previous stats
-    prev_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in prev_tickets if t.get("status") != TicketStatus.CANCELLED.value)
-    prev_tickets_count = len([t for t in prev_tickets if t.get("status") != TicketStatus.CANCELLED.value])
+    # Aggregation: summary stats for previous period
+    prev_match = {**base_query, "created_at": {"$gte": prev_start, "$lt": prev_end}}
+    prev_pipeline = [
+        {"$match": prev_match},
+        {"$group": {
+            "_id": None,
+            "total_sales": {"$sum": {"$cond": [
+                {"$ne": ["$status", cancelled]},
+                {"$ifNull": ["$total_amount", {"$ifNull": ["$amount", 0]}]},
+                0
+            ]}},
+            "total_tickets": {"$sum": {"$cond": [{"$ne": ["$status", cancelled]}, 1, 0]}}
+        }}
+    ]
+    prev_result = await db.tickets.aggregate(prev_pipeline).to_list(1)
+    prev_sales = prev_result[0]["total_sales"] if prev_result else 0
+    prev_tickets_count = prev_result[0]["total_tickets"] if prev_result else 0
     
     # Growth percentages
     sales_growth = ((current_sales - prev_sales) / prev_sales * 100) if prev_sales > 0 else 0
     tickets_growth = ((current_tickets_count - prev_tickets_count) / prev_tickets_count * 100) if prev_tickets_count > 0 else 0
     
-    # Status breakdown
-    status_counts = {}
-    for t in current_tickets:
-        status = t.get("status", "pending")
-        status_counts[status] = status_counts.get(status, 0) + 1
+    # Aggregation: Status breakdown
+    status_pipeline = [
+        {"$match": current_match},
+        {"$group": {"_id": "$status", "count": {"$sum": 1}}}
+    ]
+    status_result = await db.tickets.aggregate(status_pipeline).to_list(20)
+    status_counts = {s["_id"] or "pending": s["count"] for s in status_result}
     
-    # Sales by lottery
+    # Aggregation: Daily sales
+    daily_pipeline = [
+        {"$match": {**current_match, "status": {"$ne": cancelled}}},
+        {"$group": {
+            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
+            "value": {"$sum": {"$ifNull": ["$total_amount", {"$ifNull": ["$amount", 0]}]}}
+        }},
+        {"$sort": {"_id": 1}}
+    ]
+    daily_result = await db.tickets.aggregate(daily_pipeline).to_list(366)
+    sorted_daily = [(d["_id"], d["value"]) for d in daily_result]
+    
+    # Aggregation: Top sellers
+    sellers_pipeline = [
+        {"$match": {**current_match, "status": {"$ne": cancelled}}},
+        {"$group": {
+            "_id": "$seller_id",
+            "name": {"$first": "$seller_name"},
+            "sales": {"$sum": {"$ifNull": ["$total_amount", {"$ifNull": ["$amount", 0]}]}},
+            "tickets": {"$sum": 1}
+        }},
+        {"$sort": {"sales": -1}},
+        {"$limit": 10}
+    ]
+    top_sellers_raw = await db.tickets.aggregate(sellers_pipeline).to_list(10)
+    top_sellers = [{"name": s.get("name", "Desconocido"), "sales": s["sales"], "tickets": s["tickets"]} for s in top_sellers_raw]
+    
+    # Aggregation: Sales by lottery (need to handle multi_play separately)
+    lottery_pipeline = [
+        {"$match": {**current_match, "status": {"$ne": cancelled}}},
+        {"$facet": {
+            "single": [
+                {"$match": {"$or": [{"ticket_type": {"$ne": "multi_play"}}, {"ticket_type": {"$exists": False}}]}},
+                {"$group": {"_id": {"$ifNull": ["$lottery_name", "Otros"]}, "value": {"$sum": {"$ifNull": ["$amount", 0]}}}}
+            ],
+            "multi": [
+                {"$match": {"ticket_type": "multi_play"}},
+                {"$unwind": "$plays"},
+                {"$group": {"_id": {"$ifNull": ["$plays.lottery_name", "Otros"]}, "value": {"$sum": {"$ifNull": ["$plays.amount", 0]}}}}
+            ]
+        }}
+    ]
+    lottery_result = await db.tickets.aggregate(lottery_pipeline).to_list(1)
     sales_by_lottery: Dict[str, float] = {}
-    for t in current_tickets:
-        if t.get("status") == TicketStatus.CANCELLED.value:
-            continue
-        
-        # Handle multi-play tickets
-        if t.get("ticket_type") == "multi_play" and t.get("plays"):
-            for play in t.get("plays", []):
-                lottery_name = play.get("lottery_name", "Otros")
-                sales_by_lottery[lottery_name] = sales_by_lottery.get(lottery_name, 0) + play.get("amount", 0)
-        else:
-            lottery_name = t.get("lottery_name", "Otros")
-            sales_by_lottery[lottery_name] = sales_by_lottery.get(lottery_name, 0) + t.get("amount", 0)
-    
-    # Sort by sales and get top 10
+    if lottery_result:
+        for item in lottery_result[0].get("single", []) + lottery_result[0].get("multi", []):
+            name = item["_id"]
+            sales_by_lottery[name] = sales_by_lottery.get(name, 0) + item["value"]
     sorted_lotteries = sorted(sales_by_lottery.items(), key=lambda x: x[1], reverse=True)[:10]
     
-    # Sales by day for charts
-    daily_sales: Dict[str, float] = {}
-    for t in current_tickets:
-        if t.get("status") == TicketStatus.CANCELLED.value:
-            continue
-        date_key = t.get("created_at").strftime("%Y-%m-%d") if t.get("created_at") else "Unknown"
-        amount = t.get("total_amount", t.get("amount", 0))
-        daily_sales[date_key] = daily_sales.get(date_key, 0) + amount
-    
-    # Sort daily sales by date
-    sorted_daily = sorted(daily_sales.items(), key=lambda x: x[0])
-    
-    # Top sellers
-    sales_by_seller: Dict[str, Dict] = {}
-    for t in current_tickets:
-        if t.get("status") == TicketStatus.CANCELLED.value:
-            continue
-        seller_id = t.get("seller_id", "Unknown")
-        seller_name = t.get("seller_name", "Desconocido")
-        if seller_id not in sales_by_seller:
-            sales_by_seller[seller_id] = {"name": seller_name, "sales": 0, "tickets": 0}
-        sales_by_seller[seller_id]["sales"] += t.get("total_amount", t.get("amount", 0))
-        sales_by_seller[seller_id]["tickets"] += 1
-    
-    top_sellers = sorted(sales_by_seller.values(), key=lambda x: x["sales"], reverse=True)[:10]
-    
-    # Commissions (estimate based on sales)
+    # Commissions estimate - batch fetch seller commission rates
+    seller_ids = [s["_id"] for s in top_sellers_raw] if top_sellers_raw else []
     total_commissions = 0
-    for seller_id, data in sales_by_seller.items():
-        seller = await db.users.find_one({"id": seller_id})
-        rate = seller.get("commission_rate", 10) if seller else 10
-        total_commissions += data["sales"] * (rate / 100)
+    if seller_ids:
+        sellers_data = await db.users.find(
+            {"id": {"$in": seller_ids}},
+            {"id": 1, "commission_rate": 1, "_id": 0}
+        ).to_list(len(seller_ids))
+        rate_map = {s["id"]: s.get("commission_rate", 10) for s in sellers_data}
+        for s in top_sellers_raw:
+            rate = rate_map.get(s["_id"], 10)
+            total_commissions += s["sales"] * (rate / 100)
     
     return {
         "period": period,
@@ -331,83 +375,111 @@ async def get_extended_stats(
     
     prev_end = start_date
     
-    # Client Analytics
-    all_clients = await db.users.find({"role": "cliente"}).to_list(10000)
-    total_clients = len(all_clients)
+    # Client Analytics - use count instead of loading all docs
+    total_clients = await db.users.count_documents({"role": "cliente"})
     
-    # New clients in period - compare with naive datetime
-    new_clients = [c for c in all_clients if c.get("created_at") and c["created_at"] >= start_date]
-    new_clients_count = len(new_clients)
+    # New clients in period - use count
+    new_clients_count = await db.users.count_documents({"role": "cliente", "created_at": {"$gte": start_date}})
     
-    # Previous period new clients
-    prev_new_clients = [c for c in all_clients if c.get("created_at") and prev_start <= c["created_at"] < prev_end]
-    prev_new_clients_count = len(prev_new_clients)
+    # Previous period new clients - use count
+    prev_new_clients_count = await db.users.count_documents({"role": "cliente", "created_at": {"$gte": prev_start, "$lt": prev_end}})
     
-    # Clients with plays (active)
-    active_client_ids = set()
-    client_tickets = await db.tickets.find({
-        "client_id": {"$exists": True},
+    # Active clients (with plays in period) - use distinct
+    active_client_ids = await db.tickets.distinct("client_id", {
+        "client_id": {"$exists": True, "$ne": None},
         "created_at": {"$gte": start_date}
-    }).to_list(10000)
-    
-    for ticket in client_tickets:
-        active_client_ids.add(ticket.get("client_id"))
-    
+    })
     active_clients_count = len(active_client_ids)
     
-    # Top clients by plays
-    client_stats = {}
-    for ticket in client_tickets:
-        client_id = ticket.get("client_id")
-        if client_id not in client_stats:
-            client_stats[client_id] = {"plays": 0, "total_spent": 0, "won": 0}
-        client_stats[client_id]["plays"] += 1
-        client_stats[client_id]["total_spent"] += ticket.get("total_amount", 0)
-        if ticket.get("status") in ["won", "paid"]:
-            client_stats[client_id]["won"] += ticket.get("potential_win", 0)
+    # Top clients by spend - use aggregation
+    top_clients_pipeline = [
+        {"$match": {"client_id": {"$exists": True, "$ne": None}, "created_at": {"$gte": start_date}}},
+        {"$group": {
+            "_id": "$client_id",
+            "plays": {"$sum": 1},
+            "total_spent": {"$sum": {"$ifNull": ["$total_amount", 0]}},
+            "won": {"$sum": {"$cond": [{"$in": ["$status", ["won", "paid"]]}, {"$ifNull": ["$potential_win", 0]}, 0]}}
+        }},
+        {"$sort": {"total_spent": -1}},
+        {"$limit": 10}
+    ]
+    top_clients_raw = await db.tickets.aggregate(top_clients_pipeline).to_list(10)
     
-    # Get client names
+    # Batch fetch client names
+    top_client_ids = [c["_id"] for c in top_clients_raw]
     top_clients = []
-    for client_id, stats in sorted(client_stats.items(), key=lambda x: x[1]["total_spent"], reverse=True)[:10]:
-        client = await db.users.find_one({"id": client_id})
-        if client:
+    if top_client_ids:
+        clients_data = await db.users.find(
+            {"id": {"$in": top_client_ids}},
+            {"id": 1, "name": 1, "phone": 1, "_id": 0}
+        ).to_list(len(top_client_ids))
+        client_map = {c["id"]: c for c in clients_data}
+        for c in top_clients_raw:
+            client_info = client_map.get(c["_id"], {})
             top_clients.append({
-                "name": client.get("name", "Cliente"),
-                "phone": client.get("phone", ""),
-                "plays": stats["plays"],
-                "total_spent": round(stats["total_spent"], 2),
-                "won": round(stats["won"], 2)
+                "name": client_info.get("name", "Cliente"),
+                "phone": client_info.get("phone", ""),
+                "plays": c["plays"],
+                "total_spent": round(c["total_spent"], 2),
+                "won": round(c["won"], 2)
             })
     
     # Conversion rate (registered -> first play)
-    clients_with_plays = await db.tickets.distinct("client_id", {"client_id": {"$exists": True}})
+    clients_with_plays = await db.tickets.distinct("client_id", {"client_id": {"$exists": True, "$ne": None}})
     conversion_rate = (len(clients_with_plays) / total_clients * 100) if total_clients > 0 else 0
     
-    # Lottery analytics - detailed
-    lottery_analytics = {}
-    all_tickets = await db.tickets.find({
-        "created_at": {"$gte": start_date},
-        "status": {"$ne": "cancelled"}
-    }).to_list(10000)
+    # Lottery analytics - use aggregation pipeline
+    lottery_pipeline = [
+        {"$match": {"created_at": {"$gte": start_date}, "status": {"$ne": "cancelled"}}},
+        {"$facet": {
+            "single": [
+                {"$match": {"$or": [{"ticket_type": {"$ne": "multi_play"}}, {"ticket_type": {"$exists": False}}]}},
+                {"$group": {
+                    "_id": {"$ifNull": ["$lottery_name", "Otros"]},
+                    "tickets": {"$sum": 1},
+                    "revenue": {"$sum": {"$ifNull": ["$total_amount", {"$ifNull": ["$amount", 0]}]}},
+                    "winners": {"$sum": {"$cond": [{"$in": ["$status", ["won", "paid"]]}, 1, 0]}},
+                    "prizes_paid": {"$sum": {"$cond": [{"$in": ["$status", ["won", "paid"]]}, {"$ifNull": ["$potential_win", 0]}, 0]}}
+                }}
+            ],
+            "multi": [
+                {"$match": {"ticket_type": "multi_play"}},
+                {"$unwind": "$plays"},
+                {"$group": {
+                    "_id": {"$ifNull": ["$plays.lottery_name", "Otros"]},
+                    "tickets": {"$sum": 1},
+                    "revenue": {"$sum": {"$ifNull": ["$plays.amount", 0]}},
+                    "winners": {"$sum": 0},
+                    "prizes_paid": {"$sum": 0}
+                }}
+            ],
+            "hourly": [
+                {"$group": {
+                    "_id": {"$hour": "$created_at"},
+                    "count": {"$sum": 1}
+                }}
+            ],
+            "weekly": [
+                {"$group": {
+                    "_id": {"$dayOfWeek": "$created_at"},
+                    "count": {"$sum": 1}
+                }}
+            ]
+        }}
+    ]
+    agg_result = await db.tickets.aggregate(lottery_pipeline).to_list(1)
     
-    for ticket in all_tickets:
-        if ticket.get("ticket_type") == "multi_play" and ticket.get("plays"):
-            for play in ticket.get("plays", []):
-                lottery_name = play.get("lottery_name", "Otros")
-                if lottery_name not in lottery_analytics:
-                    lottery_analytics[lottery_name] = {"tickets": 0, "revenue": 0, "winners": 0, "prizes_paid": 0}
-                lottery_analytics[lottery_name]["tickets"] += 1
-                lottery_analytics[lottery_name]["revenue"] += play.get("amount", 0)
-        else:
-            lottery_name = ticket.get("lottery_name", "Otros")
-            if lottery_name not in lottery_analytics:
-                lottery_analytics[lottery_name] = {"tickets": 0, "revenue": 0, "winners": 0, "prizes_paid": 0}
-            lottery_analytics[lottery_name]["tickets"] += 1
-            lottery_analytics[lottery_name]["revenue"] += ticket.get("total_amount", ticket.get("amount", 0))
-            
-            if ticket.get("status") in ["won", "paid"]:
-                lottery_analytics[lottery_name]["winners"] += 1
-                lottery_analytics[lottery_name]["prizes_paid"] += ticket.get("potential_win", 0)
+    # Process lottery analytics
+    lottery_analytics = {}
+    if agg_result:
+        for item in agg_result[0].get("single", []) + agg_result[0].get("multi", []):
+            name = item["_id"]
+            if name not in lottery_analytics:
+                lottery_analytics[name] = {"tickets": 0, "revenue": 0, "winners": 0, "prizes_paid": 0}
+            lottery_analytics[name]["tickets"] += item["tickets"]
+            lottery_analytics[name]["revenue"] += item["revenue"]
+            lottery_analytics[name]["winners"] += item["winners"]
+            lottery_analytics[name]["prizes_paid"] += item["prizes_paid"]
     
     # Sort by revenue
     top_lotteries = []
@@ -423,24 +495,21 @@ async def get_extended_stats(
             "profit_margin": round((stats["revenue"] - stats["prizes_paid"]) / stats["revenue"] * 100, 1) if stats["revenue"] > 0 else 0
         })
     
-    # Hourly distribution (for trends)
+    # Hourly distribution from aggregation
     hourly_distribution = {}
-    for ticket in all_tickets:
-        if ticket.get("created_at"):
-            hour = ticket["created_at"].hour
-            hourly_distribution[hour] = hourly_distribution.get(hour, 0) + 1
-    
+    if agg_result:
+        for item in agg_result[0].get("hourly", []):
+            hourly_distribution[item["_id"]] = item["count"]
     hourly_data = [{"hour": h, "count": hourly_distribution.get(h, 0)} for h in range(24)]
     
-    # Weekly distribution
+    # Weekly distribution from aggregation (MongoDB dayOfWeek: 1=Sun, 7=Sat)
     weekly_distribution = {}
-    day_names = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
-    for ticket in all_tickets:
-        if ticket.get("created_at"):
-            day = ticket["created_at"].weekday()
-            weekly_distribution[day] = weekly_distribution.get(day, 0) + 1
-    
-    weekly_data = [{"day": day_names[d], "count": weekly_distribution.get(d, 0)} for d in range(7)]
+    day_names = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"]
+    if agg_result:
+        for item in agg_result[0].get("weekly", []):
+            weekly_distribution[item["_id"]] = item["count"]
+    # MongoDB dayOfWeek: 1=Sunday, 2=Monday, ..., 7=Saturday
+    weekly_data = [{"day": day_names[d], "count": weekly_distribution.get(d + 1, 0)} for d in range(7)]
     
     return {
         "period": period,

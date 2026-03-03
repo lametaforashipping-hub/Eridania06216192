@@ -193,12 +193,13 @@ async def get_monthly_report(
     prev_start = datetime(prev_year, prev_month, 1)
     prev_end = start_date
     
-    prev_tickets = await db.tickets.find({
-        "seller_id": user_id,
-        "created_at": {"$gte": prev_start, "$lt": prev_end}
-    }, {"_id": 0, "total_amount": 1, "amount": 1}).to_list(None)
+    # Use aggregation for previous month total instead of loading all docs
+    prev_sales_result = await db.tickets.aggregate([
+        {"$match": {"seller_id": user_id, "created_at": {"$gte": prev_start, "$lt": prev_end}}},
+        {"$group": {"_id": None, "total": {"$sum": {"$ifNull": ["$total_amount", {"$ifNull": ["$amount", 0]}]}}}}
+    ]).to_list(1)
     
-    prev_sales = sum(t.get("total_amount", t.get("amount", 0)) for t in prev_tickets)
+    prev_sales = prev_sales_result[0]["total"] if prev_sales_result else 0
     
     # Calculate growth percentage
     if prev_sales > 0:
