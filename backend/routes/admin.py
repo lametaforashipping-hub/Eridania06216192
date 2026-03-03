@@ -483,7 +483,7 @@ async def get_extended_stats(
     
     # Sort by revenue
     top_lotteries = []
-    total_revenue = sum(l["revenue"] for l in lottery_analytics.values())
+    total_revenue = sum(lt["revenue"] for lt in lottery_analytics.values())
     for name, stats in sorted(lottery_analytics.items(), key=lambda x: x[1]["revenue"], reverse=True)[:15]:
         top_lotteries.append({
             "name": name,
