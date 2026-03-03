@@ -67,7 +67,7 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     week_commission = week_sales * (commission_rate / 100)
     
     return {
-        "user": user,
+        "user": serialize_doc(user),
         "today_stats": {
             "sales": today_sales,
             "wins": today_wins,
@@ -83,8 +83,8 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
             "commission": week_commission,
             "tickets_count": len(week_tickets)
         },
-        "recent_tickets": recent_tickets,
-        "recent_transactions": recent_transactions
+        "recent_tickets": serialize_doc(recent_tickets),
+        "recent_transactions": serialize_doc(recent_transactions)
     }
 
 

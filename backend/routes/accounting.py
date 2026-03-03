@@ -187,7 +187,7 @@ async def get_accounting_report(
             "amount": tx.get("amount", 0),
             "currency": tx.get("currency", current_user.get("currency", "RD$")),
             "description": tx.get("description", ""),
-            "created_at": tx.get("created_at", now).isoformat() if isinstance(tx.get("created_at"), datetime) else str(tx.get("created_at", ""))
+            "created_at": (tx.get("created_at", now).isoformat() + 'Z') if isinstance(tx.get("created_at"), datetime) else str(tx.get("created_at", ""))
         })
     
     return {
@@ -299,7 +299,7 @@ async def get_commissions_report(
                     "commission_rate": commission_rate,
                     "commission_earned": tx.get("amount", 0),
                     "currency": tx.get("currency", "RD$"),
-                    "created_at": tx.get("created_at").isoformat() if tx.get("created_at") else "",
+                    "created_at": (tx.get("created_at").isoformat() + 'Z') if tx.get("created_at") else "",
                     "seller_name": seller.get("name") if seller else None
                 }
                 
@@ -626,7 +626,7 @@ async def get_detailed_seller_report(
             "potential_win": potential_win if not is_multi_play else None,
             "total_potential_win": potential_win if is_multi_play else None,
             "status": status,
-            "created_at": ticket.get("created_at").isoformat() if ticket.get("created_at") else "",
+            "created_at": (ticket.get("created_at").isoformat() + 'Z') if ticket.get("created_at") else "",
             "customer_name": ticket.get("customer_name"),
             "currency": ticket.get("currency", seller_info["currency"])
         }

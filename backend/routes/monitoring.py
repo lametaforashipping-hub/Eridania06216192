@@ -243,5 +243,5 @@ async def get_live_tickets(
             "won": stats.get("won", 0),
             "cancelled": stats.get("cancelled", 0)
         },
-        "last_update": datetime.utcnow().isoformat()
+        "last_update": datetime.utcnow().isoformat() + 'Z'
     }

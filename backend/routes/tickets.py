@@ -587,7 +587,7 @@ async def get_recent_plays(current_user: dict = Depends(get_current_user), limit
                         "lottery_name": play.get("lottery_name", ""),
                         "numbers": play.get("numbers", []),
                         "amount": play.get("amount", 20),
-                        "created_at": ticket["created_at"].isoformat() if ticket.get("created_at") else None
+                        "created_at": (ticket["created_at"].isoformat() + 'Z') if ticket.get("created_at") else None
                     })
                     if len(recent_plays) >= limit:
                         break
@@ -603,7 +603,7 @@ async def get_recent_plays(current_user: dict = Depends(get_current_user), limit
                     "lottery_name": ticket.get("lottery_name", ""),
                     "numbers": ticket.get("numbers", []),
                     "amount": ticket.get("amount", 20),
-                    "created_at": ticket["created_at"].isoformat() if ticket.get("created_at") else None
+                    "created_at": (ticket["created_at"].isoformat() + 'Z') if ticket.get("created_at") else None
                 })
         
         if len(recent_plays) >= limit:
