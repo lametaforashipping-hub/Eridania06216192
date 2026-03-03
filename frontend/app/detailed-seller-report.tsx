@@ -344,7 +344,7 @@ export default function DetailedSellerReport() {
         ` : ''}
 
         <div class="footer">
-          Generado el ${new Date().toLocaleString('es-DO')} | Sistema de Lotería
+          Generado el ${new Date().toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})} | Sistema de Lotería
         </div>
       </body>
       </html>
@@ -410,7 +410,7 @@ export default function DetailedSellerReport() {
     
     text += `\n━━━━━━━━━━━━━━━━━━━━\n`;
     text += `📱 Sistema de Lotería\n`;
-    text += `⏰ ${new Date().toLocaleString('es-DO')}`;
+    text += `⏰ ${new Date().toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}`;
     
     return text;
   };
@@ -512,7 +512,7 @@ export default function DetailedSellerReport() {
         ['REPORTE DETALLADO', '', '', ''],
         ['Vendedor:', reportTitle, '', ''],
         ['Período:', report.period_label, '', ''],
-        ['Generado:', new Date().toLocaleString('es-DO'), '', ''],
+        ['Generado:', new Date().toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'}), '', ''],
         ['', '', '', ''],
         ['RESUMEN FINANCIERO', '', '', ''],
         ['Ventas Totales:', `${currency} ${report.summary.total_sales.toFixed(2)}`],
@@ -563,7 +563,7 @@ export default function DetailedSellerReport() {
             const numbers = isMulti 
               ? t.plays?.map((p: any) => p.numbers?.join('-')).join(', ') || ''
               : (t.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-');
-            const date = new Date(t.created_at).toLocaleString('es-DO');
+            const date = new Date(t.created_at).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'});
             
             return [
               t.ticket_number,
@@ -822,7 +822,7 @@ export default function DetailedSellerReport() {
         ` : ''}
 
         <div class="footer">
-          Generado el ${new Date().toLocaleString('es-DO')} | Sistema de Lotería
+          Generado el ${new Date().toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})} | Sistema de Lotería
         </div>
       </body>
       </html>
@@ -892,7 +892,7 @@ export default function DetailedSellerReport() {
           </Text>
         </View>
         <Text style={styles.ticketDate}>
-          {new Date(item.created_at).toLocaleString('es-DO')}
+          {new Date(item.created_at).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}
         </Text>
       </View>
     );

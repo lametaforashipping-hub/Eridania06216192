@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
 import * as Haptics from 'expo-haptics';
+import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
@@ -329,7 +330,7 @@ const showAlert = (title: string, message: string) => {
             <div class="ticket-number">${ticket.ticket_number}</div>
           </div>
           <div class="info-section">
-            <div class="date-info">${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit'})}</div>
+            <div class="date-info">${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Santo_Domingo' })} - ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit', timeZone: 'America/Santo_Domingo'})}</div>
             ${ticket.customer_name ? `<div class="customer-info">CLIENTE: ${ticket.customer_name.toUpperCase()}</div>` : ''}
           </div>
           <div class="body">
@@ -389,7 +390,7 @@ const showAlert = (title: string, message: string) => {
 
     const message = `🎰 *BOLETO MULTI-JUGADA*\n\n` +
       `📋 *Boleto:* ${lastTicket.ticket_number}\n` +
-      `📅 *Fecha:* ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}\n` +
+      `📅 *Fecha:* ${date.toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'})} ${date.toLocaleTimeString('es-DO', {timeZone: 'America/Santo_Domingo'})}\n` +
       `${lastTicket.customer_name ? `👤 *Cliente:* ${lastTicket.customer_name}\n` : ''}` +
       `\n🎲 *JUGADAS (${lastTicket.plays.length}):*\n${playsText}\n\n` +
       `💰 *Total:* ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +

@@ -297,7 +297,7 @@ export default function AutoResults() {
               
               {schedulerStatus?.last_fetch_time && (
                 <Text style={styles.lastFetch}>
-                  Última verificación: {new Date(schedulerStatus.last_fetch_time).toLocaleString('es-DO')}
+                  Última verificación: {new Date(schedulerStatus.last_fetch_time).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}
                 </Text>
               )}
               

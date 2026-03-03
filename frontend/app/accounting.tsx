@@ -195,7 +195,7 @@ export default function Accounting() {
                       {tx.description}
                     </Text>
                     <Text style={styles.txDate}>
-                      {new Date(tx.created_at).toLocaleString('es-DO')}
+                      {new Date(tx.created_at).toLocaleString('es-DO', {timeZone: 'America/Santo_Domingo'})}
                     </Text>
                   </View>
                   <Text style={[styles.txAmount, { color: getTransactionColor(tx.transaction_type) }]}>
