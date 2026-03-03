@@ -11,7 +11,7 @@ from utils.database import get_db
 from utils.auth import get_current_user, require_role
 
 # Directorio para guardar logos subidos
-UPLOAD_DIR = "/app/frontend/public/uploads"
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public", "uploads"))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/company-profile", tags=["Company"])

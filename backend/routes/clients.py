@@ -14,7 +14,7 @@ from utils.auth import get_current_user, require_role
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
 # Directory for payment receipts
-RECEIPTS_DIR = "/app/frontend/public/receipts"
+RECEIPTS_DIR = os.environ.get("RECEIPTS_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public", "receipts"))
 os.makedirs(RECEIPTS_DIR, exist_ok=True)
 
 
