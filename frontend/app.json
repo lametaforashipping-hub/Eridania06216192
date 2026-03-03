@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Sistema de Lotería",
-    "slug": "loteria-rd-usa",
-    "version": "3.0.0",
+    "name": "Lotería Mágica",
+    "slug": "loteria-magica",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "loteria",
+    "scheme": "loteriamagica",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "extra": {
@@ -14,9 +14,11 @@
       }
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.loteriamagica.app"
     },
     "android": {
+      "package": "com.loteriamagica.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000"
