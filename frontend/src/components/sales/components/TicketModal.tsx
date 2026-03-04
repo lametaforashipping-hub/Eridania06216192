@@ -178,10 +178,10 @@ export const TicketModal: React.FC<TicketModalProps> = ({
         let debugLog = '';
         
         try {
-          // Step 1: Verify cache directory
-          const cacheDir = FileSystem.cacheDirectory;
-          debugLog += `1.Cache: ${cacheDir ? 'OK' : 'NULL'}\n`;
-          if (!cacheDir) throw new Error('Cache directory null');
+          // Step 1: Verify directory
+          const saveDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+          debugLog += `1.Dir: ${saveDir ? 'OK' : 'NULL'}\n`;
+          if (!saveDir) throw new Error('No directory available');
           
           // Step 2: Build URL
           const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(ticket.ticket_number)}`;
@@ -189,7 +189,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
           
           // Step 3: Download image
           const fileName = `ticket-${Date.now()}.png`;
-          const fileUri = `${cacheDir}${fileName}`;
+          const fileUri = `${saveDir}${fileName}`;
           debugLog += `3.Downloading...\n`;
           
           const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);

@@ -389,8 +389,10 @@ const showAlert = (title: string, message: string) => {
     try {
       if (Platform.OS !== 'web') {
         // ON MOBILE: Download receipt PNG directly from backend
+        const saveDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+        if (!saveDir) { Alert.alert('Error', 'Almacenamiento no disponible'); return; }
         const fileName = `ticket-${lastTicket.ticket_number}-${Date.now()}.png`;
-        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+        const fileUri = `${saveDir}${fileName}`;
         const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(lastTicket.ticket_number)}`;
         
         const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);
