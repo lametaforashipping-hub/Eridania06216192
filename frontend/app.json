@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Lotería Mágica",
-    "slug": "loteria-magica",
+    "name": "Loteria Magica",
+    "slug": "magic-lottery-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

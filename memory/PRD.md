@@ -63,6 +63,7 @@ QR: backend qrcode library -> base64 PNG
 ```
 
 ## Tareas Pendientes
+- P0: Retry deployment (fixed app.json slug mismatch and special chars)
 - P1: Conectar dominio personalizado (loteriamagica.com) - requiere configuracion DNS por el usuario
 - P2: Build iOS (esperando activacion de Apple Developer Program por el usuario)
 - P3: Rebuild APK Android con los fixes de compartir imagen (react-qr-code -> base64 image)
