@@ -113,15 +113,21 @@ class LotteryScraper:
         }
     
     async def fetch_page(self, url: str) -> Optional[str]:
-        """Fetch a webpage with error handling"""
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=self.headers, follow_redirects=True)
-                if response.status_code == 200:
-                    return response.text
-                logger.warning(f"Failed to fetch {url}: Status {response.status_code}")
-        except Exception as e:
-            logger.error(f"Error fetching {url}: {e}")
+        """Fetch a webpage with error handling and retry"""
+        for attempt in range(2):
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.get(url, headers=self.headers, follow_redirects=True)
+                    if response.status_code == 200:
+                        return response.text
+                    logger.debug(f"Non-200 from {url}: Status {response.status_code}")
+            except httpx.TimeoutException:
+                logger.debug(f"Timeout fetching {url} (attempt {attempt+1})")
+            except (httpx.ConnectError, httpx.RemoteProtocolError):
+                logger.debug(f"Connection issue with {url} (attempt {attempt+1})")
+            except Exception as e:
+                logger.debug(f"Fetch error {url}: {type(e).__name__}")
+                break
         return None
     
     def normalize_lottery_name(self, name: str) -> str:
