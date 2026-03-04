@@ -22,6 +22,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
@@ -472,29 +474,52 @@ export default function Tickets() {
 
   const handleShare = async () => {
     if (!selectedTicket) return;
-    const date = new Date(selectedTicket.created_at);
-    const message = `🎰 *BOLETO DE LOTERIA*\n\n` +
-      `📋 *Boleto:* ${selectedTicket.ticket_number}\n` +
-      `🎲 *Lotería:* ${selectedTicket.lottery_name}\n` +
-      `🔢 *Números:* ${(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
-      `💰 *Monto:* ${selectedTicket.currency} ${(selectedTicket.amount || 0).toLocaleString()}\n` +
-      `🏆 *Estado:* ${getStatusText(selectedTicket.status)}\n` +
-      `${selectedTicket.status === 'won' ? `💵 *Premio:* ${selectedTicket.currency} ${(selectedTicket.potential_win || 0).toLocaleString()}\n` : ''}`;
-
+    
     try {
+      if (Platform.OS !== 'web') {
+        // ON MOBILE: Download receipt image from backend and share
+        const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(selectedTicket.ticket_number)}`;
+        const response = await fetch(receiptUrl);
+        const data = await response.json();
+        
+        if (data?.image) {
+          const base64Data = data.image.split(',')[1];
+          const fileName = `ticket-${selectedTicket.ticket_number}-${Date.now()}.png`;
+          const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+          
+          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'image/png',
+              dialogTitle: 'Enviar ticket por WhatsApp',
+              UTI: 'public.png',
+            });
+            return;
+          }
+        }
+      }
+      
+      // Web fallback or if image sharing failed: share as text via WhatsApp
+      const date = new Date(selectedTicket.created_at);
+      const message = `*BOLETO DE LOTERIA*\n\n` +
+        `Boleto: ${selectedTicket.ticket_number}\n` +
+        `Loteria: ${selectedTicket.lottery_name}\n` +
+        `Numeros: ${(selectedTicket.numbers || []).map((n: any) => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
+        `Monto: ${selectedTicket.currency} ${(selectedTicket.amount || 0).toLocaleString()}\n` +
+        `Estado: ${getStatusText(selectedTicket.status)}\n` +
+        `${selectedTicket.status === 'won' ? `Premio: ${selectedTicket.currency} ${(selectedTicket.potential_win || 0).toLocaleString()}\n` : ''}`;
+      
       if (Platform.OS === 'web') {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         if (typeof window !== 'undefined') {
           window.open(whatsappUrl, '_blank');
         }
       } else {
-        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
-        const canOpen = await Linking.canOpenURL(whatsappUrl);
-        if (canOpen) {
-          await Linking.openURL(whatsappUrl);
-        } else {
-          await Share.share({ message });
-        }
+        await Share.share({ message });
       }
     } catch (error) {
       Alert.alert('Error', 'No se pudo compartir');

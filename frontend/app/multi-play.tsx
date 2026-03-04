@@ -20,6 +20,8 @@ import { useAuth } from '../src/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 
@@ -384,34 +386,56 @@ const showAlert = (title: string, message: string) => {
   const handleShareWhatsApp = async () => {
     if (!lastTicket) return;
     
-    const date = new Date(lastTicket.created_at);
-    const playsText = lastTicket.plays.map(p => 
-      `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map(n => n.toString().padStart(2, '0')).join('-')} x RD$ ${p.amount}`
-    ).join('\n');
-
-    const message = `🎰 *BOLETO MULTI-JUGADA*\n\n` +
-      `📋 *Boleto:* ${lastTicket.ticket_number}\n` +
-      `📅 *Fecha:* ${date.toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'})} ${date.toLocaleTimeString('es-DO', {timeZone: 'America/Santo_Domingo'})}\n` +
-      `${lastTicket.customer_name ? `👤 *Cliente:* ${lastTicket.customer_name}\n` : ''}` +
-      `\n🎲 *JUGADAS (${lastTicket.plays.length}):*\n${playsText}\n\n` +
-      `💰 *Total:* ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +
-      `🏆 *Premio Potencial:* ${lastTicket.currency} ${lastTicket.total_potential_win.toLocaleString()}\n` +
-      `\n¡Buena suerte! 🍀`;
-
     try {
+      if (Platform.OS !== 'web') {
+        // ON MOBILE: Download receipt image from backend and share
+        const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(lastTicket.ticket_number)}`;
+        const response = await fetch(receiptUrl);
+        const data = await response.json();
+        
+        if (data?.image) {
+          const base64Data = data.image.split(',')[1];
+          const fileName = `ticket-${lastTicket.ticket_number}-${Date.now()}.png`;
+          const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+          
+          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'image/png',
+              dialogTitle: 'Enviar ticket por WhatsApp',
+              UTI: 'public.png',
+            });
+            return;
+          }
+        }
+      }
+      
+      // Web fallback or if image sharing failed
+      const date = new Date(lastTicket.created_at);
+      const playsText = lastTicket.plays.map((p: any) => 
+        `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')} x RD$ ${p.amount}`
+      ).join('\n');
+
+      const message = `*BOLETO MULTI-JUGADA*\n\n` +
+        `Boleto: ${lastTicket.ticket_number}\n` +
+        `Fecha: ${date.toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'})} ${date.toLocaleTimeString('es-DO', {timeZone: 'America/Santo_Domingo'})}\n` +
+        `${lastTicket.customer_name ? `Cliente: ${lastTicket.customer_name}\n` : ''}` +
+        `\nJUGADAS (${lastTicket.plays.length}):\n${playsText}\n\n` +
+        `Total: ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +
+        `Premio Potencial: ${lastTicket.currency} ${lastTicket.total_potential_win.toLocaleString()}\n` +
+        `\nBuena suerte!`;
+
       if (Platform.OS === 'web') {
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         if (typeof window !== 'undefined') {
           window.open(whatsappUrl, '_blank');
         }
       } else {
-        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
-        const canOpen = await Linking.canOpenURL(whatsappUrl);
-        if (canOpen) {
-          await Linking.openURL(whatsappUrl);
-        } else {
-          await Share.share({ message });
-        }
+        await Share.share({ message });
       }
     } catch (error) {
       Alert.alert('Error', 'No se pudo compartir');

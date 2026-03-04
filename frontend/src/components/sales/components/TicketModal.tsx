@@ -174,84 +174,40 @@ export const TicketModal: React.FC<TicketModalProps> = ({
           Alert.alert('Alternativa', 'Usa la opción de imprimir y selecciona "Guardar como PDF".');
         }
       } else {
-        // On mobile - robust approach with fallback
-        let shared = false;
+        // ON MOBILE: Download receipt image from backend and share
+        // The backend generates the complete receipt as a PNG image
+        const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(ticket.ticket_number)}`;
+        const response = await fetch(receiptUrl);
+        const data = await response.json();
         
-        // Attempt 1: ViewShot capture
-        try {
-          if (ticketViewRef.current) {
-            // Wait for QR image and other assets to fully render
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            const uri = await (ticketViewRef.current as any).capture({
-              format: 'png',
-              quality: 0.9,
-              result: 'tmpfile',
+        if (data?.image) {
+          // Save base64 image to a file
+          const base64Data = data.image.split(',')[1];
+          const fileName = `ticket-${ticket.ticket_number}-${Date.now()}.png`;
+          const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+          
+          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          // Share the image file via system share sheet (WhatsApp, etc.)
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'image/png',
+              dialogTitle: 'Enviar ticket por WhatsApp',
+              UTI: 'public.png',
             });
-            
-            if (uri) {
-              const fileName = `ticket-${ticket.ticket_number}-${Date.now()}.png`;
-              const fileUri = `${FileSystem.cacheDirectory || cacheDirectory}${fileName}`;
-              
-              await FileSystem.copyAsync({ from: uri, to: fileUri });
-              
-              // Verify file exists
-              const fileInfo = await FileSystem.getInfoAsync(fileUri);
-              if (fileInfo.exists) {
-                const isAvailable = await Sharing.isAvailableAsync();
-                if (isAvailable) {
-                  await Sharing.shareAsync(fileUri, {
-                    mimeType: 'image/png',
-                    dialogTitle: 'Enviar ticket por WhatsApp',
-                    UTI: 'public.png',
-                  });
-                  shared = true;
-                }
-              }
-            }
+          } else {
+            Alert.alert('Error', 'Compartir no está disponible en este dispositivo.');
           }
-        } catch (viewShotError) {
-          console.warn('ViewShot capture failed, trying PDF fallback:', viewShotError);
-        }
-        
-        // Attempt 2: Generate PDF from HTML and share
-        if (!shared) {
-          try {
-            const html = generateTicketHTML(ticket, companyProfile);
-            const { uri } = await Print.printToFileAsync({ html });
-            
-            // Rename to .pdf for WhatsApp compatibility
-            const pdfUri = `${FileSystem.cacheDirectory || cacheDirectory}ticket-${ticket.ticket_number}.pdf`;
-            await FileSystem.moveAsync({ from: uri, to: pdfUri });
-            
-            const isAvailable = await Sharing.isAvailableAsync();
-            if (isAvailable) {
-              await Sharing.shareAsync(pdfUri, {
-                mimeType: 'application/pdf',
-                dialogTitle: 'Enviar ticket por WhatsApp',
-              });
-              shared = true;
-            }
-          } catch (pdfError) {
-            console.error('PDF fallback also failed:', pdfError);
-          }
-        }
-        
-        if (!shared) {
-          // Final fallback: share as text
-          const message = generateTicketText(ticket, companyProfile);
-          await Share.share({ message });
+        } else {
+          throw new Error('No se pudo generar la imagen del recibo');
         }
       }
     } catch (error: any) {
       console.error('Error sharing image:', error);
-      // Final safety net - try text share
-      try {
-        const message = generateTicketText(ticket, companyProfile);
-        await Share.share({ message });
-      } catch {
-        Alert.alert('Error', 'No se pudo compartir el ticket.');
-      }
+      Alert.alert('Error', 'No se pudo compartir la imagen. Intente de nuevo.');
     }
     setSharingImage(false);
   };

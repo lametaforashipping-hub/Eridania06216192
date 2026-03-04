@@ -659,6 +659,178 @@ async def get_qr_code(ticket_number: str):
     return {"qr": f"data:image/png;base64,{b64}"}
 
 
+@router.get("/receipt-image/{ticket_number}")
+async def get_receipt_image(ticket_number: str):
+    """Generate a complete receipt image for sharing via WhatsApp"""
+    import qrcode
+    from PIL import Image, ImageDraw, ImageFont
+    
+    db = get_db()
+    
+    # Find ticket
+    ticket = await db.tickets.find_one({"ticket_number": ticket_number})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket no encontrado")
+    
+    # Get company profile
+    company = await db.company_profile.find_one({})
+    company_name = company.get("name", "Loteria Magica") if company else "Loteria Magica"
+    company_phone = company.get("phone", "") if company else ""
+    
+    # Fonts
+    try:
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 20)
+        font_bold = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 14)
+        font_normal = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 13)
+        font_small = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 11)
+    except Exception:
+        font_title = ImageFont.load_default()
+        font_bold = font_title
+        font_normal = font_title
+        font_small = font_title
+    
+    # Receipt dimensions
+    width = 380
+    margin = 16
+    content_width = width - (margin * 2)
+    
+    # Pre-calculate height
+    plays = ticket.get("plays", [])
+    play_count = len(plays)
+    # Header(~90) + separator(16) + ticket info(50) + separator(16) + plays(play_count*36) + separator(16) + total(30) + qr(110) + footer(60)
+    estimated_height = 90 + 16 + 50 + 16 + (play_count * 36) + 16 + 30 + 120 + 70
+    
+    img = Image.new('RGB', (width, estimated_height + 40), 'white')
+    draw = ImageDraw.Draw(img)
+    
+    y = 16
+    
+    # === COMPANY NAME ===
+    bbox = draw.textbbox((0, 0), company_name, font=font_title)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((width - text_w) // 2, y), company_name, fill='black', font=font_title)
+    y += 28
+    
+    # Phone
+    if company_phone:
+        bbox = draw.textbbox((0, 0), company_phone, font=font_small)
+        text_w = bbox[2] - bbox[0]
+        draw.text(((width - text_w) // 2, y), company_phone, fill='#666666', font=font_small)
+        y += 18
+    
+    # === SEPARATOR ===
+    separator = "-" * 48
+    draw.text((margin, y), separator, fill='#999999', font=font_small)
+    y += 16
+    
+    # === TICKET NUMBER ===
+    draw.text((margin, y), f"No: {ticket_number}", fill='black', font=font_bold)
+    y += 20
+    
+    # === DATE ===
+    created = ticket.get("created_at")
+    if created:
+        if isinstance(created, str):
+            try:
+                created = datetime.fromisoformat(created.replace('Z', '+00:00'))
+            except Exception:
+                created = None
+        if created:
+            # Format to DR timezone (UTC-4)
+            from datetime import timedelta, timezone as tz
+            dr_tz = tz(timedelta(hours=-4))
+            created_dr = created.astimezone(dr_tz) if created.tzinfo else created
+            date_str = created_dr.strftime("%d/%m/%Y %I:%M %p")
+            draw.text((margin, y), f"Fecha: {date_str}", fill='#444444', font=font_normal)
+            y += 20
+    
+    # === SEPARATOR ===
+    draw.text((margin, y), separator, fill='#999999', font=font_small)
+    y += 16
+    
+    # === PLAYS ===
+    PLAY_TYPE_ABBR = {
+        "quiniela": "Q", "pale": "P", "tripleta": "T",
+        "super_pale": "SP", "first": "1ra", "second": "2da", "third": "3ra"
+    }
+    
+    currency = ticket.get("currency", "RD$")
+    
+    for play in plays:
+        lottery_name = play.get("lottery_name", play.get("lottery_type", ""))
+        play_type = play.get("play_type", "quiniela")
+        abbr = PLAY_TYPE_ABBR.get(play_type, play_type[:2].upper())
+        numbers = play.get("numbers", play.get("number", ""))
+        if isinstance(numbers, list):
+            numbers = "-".join(str(n) for n in numbers)
+        amount = play.get("amount", 0)
+        
+        # Lottery name (small, gray)
+        draw.text((margin, y), lottery_name.upper(), fill='#666666', font=font_small)
+        y += 16
+        
+        # Play details indented
+        play_line = f"  {abbr} {numbers}"
+        draw.text((margin, y), play_line, fill='black', font=font_normal)
+        
+        # Amount right-aligned
+        amount_text = f"{currency}{amount}"
+        bbox = draw.textbbox((0, 0), amount_text, font=font_bold)
+        amt_w = bbox[2] - bbox[0]
+        draw.text((width - margin - amt_w, y), amount_text, fill='black', font=font_bold)
+        
+        y += 20
+    
+    # === SEPARATOR ===
+    draw.text((margin, y), separator, fill='#999999', font=font_small)
+    y += 16
+    
+    # === TOTAL ===
+    total = ticket.get("total_amount", 0)
+    total_label = f"TOTAL ({play_count})"
+    draw.text((margin, y), total_label, fill='black', font=font_bold)
+    
+    total_value = f"{currency} {total:.2f}"
+    bbox = draw.textbbox((0, 0), total_value, font=font_bold)
+    tv_w = bbox[2] - bbox[0]
+    draw.text((width - margin - tv_w, y), total_value, fill='black', font=font_bold)
+    y += 30
+    
+    # === QR CODE ===
+    qr = qrcode.QRCode(version=1, box_size=4, border=2)
+    qr.add_data(ticket_number)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+    qr_w, qr_h = qr_img.size
+    qr_x = (width - qr_w) // 2
+    img.paste(qr_img, (qr_x, y))
+    y += qr_h + 12
+    
+    # === FOOTER ===
+    footer1 = "CONSERVE ESTE BOLETO"
+    bbox = draw.textbbox((0, 0), footer1, font=font_bold)
+    f1_w = bbox[2] - bbox[0]
+    draw.text(((width - f1_w) // 2, y), footer1, fill='black', font=font_bold)
+    y += 20
+    
+    footer2 = "BUENA SUERTE!"
+    bbox = draw.textbbox((0, 0), footer2, font=font_bold)
+    f2_w = bbox[2] - bbox[0]
+    draw.text(((width - f2_w) // 2, y), footer2, fill='black', font=font_bold)
+    y += 24
+    
+    # Crop to actual content
+    img = img.crop((0, 0, width, y))
+    
+    # Convert to base64
+    buf = io.BytesIO()
+    img.save(buf, format='PNG', optimize=True)
+    buf.seek(0)
+    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    
+    return {"image": f"data:image/png;base64,{b64}"}
+
+
 @router.get("/{ticket_id}")
 async def get_ticket(ticket_id: str, current_user: dict = Depends(get_current_user)):
     """Get a specific ticket"""

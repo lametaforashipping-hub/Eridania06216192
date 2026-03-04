@@ -27,6 +27,12 @@ La aplicacion web esta completa y verificada. Build Android v1.0.1 generado. Tod
 - Notificaciones en tiempo real
 - Vista de resultados
 
+### Compartir Imagen WhatsApp (Mar 2026)
+- Endpoint backend `/api/tickets/receipt-image/{ticket_number}` genera imagen PNG completa del recibo usando Pillow
+- En movil: descarga imagen del servidor -> guarda en cache -> comparte via expo-sharing (como imagen, no texto)
+- Actualizado en 3 archivos: TicketModal.tsx (venta nueva), tickets.tsx (lista de boletos), multi-play.tsx (multi-jugada)
+- Eliminada dependencia de ViewShot y react-qr-code SVG para compartir imagen
+
 ### Recibo de Ticket (Mar 2026)
 - Formato tipo recibo de imprenta: logo, TKT#, fecha, jugadas, total
 - Codigo QR generado via backend (endpoint /api/tickets/qr/{ticket_number})
