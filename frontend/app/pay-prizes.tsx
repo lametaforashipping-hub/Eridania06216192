@@ -56,7 +56,7 @@ export default function PayPrizes() {
       });
       if (response.ok) {
         const data = await response.json();
-        setTickets(data);
+        setTickets(Array.isArray(data) ? data : data.tickets || []);
       }
     } catch (error) {
       console.error('Error fetching winning tickets:', error);
