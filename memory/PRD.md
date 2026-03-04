@@ -27,16 +27,24 @@ La aplicacion web esta completa. Build Android v1.0.1 generado. Deployment fixes
 - Notificaciones en tiempo real
 - Vista de resultados
 
+### Recibo de Ticket (Mar 2026)
+- Formato tipo recibo de imprenta: logo, TKT#, fecha, jugadas, total
+- Codigo QR generado via backend (endpoint /api/tickets/qr/{ticket_number})
+- Texto "CONSERVE ESTE BOLETO ¡BUENA SUERTE!"
+- Sin cuadros/bordes, sin badge de estado, sin linea de PREMIO
+- Funciona en web y movil
+
 ### Bug Fixes (Mar 2026)
-- CORREGIDO: "Ver Ticket" no mostraba recibo (modal de acciones no se cerraba)
-- CORREGIDO: "Compartir/WhatsApp" no funcionaba en web (ahora usa wa.me directamente)
-- CORREGIDO: Pago de Premios pantalla en blanco (API devolvía objeto, no array)
-- ACTUALIZADO: Cierre de loterias 10 min antes del sorteo (antes 15 min)
+- CORREGIDO: "Ver Ticket" modal de acciones no se cerraba
+- CORREGIDO: "Compartir/WhatsApp" no funcionaba en web (usa wa.me)
+- CORREGIDO: Pago de Premios pantalla en blanco
+- ACTUALIZADO: Cierre de loterias 10 min antes del sorteo
+- CORREGIDO: Push notifications PUSH_TOO_MANY_EXPERIENCE_IDS
 
 ### Deployment Fixes (Mar 2026)
-- CORREGIDO: Rutas hardcodeadas, CORS, bulk_write, scraper URLs
-- ELIMINADO: expo-barcode-scanner, resultados.com.do, package-lock.json
-- CREADO: eas.json, iconos corregidos a 512x512
+- Rutas hardcodeadas, CORS, bulk_write, scraper URLs corregidos
+- expo-barcode-scanner, resultados.com.do eliminados
+- eas.json creado, iconos corregidos a 512x512
 
 ## Arquitectura
 ```
@@ -44,10 +52,11 @@ Backend: FastAPI + MongoDB (Motor async)
 Frontend: Expo/React Native Web (SDK 54)
 Email: Hostinger SMTP
 Scheduler: APScheduler
+QR: backend qrcode library -> base64 PNG
 ```
 
 ## Tareas Pendientes
-- P0: Deploy a produccion (fixes aplicados)
+- P0: Deploy a produccion con QR code y fixes
 - P1: Conectar dominio (loteriamagica.com)
 - P2: Build iOS (esperando Apple Developer Program)
 

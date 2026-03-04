@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 import * as Print from 'expo-print';
+import QRCode from 'react-native-qrcode-svg';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
@@ -79,6 +80,23 @@ export default function Tickets() {
   const [showActionModal, setShowActionModal] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  const openReceiptModal = async () => {
+    setShowActionModal(false);
+    if (selectedTicket) {
+      try {
+        const res = await fetch(`${API_URL}/api/tickets/qr/${encodeURIComponent(selectedTicket.ticket_number || 'TKT')}`);
+        const data = await res.json();
+        if (data && data.qr) {
+          setQrDataUrl(data.qr);
+        }
+      } catch {
+        setQrDataUrl(null);
+      }
+    }
+    setShowReceiptModal(true);
+  };
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [statusCounts, setStatusCounts] = useState<{[key: string]: number}>({});
@@ -853,10 +871,7 @@ export default function Tickets() {
                 </View>
 
                 <View style={styles.actionButtonsRow}>
-                  <TouchableOpacity style={styles.actionButtonSmall} onPress={() => {
-                    setShowActionModal(false);
-                    setTimeout(() => setShowReceiptModal(true), 300);
-                  }}>
+                  <TouchableOpacity style={styles.actionButtonSmall} onPress={openReceiptModal}>
                     <Ionicons name="eye" size={20} color="#ffffff" />
                     <Text style={styles.actionButtonSmallText}>Ver</Text>
                   </TouchableOpacity>
@@ -997,6 +1012,17 @@ export default function Tickets() {
                   <Text style={styles.receiptTotalValue}>
                     {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toFixed(2)}
                   </Text>
+                </View>
+                
+                <View style={styles.receiptQRContainer}>
+                  {qrDataUrl ? (
+                    <Image 
+                      source={{ uri: qrDataUrl }} 
+                      style={{ width: 100, height: 100 }} 
+                    />
+                  ) : (
+                    <ActivityIndicator size="small" color="#000" />
+                  )}
                 </View>
                 
                 <View style={styles.receiptFooter}>
@@ -1510,6 +1536,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#666666',
     textAlign: 'center',
+  },
+  receiptQRContainer: {
+    alignItems: 'center',
+    marginVertical: 12,
   },
   receiptActions: {
     flexDirection: 'row',

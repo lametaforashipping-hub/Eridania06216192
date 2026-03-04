@@ -1,6 +1,8 @@
 """Ticket sales routes"""
 from fastapi import APIRouter, HTTPException, Depends, Query
 from datetime import datetime
+import io
+import base64
 import uuid
 from typing import Optional
 from models.schemas import TicketCreate, MultiPlayTicketCreate
@@ -638,6 +640,23 @@ async def verify_ticket(ticket_number: str):
         "customer_name": ticket.get("customer_name"),
         "message": get_ticket_message(ticket["status"])
     }
+
+
+@router.get("/qr/{ticket_number}")
+async def get_qr_code(ticket_number: str):
+    """Generate QR code as base64 JSON"""
+    import qrcode
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(ticket_number)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    
+    return {"qr": f"data:image/png;base64,{b64}"}
 
 
 @router.get("/{ticket_id}")
