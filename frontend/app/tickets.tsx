@@ -955,87 +955,56 @@ export default function Tickets() {
                     <Image source={{ uri: companyProfile.logo_url }} style={styles.receiptCompanyLogo} />
                   )}
                   <Text style={styles.receiptLogo}>
-                    {companyProfile?.company_name || '🎰 LOTERIA 🎰'}
+                    {companyProfile?.company_name || 'LOTERIA MAGICA'}
                   </Text>
                   {companyProfile?.slogan && (
                     <Text style={styles.receiptSlogan}>{companyProfile.slogan}</Text>
                   )}
-                  {companyProfile?.address && (
-                    <Text style={styles.receiptCompanyInfo}>{companyProfile.address}</Text>
-                  )}
-                  {companyProfile?.phone && (
-                    <Text style={styles.receiptCompanyInfo}>Tel: {companyProfile.phone}</Text>
-                  )}
-                  {companyProfile?.rnc && (
-                    <Text style={styles.receiptCompanyInfo}>RNC: {companyProfile.rnc}</Text>
-                  )}
                 </View>
                 
-                <View style={styles.receiptTicketNumber}>
-                  <Text style={styles.receiptTicketNumberText}>{selectedTicket.ticket_number}</Text>
-                </View>
+                <Text style={styles.receiptTicketNumberText}>{selectedTicket.ticket_number}</Text>
                 
-                <Text style={styles.receiptLotteryName}>
-                  {selectedTicket.ticket_type === 'multi_play' 
-                    ? `MULTI-JUGADA (${selectedTicket.plays?.length || 0})` 
-                    : selectedTicket.lottery_name?.toUpperCase()}
+                <Text style={styles.receiptDate}>
+                  {formatDate(selectedTicket.created_at)}, {formatTime(selectedTicket.created_at)}
                 </Text>
                 
-                <View style={styles.receiptDateRow}>
-                  <Text style={styles.receiptDate}>
-                    {formatDate(selectedTicket.created_at)}
-                  </Text>
-                  <Text style={styles.receiptTime}>
-                    {formatTime(selectedTicket.created_at)}
-                  </Text>
-                </View>
-                
-                {selectedTicket.customer_name && (
-                  <View style={styles.receiptRow}>
-                    <Text style={styles.receiptLabel}>Cliente:</Text>
-                    <Text style={styles.receiptValue}>{selectedTicket.customer_name}</Text>
-                  </View>
-                )}
+                <View style={styles.receiptDivider} />
                 
                 {selectedTicket.ticket_type === 'multi_play' && selectedTicket.plays ? (
-                  <View style={styles.receiptPlaysContainer}>
-                    <Text style={styles.receiptPlaysTitle}>JUGADAS</Text>
+                  <View>
                     {selectedTicket.plays.map((play: any, idx: number) => (
-                      <View key={idx} style={styles.receiptPlayRow}>
-                        <Text style={styles.receiptPlayType}>{play.lottery_type || play.lottery_name}</Text>
-                        <Text style={styles.receiptPlayNumbers}>
-                          {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
+                      <View key={idx} style={{ marginBottom: 8 }}>
+                        <Text style={styles.receiptLotteryTitle}>{(play.lottery_type || play.lottery_name || '').toUpperCase()}</Text>
+                        <Text style={styles.receiptPlayLine}>
+                          P {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')} = {selectedTicket.currency}{play.amount || 0}
                         </Text>
                       </View>
                     ))}
                   </View>
                 ) : (
-                  <View style={styles.receiptNumbersContainer}>
-                    <Text style={styles.receiptNumbersLabel}>NÚMEROS</Text>
-                    <Text style={styles.receiptNumbers}>
-                      {(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}
+                  <View>
+                    <Text style={styles.receiptLotteryTitle}>{(selectedTicket.lottery_name || '').toUpperCase()}</Text>
+                    <Text style={styles.receiptPlayLine}>
+                      P {(selectedTicket.numbers || []).map((n: any) => n?.toString().padStart(2, '0') || '--').join('-')} = {selectedTicket.currency}{selectedTicket.amount || 0}
                     </Text>
                   </View>
                 )}
                 
-                <View style={[styles.receiptStatusBadge, { backgroundColor: getStatusColor(selectedTicket.status) }]}>
-                  <Text style={styles.receiptStatusText}>{getStatusText(selectedTicket.status)}</Text>
-                </View>
+                <View style={styles.receiptDivider} />
                 
-                <View style={styles.receiptAmounts}>
-                  <View style={styles.receiptAmountRow}>
-                    <Text style={styles.receiptAmountLabel}>MONTO:</Text>
-                    <Text style={styles.receiptAmountValue}>
-                      {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toLocaleString()}
-                    </Text>
-                  </View>
+                <View style={styles.receiptTotalRow}>
+                  <Text style={styles.receiptTotalLabel}>TOTAL:</Text>
+                  <Text style={styles.receiptTotalValue}>
+                    {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toFixed(2)}
+                  </Text>
                 </View>
                 
                 <View style={styles.receiptFooter}>
-                  <Text style={styles.receiptSellerName}>{selectedTicket.seller_name}</Text>
-                  {companyProfile?.receipt_footer && (
-                    <Text style={styles.receiptCustomFooter}>{companyProfile.receipt_footer}</Text>
+                  <Text style={styles.receiptFooterBold}>CONSERVE ESTE BOLETO  ¡BUENA SUERTE!</Text>
+                  {companyProfile?.phone && (
+                    <Text style={styles.receiptFooterPhone}>Tel: {companyProfile.phone}</Text>
                   )}
+                  <Text style={styles.receiptSellerSmall}>{selectedTicket.seller_name}</Text>
                 </View>
               </View>
             )}
@@ -1451,23 +1420,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   receiptBody: {
-    padding: 16,
+    padding: 20,
     backgroundColor: '#ffffff',
     margin: 16,
-    borderRadius: 12,
+    borderRadius: 4,
   },
   receiptHeader: {
     alignItems: 'center',
-    paddingBottom: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: '#000000',
-    borderStyle: 'dashed',
+    paddingBottom: 10,
   },
   receiptLogo: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '900',
     color: '#000000',
     letterSpacing: 2,
+    marginTop: 4,
   },
   receiptTicketNumber: {
     backgroundColor: '#000000',
@@ -1478,140 +1445,71 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   receiptTicketNumberText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  receiptLotteryName: {
-    fontSize: 14,
-    fontWeight: '900',
     color: '#000000',
+    fontSize: 13,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 8,
-  },
-  receiptDateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
+    marginVertical: 6,
   },
   receiptDate: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  receiptTime: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  receiptRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  receiptLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  receiptValue: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  receiptPlaysContainer: {
-    paddingVertical: 6,
-    marginVertical: 6,
-  },
-  receiptPlaysTitle: {
-    fontSize: 12,
-    fontWeight: '900',
     color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
   },
-  receiptPlayRow: {
+  receiptDivider: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+    marginVertical: 10,
+  },
+  receiptLotteryTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  receiptPlayLine: {
+    fontSize: 13,
+    color: '#000000',
+    marginBottom: 2,
+  },
+  receiptTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#dddddd',
+    paddingVertical: 8,
   },
-  receiptPlayType: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  receiptPlayNumbers: {
-    fontSize: 11,
+  receiptTotalLabel: {
+    fontSize: 16,
     fontWeight: '900',
     color: '#000000',
   },
-  receiptNumbersContainer: {
-    paddingVertical: 8,
-    marginVertical: 6,
+  receiptTotalValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#000000',
   },
-  receiptNumbersLabel: {
-    fontSize: 10,
-    color: '#666666',
+  receiptFooter: {
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 8,
+  },
+  receiptFooterBold: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#000000',
     textAlign: 'center',
     marginBottom: 4,
   },
-  receiptNumbers: {
-    fontSize: 22,
-    fontWeight: '900',
+  receiptFooterPhone: {
+    fontSize: 11,
     color: '#000000',
     textAlign: 'center',
-    letterSpacing: 4,
+    marginBottom: 4,
   },
-  receiptStatusBadge: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    alignSelf: 'center',
-    marginVertical: 8,
-  },
-  receiptStatusText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#ffffff',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  receiptAmounts: {
-    paddingVertical: 6,
-    marginVertical: 4,
-  },
-  receiptAmountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  receiptAmountLabel: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#000000',
-  },
-  receiptAmountValue: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: '#000000',
-  },
-  greenText: {
-    color: '#16a34a',
-  },
-  receiptFooter: {
-    borderTopWidth: 2,
-    borderTopColor: '#000000',
-    borderStyle: 'dashed',
-    paddingTop: 8,
-    marginTop: 8,
-    alignItems: 'center',
-  },
-  receiptSellerName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000000',
+  receiptSellerSmall: {
+    fontSize: 10,
+    color: '#666666',
+    textAlign: 'center',
   },
   receiptActions: {
     flexDirection: 'row',
