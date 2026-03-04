@@ -1029,12 +1029,6 @@ export default function Tickets() {
                       {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toLocaleString()}
                     </Text>
                   </View>
-                  <View style={styles.receiptAmountRow}>
-                    <Text style={styles.receiptAmountLabel}>PREMIO:</Text>
-                    <Text style={[styles.receiptAmountValue, styles.greenText]}>
-                      {selectedTicket.currency} {(selectedTicket.potential_win || selectedTicket.total_potential_win || 0).toLocaleString()}
-                    </Text>
-                  </View>
                 </View>
                 
                 <View style={styles.receiptFooter}>
@@ -1526,12 +1520,8 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   receiptPlaysContainer: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 10,
-    borderWidth: 2,
-    borderColor: '#000000',
+    paddingVertical: 6,
+    marginVertical: 6,
   },
   receiptPlaysTitle: {
     fontSize: 12,
@@ -1558,12 +1548,8 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   receiptNumbersContainer: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    padding: 12,
-    marginVertical: 10,
-    borderWidth: 2,
-    borderColor: '#000000',
+    paddingVertical: 8,
+    marginVertical: 6,
   },
   receiptNumbersLabel: {
     fontSize: 10,
@@ -1593,12 +1579,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   receiptAmounts: {
-    borderWidth: 2,
-    borderColor: '#000000',
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 8,
-    backgroundColor: '#fafafa',
+    paddingVertical: 6,
+    marginVertical: 4,
   },
   receiptAmountRow: {
     flexDirection: 'row',
