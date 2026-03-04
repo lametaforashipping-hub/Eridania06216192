@@ -1,5 +1,5 @@
 """Ticket sales routes"""
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Response
 from datetime import datetime
 import io
 import base64
@@ -822,13 +822,19 @@ async def get_receipt_image(ticket_number: str):
     # Crop to actual content
     img = img.crop((0, 0, width, y))
     
-    # Convert to base64
+    # Return as raw PNG image
     buf = io.BytesIO()
     img.save(buf, format='PNG', optimize=True)
     buf.seek(0)
-    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
     
-    return {"image": f"data:image/png;base64,{b64}"}
+    return Response(
+        content=buf.getvalue(),
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f"inline; filename=ticket-{ticket_number}.png",
+            "Cache-Control": "no-cache"
+        }
+    )
 
 
 @router.get("/{ticket_id}")

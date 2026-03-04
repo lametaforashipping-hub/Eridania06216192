@@ -174,35 +174,28 @@ export const TicketModal: React.FC<TicketModalProps> = ({
           Alert.alert('Alternativa', 'Usa la opción de imprimir y selecciona "Guardar como PDF".');
         }
       } else {
-        // ON MOBILE: Download receipt image from backend and share
-        // The backend generates the complete receipt as a PNG image
+        // ON MOBILE: Download receipt PNG directly from backend and share
+        const fileName = `ticket-${ticket.ticket_number}-${Date.now()}.png`;
+        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
         const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(ticket.ticket_number)}`;
-        const response = await fetch(receiptUrl);
-        const data = await response.json();
         
-        if (data?.image) {
-          // Save base64 image to a file
-          const base64Data = data.image.split(',')[1];
-          const fileName = `ticket-${ticket.ticket_number}-${Date.now()}.png`;
-          const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-          
-          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-            encoding: FileSystem.EncodingType.Base64,
+        // Download the PNG image directly to a local file
+        const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);
+        
+        if (downloadResult.status !== 200) {
+          throw new Error(`Download failed: ${downloadResult.status}`);
+        }
+        
+        // Share the downloaded image file
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(downloadResult.uri, {
+            mimeType: 'image/png',
+            dialogTitle: 'Enviar ticket por WhatsApp',
+            UTI: 'public.png',
           });
-          
-          // Share the image file via system share sheet (WhatsApp, etc.)
-          const isAvailable = await Sharing.isAvailableAsync();
-          if (isAvailable) {
-            await Sharing.shareAsync(fileUri, {
-              mimeType: 'image/png',
-              dialogTitle: 'Enviar ticket por WhatsApp',
-              UTI: 'public.png',
-            });
-          } else {
-            Alert.alert('Error', 'Compartir no está disponible en este dispositivo.');
-          }
         } else {
-          throw new Error('No se pudo generar la imagen del recibo');
+          Alert.alert('Error', 'Compartir no disponible en este dispositivo.');
         }
       }
     } catch (error: any) {
