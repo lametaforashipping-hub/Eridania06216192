@@ -113,7 +113,7 @@ def check_lottery_open(lottery: dict) -> tuple:
     current_day = day_names[local_now.weekday()]
     today_date = local_now.strftime("%Y-%m-%d")
     
-    closing_minutes = lottery.get("closing_minutes_before", 15)
+    closing_minutes = lottery.get("closing_minutes_before", 10)
     schedule = lottery.get("schedule", [])
     weekly_hours = lottery.get("weekly_hours")
     holidays = lottery.get("holidays", [])

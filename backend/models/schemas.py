@@ -137,7 +137,7 @@ class LotteryCreate(BaseModel):
     price: float = 20.0
     currency: Currency = Currency.RD
     schedule: List[str] = ["12:00", "15:00", "21:00"]
-    closing_minutes_before: int = 15
+    closing_minutes_before: int = 10
     active: bool = True
     opening_time: Optional[str] = "08:00"
     closing_time: Optional[str] = "21:00"

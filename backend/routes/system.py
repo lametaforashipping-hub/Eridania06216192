@@ -50,7 +50,7 @@ def create_lottery(name: str, schedule: list, country: str = "RD", currency: str
         "price": 20.0,
         "currency": currency,
         "schedule": schedule,
-        "closing_minutes_before": 15,
+        "closing_minutes_before": 10,
         "active": True,
         "opening_time": "08:00",
         "closing_time": "22:00",

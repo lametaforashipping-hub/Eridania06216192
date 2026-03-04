@@ -264,17 +264,17 @@ async def create_client_ticket(
         if not lottery:
             raise HTTPException(status_code=400, detail=f"Lotería no encontrada: {play.get('lottery_id')}")
         
-        # Check if lottery closes within 15 minutes
+        # Check if lottery closes within 10 minutes
         closing_time = lottery.get("closing_time")
         if closing_time:
             today = now.date()
             close_dt = datetime.combine(today, datetime.strptime(closing_time, "%H:%M").time())
             time_to_close = (close_dt - now).total_seconds() / 60
             
-            if time_to_close < 15:
+            if time_to_close < 10:
                 raise HTTPException(
                     status_code=400, 
-                    detail=f"La lotería {lottery['name']} cierra en menos de 15 minutos. No se puede jugar."
+                    detail=f"La lotería {lottery['name']} cierra en menos de 10 minutos. No se puede jugar."
                 )
         
         play_amount = play.get("amount", 20)

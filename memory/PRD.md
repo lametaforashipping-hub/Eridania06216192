@@ -39,12 +39,16 @@ La aplicacion web esta completa. Build Android v1.0.1 generado. Deployment fixes
 - Reportes semanales automaticos
 - Notificaciones push
 
+### Configuracion de Cierre (Mar 2026)
+- ACTUALIZADO: Todas las loterias cierran 10 min antes del sorteo (antes 15 min)
+- Actualizado en: helpers.py, schemas.py, clients.py, system.py + 22 loterias en DB
+
 ### Deployment Fixes (Mar 2026)
 - CORREGIDO: Rutas hardcodeadas en clients.py y company.py
 - AGREGADO: CORS_ORIGINS=* en backend/.env
 - OPTIMIZADO: bulk_write() en draws.py
-- CORREGIDO: URL Florida midday scraper (404 -> URL correcta)
-- ELIMINADO: resultados.com.do del scraper (sitio caido, DNS failure)
+- CORREGIDO: URL Florida midday scraper
+- ELIMINADO: resultados.com.do del scraper (sitio caido)
 
 ## Arquitectura
 ```
@@ -55,7 +59,7 @@ Scheduler: APScheduler
 ```
 
 ## Tareas Pendientes
-- P0: Re-deploy a produccion con fixes
+- P0: Re-deploy a produccion con todos los fixes
 - P1: Conectar dominio (loteriamagica.com)
 - P2: Build iOS (esperando Apple Developer Program)
 
