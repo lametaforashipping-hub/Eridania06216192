@@ -27,28 +27,16 @@ La aplicacion web esta completa. Build Android v1.0.1 generado. Deployment fixes
 - Notificaciones en tiempo real
 - Vista de resultados
 
-### Administracion Avanzada
-- Panel de estadisticas con aggregation pipelines
-- Paginacion en vista de tickets
-- Gestion de metas de ventas
-- Super Admin: editar, eliminar, resetear contrasena de usuarios
-- Confirmacion manual de pagos
-
-### Notificaciones y Emails
-- Email via Hostinger SMTP
-- Reportes semanales automaticos
-- Notificaciones push
-
-### Configuracion de Cierre (Mar 2026)
-- ACTUALIZADO: Todas las loterias cierran 10 min antes del sorteo (antes 15 min)
-- Actualizado en: helpers.py, schemas.py, clients.py, system.py + 22 loterias en DB
+### Bug Fixes (Mar 2026)
+- CORREGIDO: "Ver Ticket" no mostraba recibo (modal de acciones no se cerraba)
+- CORREGIDO: "Compartir/WhatsApp" no funcionaba en web (ahora usa wa.me directamente)
+- CORREGIDO: Pago de Premios pantalla en blanco (API devolvía objeto, no array)
+- ACTUALIZADO: Cierre de loterias 10 min antes del sorteo (antes 15 min)
 
 ### Deployment Fixes (Mar 2026)
-- CORREGIDO: Rutas hardcodeadas en clients.py y company.py
-- AGREGADO: CORS_ORIGINS=* en backend/.env
-- OPTIMIZADO: bulk_write() en draws.py
-- CORREGIDO: URL Florida midday scraper
-- ELIMINADO: resultados.com.do del scraper (sitio caido)
+- CORREGIDO: Rutas hardcodeadas, CORS, bulk_write, scraper URLs
+- ELIMINADO: expo-barcode-scanner, resultados.com.do, package-lock.json
+- CREADO: eas.json, iconos corregidos a 512x512
 
 ## Arquitectura
 ```
@@ -59,7 +47,7 @@ Scheduler: APScheduler
 ```
 
 ## Tareas Pendientes
-- P0: Re-deploy a produccion con todos los fixes
+- P0: Deploy a produccion (fixes aplicados)
 - P1: Conectar dominio (loteriamagica.com)
 - P2: Build iOS (esperando Apple Developer Program)
 

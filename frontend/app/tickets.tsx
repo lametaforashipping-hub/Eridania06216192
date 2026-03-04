@@ -13,6 +13,8 @@ import {
   Dimensions,
   TextInput,
   Image,
+  Platform,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -454,16 +456,29 @@ export default function Tickets() {
   const handleShare = async () => {
     if (!selectedTicket) return;
     const date = new Date(selectedTicket.created_at);
-    const message = `🎰 *BOLETO DE LOTERIA*\n\n` +
-      `📋 *Boleto:* ${selectedTicket.ticket_number}\n` +
-      `🎲 *Lotería:* ${selectedTicket.lottery_name}\n` +
-      `🔢 *Números:* ${(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
-      `💰 *Monto:* ${selectedTicket.currency} ${(selectedTicket.amount || 0).toLocaleString()}\n` +
-      `🏆 *Estado:* ${getStatusText(selectedTicket.status)}\n` +
-      `${selectedTicket.status === 'won' ? `💵 *Premio:* ${selectedTicket.currency} ${(selectedTicket.potential_win || 0).toLocaleString()}\n` : ''}`;
+    const message = `*BOLETO DE LOTERIA*\n\n` +
+      `*Boleto:* ${selectedTicket.ticket_number}\n` +
+      `*Loteria:* ${selectedTicket.lottery_name}\n` +
+      `*Numeros:* ${(selectedTicket.numbers || []).map(n => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
+      `*Monto:* ${selectedTicket.currency} ${(selectedTicket.amount || 0).toLocaleString()}\n` +
+      `*Estado:* ${getStatusText(selectedTicket.status)}\n` +
+      `${selectedTicket.status === 'won' ? `*Premio:* ${selectedTicket.currency} ${(selectedTicket.potential_win || 0).toLocaleString()}\n` : ''}`;
 
     try {
-      await Share.share({ message });
+      if (Platform.OS === 'web') {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        if (typeof window !== 'undefined') {
+          window.open(whatsappUrl, '_blank');
+        }
+      } else {
+        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+        const canOpen = await Linking.canOpenURL(whatsappUrl);
+        if (canOpen) {
+          await Linking.openURL(whatsappUrl);
+        } else {
+          await Share.share({ message });
+        }
+      }
     } catch (error) {
       Alert.alert('Error', 'No se pudo compartir');
     }
@@ -838,7 +853,10 @@ export default function Tickets() {
                 </View>
 
                 <View style={styles.actionButtonsRow}>
-                  <TouchableOpacity style={styles.actionButtonSmall} onPress={() => setShowReceiptModal(true)}>
+                  <TouchableOpacity style={styles.actionButtonSmall} onPress={() => {
+                    setShowActionModal(false);
+                    setTimeout(() => setShowReceiptModal(true), 300);
+                  }}>
                     <Ionicons name="eye" size={20} color="#ffffff" />
                     <Text style={styles.actionButtonSmallText}>Ver</Text>
                   </TouchableOpacity>

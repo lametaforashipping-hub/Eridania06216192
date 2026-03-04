@@ -13,6 +13,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -398,7 +399,20 @@ const showAlert = (title: string, message: string) => {
       `\n¡Buena suerte! 🍀`;
 
     try {
-      await Share.share({ message });
+      if (Platform.OS === 'web') {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        if (typeof window !== 'undefined') {
+          window.open(whatsappUrl, '_blank');
+        }
+      } else {
+        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+        const canOpen = await Linking.canOpenURL(whatsappUrl);
+        if (canOpen) {
+          await Linking.openURL(whatsappUrl);
+        } else {
+          await Share.share({ message });
+        }
+      }
     } catch (error) {
       Alert.alert('Error', 'No se pudo compartir');
     }
