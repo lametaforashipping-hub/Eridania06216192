@@ -957,7 +957,7 @@ class LotteryScraper:
                 result.validated = False
                 result.validation_sources = [result.source]
                 validated_results[lottery_name] = result
-                logger.warning(f"⚠ Unvalidated {lottery_name}: {result.first_prize}-{result.second_prize}-{result.third_prize} from {result.source}")
+                logger.info(f"Single-source result {lottery_name}: {result.first_prize}-{result.second_prize}-{result.third_prize} from {result.source}")
         
         logger.info(f"Total validated results: {len([r for r in validated_results.values() if r.validated])}/{len(validated_results)}")
         return validated_results

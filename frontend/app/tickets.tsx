@@ -22,7 +22,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 import * as Print from 'expo-print';
-import QRCode from 'react-native-qrcode-svg';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');

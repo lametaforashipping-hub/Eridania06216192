@@ -63,6 +63,8 @@ QR: backend qrcode library -> base64 PNG
 ## Testing Status (Mar 4, 2026)
 - Iteration 46: 100% backend (12/12), 100% frontend - TODOS PASARON
 - Bug fix: Compartir imagen por WhatsApp en movil - corregido (QR SVG -> Image base64, fallback a PDF)
+- Deployment: Limpieza de warnings del scraper (WARNING -> INFO para resultados de una sola fuente)
+- Removed unused react-native-qrcode-svg import from tickets.tsx
 - No integraciones mockeadas
 
 ## Credenciales de Test

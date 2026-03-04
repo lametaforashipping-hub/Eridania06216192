@@ -382,7 +382,7 @@ async def check_and_process_results():
             requires_validation = lottery_key not in SINGLE_SOURCE_LOTTERIES
             
             if requires_validation and not result.validated:
-                logger.warning(f"⚠ Skipping unvalidated result for {lottery_key}")
+                logger.debug(f"Skipping unvalidated result for {lottery_key}")
                 continue
             
             # For single-source lotteries, mark as validated with single source
