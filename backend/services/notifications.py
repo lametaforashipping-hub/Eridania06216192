@@ -27,7 +27,7 @@ def get_email_service():
 async def send_push_notification(expo_push_tokens: List[str], title: str, body: str, data: dict = None):
     """
     Send push notifications to Expo push tokens.
-    Uses the Expo Push API to send notifications to mobile devices.
+    Sends each token individually to avoid PUSH_TOO_MANY_EXPERIENCE_IDS error.
     """
     if not expo_push_tokens:
         return
@@ -38,34 +38,38 @@ async def send_push_notification(expo_push_tokens: List[str], title: str, body: 
         logger.info("No valid Expo push tokens found")
         return
     
-    messages = []
-    for token in valid_tokens:
-        message = {
-            "to": token,
-            "sound": "default",
-            "title": title,
-            "body": body,
-            "data": data or {},
-            "priority": "high",
-            "channelId": "lottery-winners"
-        }
-        messages.append(message)
-    
+    success_count = 0
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://exp.host/--/api/v2/push/send",
-                json=messages,
-                headers={
-                    "Accept": "application/json",
-                    "Accept-Encoding": "gzip, deflate",
-                    "Content-Type": "application/json",
+            for token in valid_tokens:
+                message = {
+                    "to": token,
+                    "sound": "default",
+                    "title": title,
+                    "body": body,
+                    "data": data or {},
+                    "priority": "high",
+                    "channelId": "lottery-winners"
                 }
-            )
-            if response.status_code == 200:
-                logger.info(f"Push notifications sent successfully to {len(valid_tokens)} devices")
-            else:
-                logger.error(f"Push notification error: {response.text}")
+                try:
+                    response = await client.post(
+                        "https://exp.host/--/api/v2/push/send",
+                        json=message,
+                        headers={
+                            "Accept": "application/json",
+                            "Accept-Encoding": "gzip, deflate",
+                            "Content-Type": "application/json",
+                        }
+                    )
+                    if response.status_code == 200:
+                        success_count += 1
+                    else:
+                        logger.warning(f"Push notification failed for token: {response.text}")
+                except Exception as e:
+                    logger.warning(f"Error sending to individual token: {e}")
+            
+            if success_count > 0:
+                logger.info(f"Push notifications sent successfully to {success_count}/{len(valid_tokens)} devices")
     except Exception as e:
         logger.error(f"Error sending push notification: {e}")
 
