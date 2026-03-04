@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,10 +18,11 @@ import * as FileSystem from 'expo-file-system';
 
 const cacheDirectory = FileSystem.cacheDirectory || '';
 import ViewShot from 'react-native-view-shot';
-import QRCode from 'react-qr-code';
 import { styles } from '../styles';
 import { isDesktop } from '../constants';
 import { MultiPlayTicketResponse, CompanyProfile, PLAY_TYPE_ABBREVIATIONS } from '../types';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 // Conditionally import html2canvas for web
 let html2canvas: any = null;
@@ -73,6 +74,20 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   const ticketViewRef = useRef<ViewShot>(null);
   const ticketContainerRef = useRef<any>(null);
   const [sharingImage, setSharingImage] = useState(false);
+  const [qrBase64, setQrBase64] = useState<string | null>(null);
+
+  // Fetch QR code as base64 image from backend (works on both web and native)
+  useEffect(() => {
+    if (ticket && visible) {
+      setQrBase64(null);
+      fetch(`${API_URL}/api/tickets/qr/${encodeURIComponent(ticket.ticket_number)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.qr) setQrBase64(data.qr);
+        })
+        .catch(() => setQrBase64(null));
+    }
+  }, [ticket?.ticket_number, visible]);
 
   if (!ticket) return null;
 
@@ -114,7 +129,6 @@ export const TicketModal: React.FC<TicketModalProps> = ({
         // On web, use html2canvas with direct ref
         const ticketElement = ticketContainerRef.current;
         if (!ticketElement || !html2canvas) {
-          // Fallback: generate and open ticket HTML
           const htmlContent = generateTicketHTML(ticket, companyProfile);
           const blob = new Blob([htmlContent], { type: 'text/html' });
           const url = URL.createObjectURL(blob);
@@ -133,7 +147,6 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             logging: false,
           });
           
-          // Convert to blob and download
           canvas.toBlob((blob: Blob | null) => {
             if (blob) {
               const url = URL.createObjectURL(blob);
@@ -154,48 +167,91 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             }
             setSharingImage(false);
           }, 'image/png', 1.0);
-          return; // Don't set sharingImage false here, it's done in the callback
+          return;
         } catch (canvasError) {
           console.error('html2canvas error:', canvasError);
           handlePrintTicket();
           Alert.alert('Alternativa', 'Usa la opción de imprimir y selecciona "Guardar como PDF".');
         }
       } else {
-        // On mobile, use ViewShot
-        if (!ticketViewRef.current) {
-          Alert.alert('Error', 'No se pudo capturar el ticket.');
-          setSharingImage(false);
-          return;
+        // On mobile - robust approach with fallback
+        let shared = false;
+        
+        // Attempt 1: ViewShot capture
+        try {
+          if (ticketViewRef.current) {
+            // Wait for QR image and other assets to fully render
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const uri = await (ticketViewRef.current as any).capture({
+              format: 'png',
+              quality: 0.9,
+              result: 'tmpfile',
+            });
+            
+            if (uri) {
+              const fileName = `ticket-${ticket.ticket_number}-${Date.now()}.png`;
+              const fileUri = `${FileSystem.cacheDirectory || cacheDirectory}${fileName}`;
+              
+              await FileSystem.copyAsync({ from: uri, to: fileUri });
+              
+              // Verify file exists
+              const fileInfo = await FileSystem.getInfoAsync(fileUri);
+              if (fileInfo.exists) {
+                const isAvailable = await Sharing.isAvailableAsync();
+                if (isAvailable) {
+                  await Sharing.shareAsync(fileUri, {
+                    mimeType: 'image/png',
+                    dialogTitle: 'Enviar ticket por WhatsApp',
+                    UTI: 'public.png',
+                  });
+                  shared = true;
+                }
+              }
+            }
+          }
+        } catch (viewShotError) {
+          console.warn('ViewShot capture failed, trying PDF fallback:', viewShotError);
         }
         
-        const uri = await (ticketViewRef.current as any).capture({
-          format: 'png',
-          quality: 1,
-          result: 'tmpfile',
-        });
+        // Attempt 2: Generate PDF from HTML and share
+        if (!shared) {
+          try {
+            const html = generateTicketHTML(ticket, companyProfile);
+            const { uri } = await Print.printToFileAsync({ html });
+            
+            // Rename to .pdf for WhatsApp compatibility
+            const pdfUri = `${FileSystem.cacheDirectory || cacheDirectory}ticket-${ticket.ticket_number}.pdf`;
+            await FileSystem.moveAsync({ from: uri, to: pdfUri });
+            
+            const isAvailable = await Sharing.isAvailableAsync();
+            if (isAvailable) {
+              await Sharing.shareAsync(pdfUri, {
+                mimeType: 'application/pdf',
+                dialogTitle: 'Enviar ticket por WhatsApp',
+              });
+              shared = true;
+            }
+          } catch (pdfError) {
+            console.error('PDF fallback also failed:', pdfError);
+          }
+        }
         
-        const fileName = `ticket-${ticket.ticket_number}.png`;
-        const fileUri = `${cacheDirectory}${fileName}`;
-        
-        await FileSystem.copyAsync({ from: uri, to: fileUri });
-        
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'image/png',
-            dialogTitle: 'Compartir ticket',
-            UTI: 'public.png',
-          });
-        } else {
-          await Share.share({
-            url: fileUri,
-            title: 'Ticket de Lotería',
-          });
+        if (!shared) {
+          // Final fallback: share as text
+          const message = generateTicketText(ticket, companyProfile);
+          await Share.share({ message });
         }
       }
     } catch (error: any) {
       console.error('Error sharing image:', error);
-      Alert.alert('Error', 'No se pudo compartir. Intenta "Compartir como texto".');
+      // Final safety net - try text share
+      try {
+        const message = generateTicketText(ticket, companyProfile);
+        await Share.share({ message });
+      } catch {
+        Alert.alert('Error', 'No se pudo compartir el ticket.');
+      }
     }
     setSharingImage(false);
   };
@@ -280,20 +336,15 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   <Text style={styles.ticketTotalText}>TOTAL: {ticket.currency} {ticket.total_amount.toFixed(2)}</Text>
                 </View>
 
-                {/* QR Code pequeño - usando imagen para mejor compatibilidad */}
+                {/* QR Code - usando imagen base64 del backend para compatibilidad nativa */}
                 <View style={styles.ticketQRSection}>
-                  {Platform.OS === 'web' ? (
+                  {qrBase64 ? (
                     <Image
-                      source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(ticket.ticket_number)}` }}
+                      source={{ uri: qrBase64 }}
                       style={{ width: 60, height: 60 }}
                     />
                   ) : (
-                    <QRCode
-                      value={ticket.ticket_number}
-                      size={60}
-                      bgColor="#ffffff"
-                      fgColor="#000000"
-                    />
+                    <ActivityIndicator size="small" color="#000000" />
                   )}
                 </View>
 
@@ -387,6 +438,9 @@ const generateTicketHTML = (ticket: MultiPlayTicketResponse, company: CompanyPro
       <div class="total">
         <span>TOTAL (${ticket.plays.length})</span>
         <span>${ticket.currency} ${ticket.total_amount.toFixed(2)}</span>
+      </div>
+      <div style="text-align: center; margin: 12px 0;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(ticket.ticket_number)}" width="80" height="80" />
       </div>
       <div class="footer">
         <p>CONSERVE ESTE BOLETO</p>

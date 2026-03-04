@@ -58,10 +58,11 @@ QR: backend qrcode library -> base64 PNG
 ## Tareas Pendientes
 - P1: Conectar dominio personalizado (loteriamagica.com) - requiere configuracion DNS por el usuario
 - P2: Build iOS (esperando activacion de Apple Developer Program por el usuario)
+- P3: Rebuild APK Android con los fixes de compartir imagen (react-qr-code -> base64 image)
 
 ## Testing Status (Mar 4, 2026)
 - Iteration 46: 100% backend (12/12), 100% frontend - TODOS PASARON
-- No bugs detectados
+- Bug fix: Compartir imagen por WhatsApp en movil - corregido (QR SVG -> Image base64, fallback a PDF)
 - No integraciones mockeadas
 
 ## Credenciales de Test
