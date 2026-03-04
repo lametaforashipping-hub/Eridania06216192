@@ -24,6 +24,7 @@ import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import { logoBase64 } from '../src/assets/logoBase64';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
@@ -327,8 +328,8 @@ export default function Tickets() {
     const qrData = encodeURIComponent(ticket.ticket_number);
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}&bgcolor=ffffff&color=000000`;
     
-    // Company Logo URL - Loteria Magic
-    const logoUrl = 'https://customer-assets.emergentagent.com/job_0d52222c-173f-46ac-b2b0-ffceca2336e1/artifacts/cql3117b_loteria.jpg';
+    // Company Logo - embedded base64 for reliable PDF rendering
+    const logoUrl = logoBase64;
     
     // Status mapping
     const statusText: { [key: string]: string } = {

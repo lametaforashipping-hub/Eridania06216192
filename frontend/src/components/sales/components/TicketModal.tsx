@@ -21,6 +21,7 @@ import ViewShot from 'react-native-view-shot';
 import { styles } from '../styles';
 import { isDesktop } from '../constants';
 import { MultiPlayTicketResponse, CompanyProfile, PLAY_TYPE_ABBREVIATIONS } from '../types';
+import { logoBase64 } from '../../../assets/logoBase64';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -364,6 +365,7 @@ const generateTicketHTML = (ticket: MultiPlayTicketResponse, company: CompanyPro
     </head>
     <body>
       <div class="header">
+        <img src="${logoBase64}" style="width:60px;height:60px;object-fit:cover;border:2px solid #000;margin:0 auto 6px;display:block;" />
         <div class="logo">LOTERIA MAGICA</div>
         <div class="slogan">Tu Suerte Comienza Aqui</div>
         ${company?.phone ? `<div style="font-size: 10px; color: #666; margin-top: 4px;">${company.phone}</div>` : ''}

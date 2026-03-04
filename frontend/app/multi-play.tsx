@@ -23,6 +23,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
+import { logoBase64 } from '../src/assets/logoBase64';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -254,8 +255,8 @@ const showAlert = (title: string, message: string) => {
     const qrData = encodeURIComponent(ticket.ticket_number);
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}&bgcolor=ffffff&color=000000`;
 
-    // Company Logo URL
-    const logoUrl = 'https://customer-assets.emergentagent.com/job_0d52222c-173f-46ac-b2b0-ffceca2336e1/artifacts/cql3117b_loteria.jpg';
+    // Company Logo - embedded base64 for reliable PDF rendering
+    const logoUrl = logoBase64;
 
     // Generate detailed plays HTML
     const playsHTML = ticket.plays.map((p, idx) => `
@@ -326,7 +327,8 @@ const showAlert = (title: string, message: string) => {
         <div class="ticket">
           <div class="header">
             <div class="logo-container"><img class="logo-img" src="${logoUrl}" alt="Loteria" /></div>
-            <div class="brand-name">LOTERIA MAGIC</div>
+            <div class="brand-name">LOTERIA MAGICA</div>
+            <div style="font-size: 10px; color: #e63946; font-style: italic; margin-top: 2px;">Tu Suerte Comienza Aqui</div>
           </div>
           <div class="ticket-number-section">
             <div class="ticket-label">BOLETO No.</div>
@@ -396,7 +398,9 @@ const showAlert = (title: string, message: string) => {
         ).join('');
         
         const html = `<html><body style="font-family:monospace;padding:20px;max-width:350px;margin:0 auto;">
+          <div style="text-align:center;"><img src="${logoBase64}" style="width:60px;height:60px;object-fit:cover;border:2px solid #000;" /></div>
           <h2 style="text-align:center;">LOTERIA MAGICA</h2>
+          <p style="text-align:center;font-size:11px;color:#e63946;font-style:italic;">Tu Suerte Comienza Aqui</p>
           <hr/>
           <p><b>No:</b> ${lastTicket.ticket_number}</p>
           <p><b>Fecha:</b> ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}</p>

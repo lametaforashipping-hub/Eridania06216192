@@ -27,12 +27,12 @@ La aplicacion web esta completa y verificada. Build Android v1.0.1 generado. Tod
 - Notificaciones en tiempo real
 - Vista de resultados
 
-### Compartir Imagen WhatsApp (Mar 2026 - v2)
-- Endpoint backend `GET /api/tickets/receipt-image/{ticket_number}` devuelve imagen PNG directamente (Content-Type: image/png)
-- En movil: `FileSystem.downloadAsync()` descarga la imagen PNG directamente a un archivo local -> `Sharing.shareAsync()` comparte el archivo
-- NO usa base64, NO usa JSON, NO usa ViewShot, NO usa react-qr-code SVG
+### Compartir Recibo PDF por WhatsApp (Mar 2026 - v3)
+- En movil: `expo-print` genera PDF desde HTML -> `expo-sharing` comparte el archivo
+- Logo embebido como base64 JPEG en el HTML (archivo: `src/assets/logoBase64.ts`)
+- Branding completo: Logo + "LOTERIA MAGICA" + "Tu Suerte Comienza Aqui"
+- NO depende de FileSystem (cacheDirectory/documentDirectory pueden ser null en Expo Go)
 - Actualizado en 3 archivos: TicketModal.tsx, tickets.tsx, multi-play.tsx
-- Imagen generada con Pillow: 380x406px, ~16KB, incluye logo, ticket#, fecha, jugadas, total, QR code, footer
 
 ### Recibo de Ticket (Mar 2026)
 - Formato tipo recibo de imprenta: logo, TKT#, fecha, jugadas, total
@@ -69,9 +69,9 @@ QR: backend qrcode library -> base64 PNG
 
 ## Testing Status (Mar 4, 2026)
 - Iteration 46: 100% backend (12/12), 100% frontend - TODOS PASARON
-- Bug fix: Compartir imagen por WhatsApp en movil - corregido (QR SVG -> Image base64, fallback a PDF)
-- Deployment: Limpieza de warnings del scraper (WARNING -> INFO para resultados de una sola fuente)
-- Removed unused react-native-qrcode-svg import from tickets.tsx
+- Bug fix: Logo embebido como base64 en PDF compartido (Expo Go compatible)
+- Corregido: Typo "LOTERIA MAGIC" -> "LOTERIA MAGICA" en multi-play.tsx
+- Corregido: Slogan faltante en multi-play.tsx generateTicketHTML
 - No integraciones mockeadas
 
 ## Credenciales de Test
