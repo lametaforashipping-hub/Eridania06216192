@@ -13,7 +13,7 @@ router = APIRouter(prefix="/accounting", tags=["Accounting"])
 async def get_period_stats(db, query_base: dict, start: datetime, end: datetime):
     """Helper to get stats for a specific period"""
     query = {**query_base, "created_at": {"$gte": start, "$lte": end}}
-    tickets = await db.tickets.find(query).to_list(10000)
+    tickets = await db.tickets.find(query, {"amount": 1, "total_amount": 1, "prize": 1, "total_prize": 1, "status": 1, "_id": 0}).to_list(10000)
     
     sales = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
     wins = sum(t.get("prize") or t.get("total_prize", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
