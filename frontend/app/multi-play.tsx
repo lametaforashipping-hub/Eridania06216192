@@ -388,25 +388,38 @@ const showAlert = (title: string, message: string) => {
     
     try {
       if (Platform.OS !== 'web') {
-        // ON MOBILE: Download receipt PNG directly from backend
-        const saveDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
-        if (!saveDir) { Alert.alert('Error', 'Almacenamiento no disponible'); return; }
-        const fileName = `ticket-${lastTicket.ticket_number}-${Date.now()}.png`;
-        const fileUri = `${saveDir}${fileName}`;
-        const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(lastTicket.ticket_number)}`;
+        // ON MOBILE: Use expo-print to generate PDF, then share
+        // This does NOT depend on FileSystem directories (which are null in Expo Go)
+        const date = new Date(lastTicket.created_at);
+        const playsHTML = lastTicket.plays.map((p: any) => 
+          `<tr><td>${p.lottery_type.toUpperCase()}</td><td>${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')}</td><td>RD$ ${p.amount}</td></tr>`
+        ).join('');
         
-        const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);
+        const html = `<html><body style="font-family:monospace;padding:20px;max-width:350px;margin:0 auto;">
+          <h2 style="text-align:center;">LOTERIA MAGICA</h2>
+          <hr/>
+          <p><b>No:</b> ${lastTicket.ticket_number}</p>
+          <p><b>Fecha:</b> ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}</p>
+          ${lastTicket.customer_name ? `<p><b>Cliente:</b> ${lastTicket.customer_name}</p>` : ''}
+          <hr/>
+          <table style="width:100%;font-size:12px;"><tbody>${playsHTML}</tbody></table>
+          <hr/>
+          <p style="font-size:16px;"><b>TOTAL (${lastTicket.plays.length}): ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}</b></p>
+          <div style="text-align:center;margin:10px 0;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(lastTicket.ticket_number)}" width="80" height="80"/>
+          </div>
+          <p style="text-align:center;"><b>CONSERVE ESTE BOLETO</b><br/>BUENA SUERTE!</p>
+        </body></html>`;
         
-        if (downloadResult.status === 200) {
-          const isAvailable = await Sharing.isAvailableAsync();
-          if (isAvailable) {
-            await Sharing.shareAsync(downloadResult.uri, {
-              mimeType: 'image/png',
-              dialogTitle: 'Enviar ticket por WhatsApp',
-              UTI: 'public.png',
-            });
-            return;
-          }
+        const { uri } = await Print.printToFileAsync({ html });
+        
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Enviar ticket por WhatsApp',
+          });
+          return;
         }
       }
       

@@ -174,61 +174,20 @@ export const TicketModal: React.FC<TicketModalProps> = ({
           Alert.alert('Alternativa', 'Usa la opción de imprimir y selecciona "Guardar como PDF".');
         }
       } else {
-        // ON MOBILE: Download receipt PNG directly from backend and share
-        let debugLog = '';
+        // ON MOBILE: Use expo-print to generate PDF, then share via expo-sharing
+        // This approach does NOT depend on FileSystem directories (which can be null in Expo Go)
+        const html = generateTicketHTML(ticket, companyProfile);
+        const { uri } = await Print.printToFileAsync({ html });
         
-        try {
-          // Step 1: Verify directory
-          const saveDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
-          debugLog += `1.Dir: ${saveDir ? 'OK' : 'NULL'}\n`;
-          if (!saveDir) throw new Error('No directory available');
-          
-          // Step 2: Build URL
-          const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(ticket.ticket_number)}`;
-          debugLog += `2.URL: ${receiptUrl.substring(0, 70)}\n`;
-          
-          // Step 3: Download image
-          const fileName = `ticket-${Date.now()}.png`;
-          const fileUri = `${saveDir}${fileName}`;
-          debugLog += `3.Downloading...\n`;
-          
-          const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);
-          debugLog += `3.Status: ${downloadResult.status}\n`;
-          debugLog += `3.URI: ${downloadResult.uri ? downloadResult.uri.substring(0, 50) : 'NULL'}\n`;
-          
-          if (downloadResult.status !== 200) {
-            throw new Error(`Download HTTP ${downloadResult.status}`);
-          }
-          
-          // Step 4: Verify file
-          const fileInfo = await FileSystem.getInfoAsync(downloadResult.uri);
-          debugLog += `4.File exists: ${fileInfo.exists}, size: ${(fileInfo as any).size || '?'}B\n`;
-          
-          if (!fileInfo.exists || ((fileInfo as any).size || 0) < 100) {
-            throw new Error('File empty or missing');
-          }
-          
-          // Step 5: Share
-          const isAvailable = await Sharing.isAvailableAsync();
-          debugLog += `5.Sharing available: ${isAvailable}\n`;
-          
-          if (!isAvailable) {
-            throw new Error('Sharing not available on device');
-          }
-          
-          await Sharing.shareAsync(downloadResult.uri, {
-            mimeType: 'image/png',
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'application/pdf',
             dialogTitle: 'Enviar ticket por WhatsApp',
-            UTI: 'public.png',
           });
-          debugLog += `6.Shared OK\n`;
-          
-        } catch (mobileErr: any) {
-          debugLog += `ERROR: ${mobileErr?.message || mobileErr}\n`;
-          Alert.alert(
-            'Error al compartir',
-            `${mobileErr?.message || 'Error desconocido'}\n\n${debugLog}`
-          );
+        } else {
+          // Fallback: open print dialog directly
+          await Print.printAsync({ html });
         }
       }
     } catch (error: any) {

@@ -477,25 +477,18 @@ export default function Tickets() {
     
     try {
       if (Platform.OS !== 'web') {
-        // ON MOBILE: Download receipt PNG directly from backend
-        const saveDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
-        if (!saveDir) { Alert.alert('Error', 'Almacenamiento no disponible'); return; }
-        const fileName = `ticket-${selectedTicket.ticket_number}-${Date.now()}.png`;
-        const fileUri = `${saveDir}${fileName}`;
-        const receiptUrl = `${API_URL}/api/tickets/receipt-image/${encodeURIComponent(selectedTicket.ticket_number)}`;
+        // ON MOBILE: Use expo-print to generate PDF, then share
+        // This does NOT depend on FileSystem directories (which are null in Expo Go)
+        const html = generateTicketHTML(selectedTicket);
+        const { uri } = await Print.printToFileAsync({ html });
         
-        const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);
-        
-        if (downloadResult.status === 200) {
-          const isAvailable = await Sharing.isAvailableAsync();
-          if (isAvailable) {
-            await Sharing.shareAsync(downloadResult.uri, {
-              mimeType: 'image/png',
-              dialogTitle: 'Enviar ticket por WhatsApp',
-              UTI: 'public.png',
-            });
-            return;
-          }
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Enviar ticket por WhatsApp',
+          });
+          return;
         }
       }
       
