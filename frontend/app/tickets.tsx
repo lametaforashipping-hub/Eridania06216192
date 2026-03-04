@@ -408,7 +408,8 @@ export default function Tickets() {
         <div class="ticket">
           <div class="header">
             <div class="logo-container"><img class="logo-img" src="${logoUrl}" alt="Loteria" /></div>
-            <div class="brand-name">LOTERIA MAGIC</div>
+            <div class="brand-name">LOTERIA MAGICA</div>
+            <div style="font-size: 10px; color: #e63946; font-style: italic; margin-top: 2px;">Tu Suerte Comienza Aqui</div>
           </div>
           <div class="ticket-number-section">
             <div class="ticket-label">BOLETO No.</div>

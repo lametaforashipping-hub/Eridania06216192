@@ -38,9 +38,9 @@ def serialize_doc(doc, exclude_fields=None):
     return doc
 
 def generate_ticket_number():
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    random_part = str(random.randint(1000, 9999))
-    return f"TKT-{timestamp}-{random_part}"
+    year = datetime.utcnow().strftime("%Y")
+    random_part = str(random.randint(10000, 99999))
+    return f"LTMRD{year}{random_part}"
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')

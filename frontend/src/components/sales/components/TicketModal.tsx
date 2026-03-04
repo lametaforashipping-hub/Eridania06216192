@@ -349,22 +349,25 @@ const generateTicketHTML = (ticket: MultiPlayTicketResponse, company: CompanyPro
     <head>
       <meta charset="UTF-8">
       <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 280px; margin: 0 auto; }
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 300px; margin: 0 auto; }
         .header { text-align: center; margin-bottom: 16px; }
-        .company { font-size: 18px; font-weight: 900; }
-        .divider { border-top: 1px solid #000; margin: 12px 0; }
+        .logo { font-size: 28px; font-weight: 900; color: #1a1a2e; letter-spacing: 1px; }
+        .slogan { font-size: 11px; color: #e63946; font-style: italic; margin-top: 4px; }
+        .divider { border-top: 2px dashed #333; margin: 12px 0; }
         .ticket-number { text-align: center; margin: 12px 0; }
         .ticket-number-label { font-size: 10px; color: #666; }
-        .ticket-number-value { font-size: 20px; font-weight: 900; }
-        .total { display: flex; justify-content: space-between; font-weight: bold; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ccc; }
-        .footer { text-align: center; margin-top: 16px; font-size: 10px; color: #666; }
+        .ticket-number-value { font-size: 18px; font-weight: 900; letter-spacing: 2px; }
+        .play-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #ccc; }
+        .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-top: 12px; padding-top: 8px; border-top: 2px solid #000; }
+        .footer { text-align: center; margin-top: 16px; font-weight: bold; font-size: 11px; }
       </style>
     </head>
     <body>
       <div class="header">
-        <div class="company">${company?.company_name || 'LOTERIA'}</div>
-        ${company?.address ? `<div style="font-size: 11px; color: #666;">${company.address}</div>` : ''}
-        ${company?.rnc ? `<div style="font-size: 11px; color: #666;">RNC: ${company.rnc}</div>` : ''}
+        <div class="logo">LOTERIA MAGICA</div>
+        <div class="slogan">Tu Suerte Comienza Aqui</div>
+        ${company?.phone ? `<div style="font-size: 10px; color: #666; margin-top: 4px;">${company.phone}</div>` : ''}
+        ${company?.address ? `<div style="font-size: 10px; color: #666;">${company.address}</div>` : ''}
       </div>
       <div class="divider"></div>
       <div class="ticket-number">
@@ -385,7 +388,7 @@ const generateTicketHTML = (ticket: MultiPlayTicketResponse, company: CompanyPro
       </div>
       <div class="footer">
         <p>CONSERVE ESTE BOLETO</p>
-        <p>¡BUENA SUERTE!</p>
+        <p>BUENA SUERTE!</p>
       </div>
     </body>
     </html>

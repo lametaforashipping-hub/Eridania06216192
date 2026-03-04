@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query
 from datetime import datetime, timedelta
 import uuid
 import os
+import random
 import shutil
 from typing import Optional
 from pydantic import BaseModel, EmailStr
@@ -289,7 +290,7 @@ async def create_client_ticket(
         total_amount += play_amount
     
     # Generate ticket number
-    ticket_number = f"CLT-{now.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4].upper()}"
+    ticket_number = f"LTMRD{now.strftime('%Y')}{random.randint(10000, 99999)}"
     
     ticket = {
         "id": str(uuid.uuid4()),

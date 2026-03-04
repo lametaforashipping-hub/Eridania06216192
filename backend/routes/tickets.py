@@ -706,10 +706,18 @@ async def get_receipt_image(ticket_number: str):
     y = 16
     
     # === COMPANY NAME ===
-    bbox = draw.textbbox((0, 0), company_name, font=font_title)
+    company_title = "LOTERIA MAGICA"
+    bbox = draw.textbbox((0, 0), company_title, font=font_title)
     text_w = bbox[2] - bbox[0]
-    draw.text(((width - text_w) // 2, y), company_name, fill='black', font=font_title)
-    y += 28
+    draw.text(((width - text_w) // 2, y), company_title, fill='black', font=font_title)
+    y += 26
+    
+    # Slogan
+    slogan = "Tu Suerte Comienza Aqui"
+    bbox = draw.textbbox((0, 0), slogan, font=font_small)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((width - text_w) // 2, y), slogan, fill='#cc0000', font=font_small)
+    y += 18
     
     # Phone
     if company_phone:
