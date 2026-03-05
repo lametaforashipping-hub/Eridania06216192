@@ -177,7 +177,7 @@ async def health_check():
         # The app can still serve static content and will retry DB connections
         return {"status": "healthy", "database": "reconnecting"}
 
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, FileResponse
 
 @app.get("/api/privacy-policy", response_class=HTMLResponse)
 async def privacy_policy():
@@ -234,6 +234,16 @@ async def download_eas_json():
         media_type="application/json",
         headers={"Content-Disposition": "attachment; filename=eas.json"}
     )
+
+
+@app.get("/api/ipad-screenshot/{num}")
+async def ipad_screenshot(num: int):
+    """Serve iPad screenshots for App Store submission"""
+    names = {1: "ipad_1_login", 2: "ipad_2_dashboard", 3: "ipad_3_lottery", 4: "ipad_4_results"}
+    if num not in names:
+        return Response(content="Not found", status_code=404)
+    path = f"/app/backend/static/ipad_screenshots/{names[num]}.png"
+    return FileResponse(path, media_type="image/png", filename=f"{names[num]}.png")
 
 
 @app.on_event("shutdown")
