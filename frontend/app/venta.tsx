@@ -166,9 +166,7 @@ export default function VentaUnificada() {
         if (lotteriesRes.ok) {
           const data = await lotteriesRes.json();
           setLotteries(data);
-          // Auto-select all open lotteries
-          const openIds = data.filter((l: Lottery) => l.is_open).map((l: Lottery) => l.id);
-          setSelectedLotteries(openIds);
+          // No auto-select - always manual selection
         }
         
         if (profileRes?.ok) {
@@ -577,9 +575,7 @@ export default function VentaUnificada() {
             <Text style={styles.lotteryBarText}>
               {selectedCount === 0 
                 ? 'Seleccionar loterías' 
-                : selectedCount === openLotteries.length 
-                  ? `Todas (${selectedCount})` 
-                  : `${selectedCount} lotería${selectedCount > 1 ? 's' : ''}`}
+                : `${selectedCount} lotería${selectedCount > 1 ? 's' : ''} seleccionada${selectedCount > 1 ? 's' : ''}`}
             </Text>
           </View>
           <Ionicons name="chevron-down" size={20} color="#64748b" />
@@ -592,15 +588,7 @@ export default function VentaUnificada() {
           style={styles.quickLotteries}
           contentContainerStyle={styles.quickLotteriesContent}
         >
-          <TouchableOpacity 
-            style={[styles.quickChip, selectedCount === openLotteries.length && styles.quickChipActive]}
-            onPress={selectAllLotteries}
-          >
-            <Text style={[styles.quickChipText, selectedCount === openLotteries.length && styles.quickChipTextActive]}>
-              Todas
-            </Text>
-          </TouchableOpacity>
-          {lotteries.slice(0, 6).map(lottery => (
+          {lotteries.map(lottery => (
             <TouchableOpacity
               key={lottery.id}
               style={[
@@ -762,17 +750,6 @@ export default function VentaUnificada() {
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
-            
-            <TouchableOpacity style={styles.selectAllRow} onPress={selectAllLotteries}>
-              <Ionicons 
-                name={selectedCount === openLotteries.length ? "checkbox" : "square-outline"} 
-                size={24} 
-                color="#22c55e" 
-              />
-              <Text style={styles.selectAllText}>
-                Seleccionar todas ({openLotteries.length} abiertas)
-              </Text>
-            </TouchableOpacity>
             
             <ScrollView style={styles.lotteryList}>
               {lotteries.map(lottery => (
@@ -976,10 +953,9 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   quickChipText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     color: '#94a3b8',
-    maxWidth: 80,
   },
   quickChipTextActive: {
     color: '#fff',
@@ -1276,9 +1252,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   lotteryItemName: {
-    fontSize: 15,
+    fontSize: 18,
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '700',
   },
   lotteryItemNameSelected: {
     color: '#22c55e',
