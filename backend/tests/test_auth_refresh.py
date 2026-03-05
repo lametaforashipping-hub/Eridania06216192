@@ -7,7 +7,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-lottery-mobile.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://loteria-app-store.preview.emergentagent.com')
 
 class TestAuthRefresh:
     """Test authentication refresh endpoint"""
