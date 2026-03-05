@@ -213,7 +213,7 @@ async def download_eas_json():
     },
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "ios": {
         "distribution": "store"
@@ -225,6 +225,10 @@ async def download_eas_json():
       "ios": {
         "appleId": "eriberto.70@hotmail.com",
         "ascAppId": "6760090637"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./play-store-key.json",
+        "track": "internal"
       }
     }
   }

@@ -15,7 +15,7 @@
     },
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "ios": {
         "distribution": "store"
@@ -27,6 +27,10 @@
       "ios": {
         "appleId": "eriberto.70@hotmail.com",
         "ascAppId": "6760090637"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./play-store-key.json",
+        "track": "internal"
       }
     }
   }
