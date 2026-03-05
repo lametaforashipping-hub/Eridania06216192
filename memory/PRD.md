@@ -3,8 +3,8 @@
 ## Declaracion del Problema Original
 Aplicacion completa de loteria con roles de Admin, Vendedor y Cliente. Incluye venta de tickets, resultados automaticos, pagos digitales, notificaciones y panel administrativo.
 
-## Estado Actual: Produccion Lista - Verificado Mar 2026
-La aplicacion web esta completa y verificada. Build Android v1.0.1 generado. Todos los flujos funcionando correctamente.
+## Estado Actual: Produccion Lista + iOS Submitted - Mar 2026
+La aplicacion web esta completa y verificada. Build iOS subido a App Store Connect y enviado para revision de Apple.
 
 ## Funcionalidades Implementadas
 
@@ -31,27 +31,27 @@ La aplicacion web esta completa y verificada. Build Android v1.0.1 generado. Tod
 - En movil: `expo-print` genera PDF desde HTML -> `expo-sharing` comparte el archivo
 - Logo embebido como base64 JPEG en el HTML (archivo: `src/assets/logoBase64.ts`)
 - Branding completo: Logo + "LOTERIA MAGICA" + "Tu Suerte Comienza Aqui"
-- NO depende de FileSystem (cacheDirectory/documentDirectory pueden ser null en Expo Go)
 - Actualizado en 3 archivos: TicketModal.tsx, tickets.tsx, multi-play.tsx
 
 ### Recibo de Ticket (Mar 2026)
 - Formato tipo recibo de imprenta: logo, TKT#, fecha, jugadas, total
 - Codigo QR generado via backend (endpoint /api/tickets/qr/{ticket_number})
 - Texto "CONSERVE ESTE BOLETO BUENA SUERTE!"
-- Sin cuadros/bordes, sin badge de estado, sin linea de PREMIO
-- Funciona en web y movil
 
-### Bug Fixes (Mar 2026)
-- CORREGIDO: "Ver Ticket" modal de acciones no se cerraba
-- CORREGIDO: "Compartir/WhatsApp" no funcionaba en web (usa wa.me)
-- CORREGIDO: Pago de Premios pantalla en blanco
-- ACTUALIZADO: Cierre de loterias 10 min antes del sorteo
-- CORREGIDO: Push notifications PUSH_TOO_MANY_EXPERIENCE_IDS
+### iOS App Store Submission (Mar 5, 2026)
+- Build iOS generado exitosamente via EAS Build (v1.0.0 build 1)
+- Build subido a App Store Connect (ascAppId: 6760090637)
+- Screenshots iPad 13" generados y subidos
+- Privacy Policy endpoint creado (/api/privacy-policy)
+- Pendiente: Revision por Apple (24h-3 dias)
 
-### Deployment Fixes (Mar 2026)
-- Rutas hardcodeadas, CORS, bulk_write, scraper URLs corregidos
-- expo-barcode-scanner, resultados.com.do eliminados
-- eas.json creado, iconos corregidos a 512x512
+### Database Reset (Mar 2026)
+- Endpoint /api/admin/reset-database para super admins
+- Boton "Resetear Base de Datos" en panel admin
+
+### Deployment Health Fix (Mar 5, 2026)
+- Removido fallback hardcodeado de DB_NAME en database.py
+- Ahora usa os.environ['DB_NAME'] sin fallback (fail-fast)
 
 ## Arquitectura
 ```
@@ -63,16 +63,15 @@ QR: backend qrcode library -> base64 PNG
 ```
 
 ## Tareas Pendientes
-- P0: Retry deployment (fixed app.json slug mismatch and special chars)
+- P0: Esperar aprobacion de Apple para iOS app
 - P1: Conectar dominio personalizado (loteriamagica.com) - requiere configuracion DNS por el usuario
-- P2: Build iOS (esperando activacion de Apple Developer Program por el usuario)
-- P3: Rebuild APK Android con los fixes de compartir imagen (react-qr-code -> base64 image)
+- P2: Rebuild APK Android con los fixes de compartir imagen
+- P3: Refactoring: Extraer logica HTML de PDF a funcion utilitaria (duplicada en 3 archivos)
 
-## Testing Status (Mar 4, 2026)
-- Iteration 46: 100% backend (12/12), 100% frontend - TODOS PASARON
-- Bug fix: Logo embebido como base64 en PDF compartido (Expo Go compatible)
-- Corregido: Typo "LOTERIA MAGIC" -> "LOTERIA MAGICA" en multi-play.tsx
-- Corregido: Slogan faltante en multi-play.tsx generateTicketHTML
+## Testing Status (Mar 5, 2026)
+- Deployment health check: PASSED (database connected, no hardcoded values)
+- Backend API: healthy
+- iOS build: uploaded to App Store Connect
 - No integraciones mockeadas
 
 ## Credenciales de Test
@@ -83,4 +82,5 @@ QR: backend qrcode library -> base64 PNG
 ## 3rd Party Integrations
 - Hostinger SMTP: Para envio de emails
 - MongoDB Atlas: Base de datos de produccion
-- Expo Application Services (EAS): Build de aplicaciones moviles
+- Expo Application Services (EAS): Build y submit de aplicaciones moviles
+- Apple App Store Connect: Distribucion iOS (ascAppId: 6760090637)

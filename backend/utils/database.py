@@ -18,7 +18,7 @@ client = AsyncIOMotorClient(
     retryWrites=True,  # Enable retry writes for Atlas
     retryReads=True,  # Enable retry reads for Atlas
 )
-db = client[os.environ.get('DB_NAME', 'lottery_db')]
+db = client[os.environ['DB_NAME']]
 
 def get_db():
     return db
