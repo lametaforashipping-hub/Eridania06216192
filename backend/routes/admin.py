@@ -531,3 +531,41 @@ async def get_extended_stats(
         }
     }
 
+
+
+@router.post("/reset-database")
+async def reset_database(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN]))):
+    """Reset database for production launch - keeps admin, lotteries, company profile, bank accounts"""
+    db = get_db()
+    admin_email = current_user.get("email")
+
+    # Delete all users except the current super admin
+    users_result = await db.users.delete_many({"email": {"$ne": admin_email}})
+
+    # Delete all transactional data
+    tickets_result = await db.tickets.delete_many({})
+    draws_result = await db.draws.delete_many({})
+    notifications_result = await db.notifications.delete_many({})
+    transactions_result = await db.transactions.delete_many({})
+    bank_tx_result = await db.bank_transactions.delete_many({})
+    deposits_result = await db.deposit_requests.delete_many({})
+    favorites_result = await db.favorites.delete_many({})
+    stats_result = await db.number_stats.delete_many({})
+    goals_result = await db.sales_goals.delete_many({})
+
+    return {
+        "message": "Base de datos reseteada exitosamente",
+        "deleted": {
+            "usuarios": users_result.deleted_count,
+            "tickets": tickets_result.deleted_count,
+            "sorteos": draws_result.deleted_count,
+            "notificaciones": notifications_result.deleted_count,
+            "transacciones": transactions_result.deleted_count,
+            "transacciones_bancarias": bank_tx_result.deleted_count,
+            "depositos": deposits_result.deleted_count,
+            "favoritos": favorites_result.deleted_count,
+            "estadisticas": stats_result.deleted_count,
+            "metas_ventas": goals_result.deleted_count
+        },
+        "conservado": ["admin", "loterias", "perfil_empresa", "cuentas_bancarias", "config_sistema"]
+    }
