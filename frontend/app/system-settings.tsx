@@ -143,6 +143,28 @@ export default function SystemSettings() {
     setShowPrizeModal(true);
   };
 
+  const handleResetDatabase = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/reset-database`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert('Exito', `Base de datos reseteada.\nUsuarios eliminados: ${data.deleted.usuarios}\nBoletos eliminados: ${data.deleted.tickets}\nTransacciones: ${data.deleted.transacciones}`);
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.detail || 'No se pudo resetear');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexion');
+    }
+  };
+
+
   const handleSavePrizeTiers = async () => {
     if (!selectedLottery) return;
     setSaving(true);
@@ -319,6 +341,35 @@ export default function SystemSettings() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Reset Database Section - Super Admin Only */}
+          {user?.role === 'super_admin' && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="warning" size={24} color="#ef4444" />
+                <Text style={[styles.sectionTitle, { color: '#ef4444' }]}>Zona Peligrosa</Text>
+              </View>
+              <Text style={styles.sectionDescription}>
+                Elimina todos los boletos, vendedores, clientes y datos de prueba. Conserva admin, loterias y configuracion.
+              </Text>
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: '#ef4444' }]}
+                onPress={() => {
+                  Alert.alert(
+                    'Resetear Base de Datos',
+                    'Se eliminaran TODOS los boletos, usuarios (excepto admin), transacciones y notificaciones. Esta accion NO se puede deshacer.',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { text: 'RESETEAR', style: 'destructive', onPress: handleResetDatabase },
+                    ]
+                  );
+                }}
+              >
+                <Ionicons name="trash" size={20} color="#ffffff" />
+                <Text style={styles.saveButtonText}>Resetear Base de Datos</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
