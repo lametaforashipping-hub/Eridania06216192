@@ -177,6 +177,21 @@ async def health_check():
         # The app can still serve static content and will retry DB connections
         return {"status": "healthy", "database": "reconnecting"}
 
+from fastapi.responses import HTMLResponse
+
+@app.get("/api/privacy-policy", response_class=HTMLResponse)
+async def privacy_policy():
+    return """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Politica de Privacidad - Loteria Magica</title><style>body{font-family:system-ui;max-width:700px;margin:0 auto;padding:20px;color:#333;line-height:1.6}h1{color:#1a1a2e}h2{color:#16213e;margin-top:24px}</style></head><body>
+<h1>Politica de Privacidad</h1><p><strong>Loteria Magica</strong> — Ultima actualizacion: Marzo 2026</p>
+<h2>1. Datos que Recopilamos</h2><p>Recopilamos la siguiente informacion cuando usas nuestra app:</p><ul><li><strong>Email:</strong> Para crear tu cuenta e iniciar sesion.</li><li><strong>Telefono:</strong> Para contactarte sobre tus boletos y premios.</li><li><strong>Datos de uso:</strong> Interacciones basicas con la app para mejorar el servicio.</li></ul>
+<h2>2. Como Usamos tus Datos</h2><ul><li>Gestionar tu cuenta y autenticacion.</li><li>Procesar compras de boletos.</li><li>Notificarte sobre resultados y premios.</li><li>Mejorar la experiencia de la app.</li></ul>
+<h2>3. Compartir Datos</h2><p>No vendemos ni compartimos tus datos personales con terceros, excepto cuando sea requerido por ley.</p>
+<h2>4. Seguridad</h2><p>Protegemos tus datos con encriptacion y practicas de seguridad estandar de la industria.</p>
+<h2>5. Tus Derechos</h2><p>Puedes solicitar la eliminacion de tu cuenta y datos contactandonos a: <strong>metafora@lametafora.net</strong></p>
+<h2>6. Contacto</h2><p>Para preguntas sobre privacidad: <strong>metafora@lametafora.net</strong></p>
+</body></html>"""
+
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
