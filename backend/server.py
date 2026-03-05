@@ -177,7 +177,7 @@ async def health_check():
         # The app can still serve static content and will retry DB connections
         return {"status": "healthy", "database": "reconnecting"}
 
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 @app.get("/api/privacy-policy", response_class=HTMLResponse)
 async def privacy_policy():
@@ -191,6 +191,49 @@ async def privacy_policy():
 <h2>6. Contacto</h2><p>Para preguntas sobre privacidad: <strong>metafora@lametafora.net</strong></p>
 </body></html>"""
 
+
+
+@app.get("/api/download-eas-json")
+async def download_eas_json():
+    """Temporary endpoint to download the correct eas.json file"""
+    content = """{
+  "cli": {
+    "version": ">= 13.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "distribution": "store"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "eriberto.70@hotmail.com",
+        "ascAppId": "6760090637"
+      }
+    }
+  }
+}"""
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=eas.json"}
+    )
 
 
 @app.on_event("shutdown")
