@@ -25,8 +25,8 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "YOUR_APPLE_ID",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID"
+        "appleId": "eriberto.70@hotmail.com",
+        "ascAppId": "1e6e7ac7-e47b-4ebd-a96e-1e3708cddb92"
       }
     }
   }
