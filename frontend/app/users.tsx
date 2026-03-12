@@ -723,7 +723,10 @@ export default function Users() {
 
       {/* Deposit Modal */}
       <Modal visible={showDepositModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <View style={[styles.modalContent, styles.depositModal]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Depositar a {selectedUser?.name}</Text>
@@ -746,7 +749,7 @@ export default function Users() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Edit User Modal */}
