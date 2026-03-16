@@ -1,80 +1,70 @@
 # Sistema de Loteria Magica - PRD
 
 ## Declaracion del Problema Original
-Aplicacion completa de loteria con roles de Admin, Vendedor y Cliente. Incluye venta de tickets, resultados automaticos, pagos digitales, notificaciones y panel administrativo. Originalmente construida como app movil (React Native/Expo), ahora migrada a aplicacion web (React/Vite).
+Aplicacion completa de loteria con roles de Admin, Vendedor y Cliente. Incluye venta de tickets, resultados automaticos, pagos digitales, notificaciones y panel administrativo. Originalmente construida como app movil (React Native/Expo), migrada a aplicacion web (React/Vite) para poder conectar el dominio personalizado loteriamagica.com.
 
-## Estado Actual: Web App Funcionando - Mar 16, 2026
+## Estado Actual: Web App Funcionando (replica exacta de la app movil) - Mar 16, 2026
 
 ## Arquitectura
 ```
 Backend: FastAPI + MongoDB (Motor async) - Puerto 8001
-Frontend: React + Vite + TailwindCSS - Puerto 3000
+Frontend: React + Vite + CSS puro - Puerto 3000
 Email: Hostinger SMTP
-Scheduler: APScheduler
+Scheduler: APScheduler (resultados automaticos cada 5 min)
 ```
 
-## Funcionalidades Implementadas
-
-### Core (Admin/Vendedor) - Web App
-- Login/autenticacion JWT con roles (super_admin, admin, vendedor)
-- Dashboard con estadisticas (ventas, tickets, ganancia neta, comisiones)
-- Gestion de usuarios (crear, listar, buscar, depositar balance)
-- Gestion de loterias (listar, activar/desactivar)
-- Vista de tickets (listar, buscar, detalle)
-- Resultados de loteria (1er, 2do, 3er premio, validacion)
-- Estadisticas con filtro por periodo (hoy, semana, mes)
-- Venta de tickets multi-loteria con jugadas (quiniela, pale, tripleta)
-- Layout responsivo con sidebar y header
-
-### Migracion Completada (Mar 16, 2026)
-- Migrado de React Native/Expo a React + Vite
-- Supervisor configurado para ejecutar Vite en puerto 3000
-- Todas las paginas del admin panel funcionando con datos reales del backend
-- APIs corregidas: /api/admin/stats/dashboard, /api/lottery-results/latest
-- Testing completo: Backend 10/10, Frontend 100%
-
-### iOS App Store (Mar 5, 2026) - LEGACY
-- Build iOS generado y subido a App Store Connect (v1.0.0 build 1)
-
-### Google Play Store (Mar 5, 2026) - LEGACY  
-- Build Android (.aab) subido a Google Play Console
-- Pendiente: Prueba cerrada con 12+ verificadores por 14 dias
+## Migracion Completada (Mar 16, 2026)
+- App web replica exacta de la app movil React Native
+- Login con tema purpura, logo de empresa, campos con iconos
+- Dashboard sin sidebar: header con saludo + filtro pais + stats cards + menu grid de iconos
+- Todas las sub-paginas con PageHeader y boton de retorno al dashboard
+- 27 items de menu visibles para super_admin (filtrados por rol)
+- Testing: Backend 15/15 PASS, Frontend 100% PASS
 
 ## Paginas Web Implementadas
-1. Login (/login) - Autenticacion JWT
-2. Dashboard (/) - Estadisticas y resumen
-3. Usuarios (/users) - CRUD de usuarios (admin)
-4. Loterias (/lotteries) - Gestion de loterias (admin)
-5. Tickets (/tickets) - Lista de tickets vendidos
-6. Resultados (/results) - Resultados de sorteos
-7. Estadisticas (/statistics) - Reportes y metricas (admin)
-8. Venta (/venta) - Punto de venta (vendedor)
+1. Login (/login) - Tema purpura, logo Loteria Magica, 3 botones
+2. Dashboard (/) - Stats + Menu Grid con iconos coloridos
+3. Usuarios (/users) - CRUD de usuarios, depositar balance
+4. Loterias (/lotteries) - Cards con activar/desactivar
+5. Boletos (/tickets) - Lista con busqueda y modal detalle
+6. Resultados (/notifications) - Cards con 1er, 2do, 3er premio
+7. Estadisticas (/stats) - Filtro periodo, top vendedores, ventas por loteria
+8. Venta (/venta) - Seleccion multiple loterías, jugadas quiniela/pale/tripleta
+9. ComingSoon (placeholder) - 19 paginas pendientes de implementar
 
 ## API Endpoints Principales
 - POST /api/auth/login - Autenticacion
 - GET /api/auth/me - Perfil del usuario
-- GET /api/admin/stats/dashboard - Estadisticas del dashboard
+- GET /api/accounting/summary - Stats del dashboard (hoy/semana/mes)
+- GET /api/notifications/unread-count - Contador notificaciones
+- GET /api/company-profile - Nombre y logo de empresa
 - GET /api/users - Lista de usuarios
 - POST /api/auth/register - Crear usuario
 - POST /api/users/{id}/deposit?amount=X - Depositar balance
-- GET /api/lotteries - Lista de loterias
-- PUT /api/lotteries/{id} - Actualizar loteria
+- GET /api/lotteries?active_only=false - Lista loterias
+- PUT /api/lotteries/{id} - Actualizar loteria (activar/desactivar)
 - GET /api/tickets - Lista de tickets
 - POST /api/tickets/multi - Crear ticket multi-jugada
-- GET /api/lottery-results/latest - Resultados mas recientes
+- GET /api/lottery-results/latest - Resultados recientes
+- GET /api/admin/stats/dashboard?period=today - Estadisticas admin
 
-## Tareas Pendientes
-- P1: Flujo de vendedor completo (perfil, reporte, comisiones)
-- P1: Portal de clientes (registro, compra digital, comprobantes)
-- P2: Refinamiento UI/UX
+## Tareas Pendientes (Paginas ComingSoon)
+- P1: Mi Perfil, Scanner/Verificar, Favoritos
+- P1: Sorteos, Auto Resultados, En Vivo, Monitoreo
+- P1: Limites de Numeros, Mi Reporte, Reporte Vendedores, Terminales
+- P1: Dashboard Admin, Metas Ventas, Contabilidad, Comisiones
+- P1: Pagar Premios, Pagos Clientes Pendientes
+- P1: Cuentas de Banco, Tipos de Jugada, Mi Empresa, Configuracion
+- P2: Portal de Clientes (login, registro, compra, comprobantes)
 - P2: Conectar dominio loteriamagica.com
-- P3: Prueba cerrada en Google Play (12 verificadores, 14 dias)
+- P3: Google Play Store (prueba cerrada 12 verificadores)
 
 ## Credenciales de Test
 - Admin: admin@loteria.com / admin123
 - Vendedor: vendedor@test.com / 12345678
 
-## 3rd Party Integrations
-- Hostinger SMTP
-- MongoDB Atlas
-- Expo Application Services (EAS) - legacy
+## Notas Tecnicas
+- Resultados tardan 5-15s en cargar (scraping en tiempo real)
+- company-profile requiere auth (muestra LM placeholder en login)
+- Usar wait_for_timeout(3000) en Playwright, NO networkidle
+- Supervisor ejecuta Vite via frontend_vite.conf
