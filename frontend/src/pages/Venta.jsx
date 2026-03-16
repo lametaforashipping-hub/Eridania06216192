@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { ShoppingCart, Plus, Trash2, Send } from 'lucide-react'
+import PageHeader from '../components/PageHeader'
 
 export default function Venta() {
   const { apiFetch } = useAuth()
@@ -95,11 +96,12 @@ export default function Venta() {
     finally { setSubmitting(false) }
   }
 
-  if (loading) return <div className="flex justify-center py-20"><div className="spinner" /></div>
+  if (loading) return <div className="app-page"><PageHeader title="Nueva Venta" /><div className="flex justify-center py-20"><div className="spinner" /></div></div>
 
   return (
-    <div className="animate-in space-y-6" data-testid="venta-page">
-      <h1 className="text-2xl font-bold">Nueva Venta</h1>
+    <div className="app-page" data-testid="venta-page">
+      <PageHeader title="Nueva Venta" />
+      <div className="app-page-content space-y-6">
 
       <div className="card">
         <h3 className="font-semibold mb-3">Seleccionar Loterias</h3>
@@ -160,6 +162,7 @@ export default function Venta() {
         <button onClick={handleSubmit} disabled={submitting || !total} className="btn-primary" data-testid="submit-ticket-button">
           {submitting ? <div className="spinner !w-5 !h-5" /> : <><Send size={18} /> Vender</>}
         </button>
+      </div>
       </div>
     </div>
   )

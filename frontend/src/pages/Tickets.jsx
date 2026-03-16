@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Search, Filter, Eye, X } from 'lucide-react'
+import PageHeader from '../components/PageHeader'
 
 export default function Tickets() {
   const { apiFetch, user } = useAuth()
@@ -28,11 +29,12 @@ export default function Tickets() {
     return map[status] || 'badge-info'
   }
 
-  if (loading) return <div className="flex justify-center py-20"><div className="spinner" /></div>
+  if (loading) return <div className="app-page"><PageHeader title="Boletos" /><div className="flex justify-center py-20"><div className="spinner" /></div></div>
 
   return (
-    <div className="animate-in space-y-6" data-testid="tickets-page">
-      <h1 className="text-2xl font-bold">Tickets</h1>
+    <div className="app-page" data-testid="tickets-page">
+      <PageHeader title="Boletos" />
+      <div className="app-page-content space-y-6">
 
       <div className="relative max-w-md">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -89,6 +91,7 @@ export default function Tickets() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Plus, Clock, X } from 'lucide-react'
+import PageHeader from '../components/PageHeader'
 
 export default function Lotteries() {
   const { apiFetch } = useAuth()
@@ -25,15 +26,14 @@ export default function Lotteries() {
     loadLotteries()
   }
 
-  if (loading) return <div className="flex justify-center py-20"><div className="spinner" /></div>
+  if (loading) return <div className="app-page"><PageHeader title="Loterías" /><div className="flex justify-center py-20"><div className="spinner" /></div></div>
 
   return (
-    <div className="animate-in space-y-6" data-testid="lotteries-page">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Loterias</h1>
-      </div>
+    <div className="app-page" data-testid="lotteries-page">
+      <PageHeader title="Loterías" />
+      <div className="app-page-content space-y-6">
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
         {lotteries.map((l, i) => (
           <div key={i} className="card hover:border-[--color-accent]/30 transition-all" data-testid={`lottery-card-${i}`}>
             <div className="flex items-center justify-between mb-3">
@@ -58,7 +58,8 @@ export default function Lotteries() {
           </div>
         ))}
       </div>
-      {!lotteries.length && <p className="text-center text-slate-500 py-12">No hay loterias configuradas</p>}
+      {!lotteries.length && <p className="text-center py-12" style={{ color: '#94a3b8' }}>No hay loterias configuradas</p>}
+      </div>
     </div>
   )
 }

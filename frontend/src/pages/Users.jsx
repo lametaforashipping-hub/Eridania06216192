@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Plus, Search, Edit, Wallet, Trash2, X } from 'lucide-react'
+import PageHeader from '../components/PageHeader'
 
 export default function Users() {
   const { apiFetch } = useAuth()
@@ -40,12 +41,13 @@ export default function Users() {
 
   const filtered = users.filter(u => u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()))
 
-  if (loading) return <div className="flex justify-center py-20"><div className="spinner" /></div>
+  if (loading) return <div className="app-page"><PageHeader title="Usuarios" /><div className="flex justify-center py-20"><div className="spinner" /></div></div>
 
   return (
-    <div className="animate-in space-y-6" data-testid="users-page">
+    <div className="app-page" data-testid="users-page">
+      <PageHeader title="Usuarios" />
+      <div className="app-page-content space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Usuarios</h1>
         <button onClick={() => setShowModal(true)} className="btn-primary" data-testid="add-user-button"><Plus size={18} /> Nuevo Usuario</button>
       </div>
 
@@ -119,6 +121,7 @@ export default function Users() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
