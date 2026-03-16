@@ -39,14 +39,49 @@ export default function Venta() {
 
   const total = plays.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) * selectedLotteries.length
 
+  const parseNumbers = (numStr, gameType) => {
+    const cleaned = numStr.replace(/\s/g, '')
+    if (gameType === 'pale') {
+      const parts = cleaned.split('-')
+      if (parts.length === 2) return parts.map(n => parseInt(n)).filter(n => !isNaN(n))
+      return []
+    }
+    if (gameType === 'tripleta') {
+      const parts = cleaned.split('-')
+      if (parts.length === 3) return parts.map(n => parseInt(n)).filter(n => !isNaN(n))
+      return []
+    }
+    const num = parseInt(cleaned)
+    return isNaN(num) ? [] : [num]
+  }
+
   const handleSubmit = async () => {
     if (!selectedLotteries.length) return alert('Selecciona al menos una loteria')
-    if (!plays.some(p => p.number && p.amount)) return alert('Agrega al menos una jugada')
+    const validPlays = plays.filter(p => p.number && p.amount)
+    if (!validPlays.length) return alert('Agrega al menos una jugada valida')
+
+    const allPlays = []
+    for (const lotteryId of selectedLotteries) {
+      for (const play of validPlays) {
+        const numbers = parseNumbers(play.number, play.game_type)
+        if (!numbers.length) {
+          alert(`Numero invalido: "${play.number}" para ${play.game_type}`)
+          return
+        }
+        allPlays.push({
+          lottery_type: play.game_type,
+          lottery_id: lotteryId,
+          numbers,
+          amount: parseFloat(play.amount)
+        })
+      }
+    }
+
     setSubmitting(true)
     try {
-      const res = await apiFetch('/api/tickets', {
+      const res = await apiFetch('/api/tickets/multi', {
         method: 'POST',
-        body: JSON.stringify({ lottery_ids: selectedLotteries, plays: plays.filter(p => p.number && p.amount).map(p => ({ ...p, amount: parseFloat(p.amount) })) })
+        body: JSON.stringify({ plays: allPlays })
       })
       if (res.ok) {
         alert('Ticket creado exitosamente!')
@@ -66,16 +101,15 @@ export default function Venta() {
     <div className="animate-in space-y-6" data-testid="venta-page">
       <h1 className="text-2xl font-bold">Nueva Venta</h1>
 
-      {/* Lottery Selection */}
       <div className="card">
         <h3 className="font-semibold mb-3">Seleccionar Loterias</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           {lotteries.map((l, i) => {
             const id = l.id || l._id
-            const selected = selectedLotteries.includes(id)
+            const isSelected = selectedLotteries.includes(id)
             return (
               <button key={i} onClick={() => toggleLottery(id)}
-                className={`p-3 rounded-lg text-sm font-medium text-left transition-all border ${selected ? 'bg-[--color-accent]/10 border-[--color-accent] text-[--color-accent]' : 'bg-[--color-surface] border-[--color-surface-lighter] hover:border-slate-500'}`}
+                className={`p-3 rounded-lg text-sm font-medium text-left transition-all border ${isSelected ? 'bg-[--color-accent]/10 border-[--color-accent] text-[--color-accent]' : 'bg-[--color-surface] border-[--color-surface-lighter] hover:border-slate-500'}`}
                 data-testid={`lottery-select-${i}`}>
                 {l.name}
               </button>
@@ -84,7 +118,6 @@ export default function Venta() {
         </div>
       </div>
 
-      {/* Plays */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold">Jugadas</h3>
@@ -94,8 +127,10 @@ export default function Venta() {
           {plays.map((p, i) => (
             <div key={i} className="flex gap-3 items-end" data-testid={`play-row-${i}`}>
               <div className="flex-1">
-                <label className="block text-xs text-slate-500 mb-1">Numero</label>
-                <input value={p.number} onChange={e => updatePlay(i, 'number', e.target.value)} placeholder="00" className="w-full" data-testid={`play-number-${i}`} />
+                <label className="block text-xs text-slate-500 mb-1">
+                  Numero {p.game_type === 'pale' ? '(ej: 12-34)' : p.game_type === 'tripleta' ? '(ej: 12-34-56)' : '(ej: 42)'}
+                </label>
+                <input value={p.number} onChange={e => updatePlay(i, 'number', e.target.value)} placeholder={p.game_type === 'pale' ? '12-34' : p.game_type === 'tripleta' ? '12-34-56' : '00'} className="w-full" data-testid={`play-number-${i}`} />
               </div>
               <div className="w-32">
                 <label className="block text-xs text-slate-500 mb-1">Tipo</label>
@@ -117,7 +152,6 @@ export default function Venta() {
         </div>
       </div>
 
-      {/* Summary */}
       <div className="card flex items-center justify-between">
         <div>
           <p className="text-sm text-slate-400">Total ({selectedLotteries.length} loterias x {plays.filter(p => p.amount).length} jugadas)</p>

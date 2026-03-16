@@ -31,8 +31,8 @@ export default function Users() {
 
   const handleDeposit = async () => {
     if (!depositAmount || !selected) return
-    const res = await apiFetch(`/api/users/${selected.id || selected._id}/deposit`, {
-      method: 'POST', body: JSON.stringify({ amount: parseFloat(depositAmount) })
+    const res = await apiFetch(`/api/users/${selected.id || selected._id}/deposit?amount=${parseFloat(depositAmount)}`, {
+      method: 'POST'
     })
     if (res.ok) { setShowDeposit(false); setDepositAmount(''); loadUsers() }
     else { const err = await res.json(); alert(err.detail || 'Error') }

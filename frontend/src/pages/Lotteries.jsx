@@ -11,14 +11,17 @@ export default function Lotteries() {
 
   const loadLotteries = async () => {
     try {
-      const res = await apiFetch('/api/lotteries')
+      const res = await apiFetch('/api/lotteries?active_only=false')
       if (res.ok) { const data = await res.json(); setLotteries(data.lotteries || data || []) }
     } catch {} finally { setLoading(false) }
   }
 
   const toggleStatus = async (lottery) => {
     const id = lottery.id || lottery._id
-    await apiFetch(`/api/lotteries/${id}/toggle`, { method: 'PUT' })
+    await apiFetch(`/api/lotteries/${id}`, { 
+      method: 'PUT', 
+      body: JSON.stringify({ active: lottery.active === false ? true : false }) 
+    })
     loadLotteries()
   }
 

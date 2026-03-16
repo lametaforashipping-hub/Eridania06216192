@@ -11,18 +11,21 @@ export default function Dashboard() {
 
   const loadStats = async () => {
     try {
-      const res = await apiFetch('/api/statistics/dashboard')
-      if (res.ok) setStats(await res.json())
+      const res = await apiFetch('/api/admin/stats/dashboard')
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data.summary || data)
+      }
     } catch {} finally { setLoading(false) }
   }
 
   if (loading) return <div className="flex justify-center py-20"><div className="spinner" /></div>
 
   const cards = [
-    { label: 'Ventas Hoy', value: `$${(stats?.today_sales || 0).toLocaleString()}`, icon: DollarSign, color: 'from-emerald-600 to-emerald-800' },
-    { label: 'Tickets Hoy', value: stats?.today_tickets || 0, icon: Ticket, color: 'from-blue-600 to-blue-800' },
-    { label: 'Vendedores Activos', value: stats?.active_sellers || 0, icon: Users, color: 'from-purple-600 to-purple-800' },
-    { label: 'Comisiones Hoy', value: `$${(stats?.today_commissions || 0).toLocaleString()}`, icon: TrendingUp, color: 'from-amber-600 to-amber-800' },
+    { label: 'Ventas Totales', value: `$${(stats?.total_sales || 0).toLocaleString()}`, icon: DollarSign, color: 'from-emerald-600 to-emerald-800' },
+    { label: 'Tickets Vendidos', value: stats?.total_tickets || 0, icon: Ticket, color: 'from-blue-600 to-blue-800' },
+    { label: 'Ganancia Neta', value: `$${(stats?.net_profit || 0).toLocaleString()}`, icon: Users, color: 'from-purple-600 to-purple-800' },
+    { label: 'Comisiones', value: `$${(stats?.total_commissions || 0).toLocaleString()}`, icon: TrendingUp, color: 'from-amber-600 to-amber-800' },
   ]
 
   return (
@@ -80,7 +83,7 @@ function RecentTickets({ apiFetch }) {
 function RecentResults({ apiFetch }) {
   const [results, setResults] = useState([])
   useEffect(() => {
-    apiFetch('/api/results?limit=5').then(r => r.ok && r.json().then(d => setResults(d.results || d || [])))
+    apiFetch('/api/lottery-results/latest').then(r => r.ok && r.json().then(d => setResults(d.results || d || [])))
   }, [])
   if (!results.length) return <p className="text-slate-500 text-sm">No hay resultados recientes</p>
   return (
@@ -91,7 +94,7 @@ function RecentResults({ apiFetch }) {
             <p className="text-sm font-medium">{r.lottery_name || 'Loteria'}</p>
             <p className="text-xs text-slate-500">{r.draw_time || ''}</p>
           </div>
-          <span className="text-sm font-bold text-emerald-400">{r.winning_number || r.number || '-'}</span>
+          <span className="text-sm font-bold text-emerald-400">{r.first_prize || '-'}</span>
         </div>
       ))}
     </div>
