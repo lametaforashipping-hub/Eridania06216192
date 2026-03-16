@@ -1,272 +1,145 @@
 <analysis>**original_problem_statement:**
-The user wants to build a comprehensive lottery sales application. Initially for administrators and sellers, the project was expanded to include a client-facing portal and a mobile app.
+The user initially requested a lottery sales application, which was built as a React Native (Expo) mobile app for iOS and Android. After successfully submitting the iOS app to the App Store, the user wanted to connect their custom domain (). It was discovered that the mobile-first deployment on the platform does not support custom domains.
 
-The most recent user requests are:
-1.  Finalize and publish the iOS application to the Apple App Store.
-2.  Reset the production database to start fresh for the official launch.
-3.  Modify the lottery selection screen in the mobile app:
-    *   Remove the Select All button/functionality.
-    *   Selection must always be manual.
-    *   Lottery names should be larger and fully visible.
+Following this, the user has approved a major project pivot: to **recreate the entire application as a web application using React and Vite**. The goal is to replicate all the functionality of the existing mobile app in a new web-based frontend that can be deployed and linked to their custom domain. The project is being executed in phases, starting with the core admin panel.
 
 **User's preferred language**: Spanish
 
 **what currently exists?**
-A full-stack lottery application with a React Native (Expo) frontend and a FastAPI backend. The agent has successfully implemented the requested UI changes for lottery selection and added a Reset Database button to the admin panel.
+The original, functional React Native (Expo) application exists in the  directory.
 
-The primary focus has been guiding the user through the complex process of generating and submitting the iOS application to the App Store. The agent has walked the user through a local setup on their Windows machine, successfully generating an iOS build () using An Expo user account is required to proceed.
+A new, separate web application project has been initiated in the  directory. The agent has set up the basic structure for a React (Vite) project, including installing necessary dependencies (React Router, Axios, TailwindCSS), creating the directory structure (, , ), and adding placeholder files for the key pages of the first migration phase (Login, Dashboard, Users, etc.). The supervisor configuration has been updated to run this new web application.
 
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username. They are now stuck trying to submit this build to App Store Connect using An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username.
+The backend remains the same and is shared by both the old mobile app and the new web app.
 
 **Last working item**:
-    - Last item agent was working: Fixing a syntax error in the  file on the user's local Windows machine. The user was trying to run An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username but the command failed due to a malformed JSON file from previous edits. The agent provided the complete, correct content for  and was waiting for the user to copy and paste it to fix the file.
-    - Status: BLOCKED
+    - Last item agent was working: Initiating the migration from a React Native (Expo) frontend to a new React (Vite) web frontend. The agent has just finished the initial scaffolding of the new project in the  directory. This involved creating the directory structure, installing web-specific dependencies, creating placeholder page and component files, and configuring the supervisor to run the new Vite development server.
+    - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? NA
+    - Which testing method agent to use? Frontend testing agent
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Malformed  file on user's local machine prevents iOS app submission. (P0)
-
-  Issues Detail:
-  - Issue 1: 
-     - Attempted fixes: The agent provided multiple small code snippets to fix the  file. The user repeatedly made copy-paste errors, leading to new JSON syntax issues. The last attempt involved the agent providing the full, correct content of the  file to be copied and pasted over the existing broken file.
-     - Next debug checklist: 
-        1. Instruct the user to open  on their local machine with a simple text editor (like Notepad).
-        2. Guide them to delete all existing content.
-        3. Provide the full, correct  content (generated in the previous turn) for them to paste into the empty file.
-        4. Have them save the file.
-        5. Instruct them to run An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username again in their CMD terminal.
-     - Why fix this issue and what will be achieved with the fix? This is the final blocker preventing the iOS application from being uploaded to App Store Connect for review and publication.
-     - Status: IN PROGRESS
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on other issue: None
+  - There are no pending bugs or issues. The primary focus is the large-scale migration task detailed below.
 
 **In progress Task List**:
-  - Task 1: Submit the generated iOS build to App Store Connect. (P0)
-     - Where to resume: The task is blocked by the  issue. Once the file is fixed, the agent must guide the user to re-run the An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username command and handle any subsequent prompts (like providing the App-Specific Password).
-     - What will be achieved with this? The  file will be uploaded to App Store Connect, making it available to be selected for App Store submission.
-     - Status: BLOCKED
+  - Task 1: **(P0) Phase 1: Web App Migration - Core Admin Panel**
+     - Where to resume: The project skeleton exists in . The immediate next step is to implement the user authentication flow. This involves:
+        1. Building out the  in  to handle login, logout, and user session state.
+        2. Implementing the login form and API call logic in the  page at .
+        3. Ensuring a successful login redirects the user to the main application layout (), which should be protected.
+     - What will be achieved with this? This will complete the foundational authentication piece of the new web application, allowing for further development of protected routes and features.
+     - Status: IN PROGRESS
      - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on something: Issue 1: Malformed  file.
+     - Blocked on something: None
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **P0: User verification of iOS build upload:** Guide the user to confirm the build appears in App Store Connect under the Build section.
-    *   **P1: Finalize App Store Submission:** Guide the user to complete the final steps in App Store Connect (add screenshots, select the build, click Submit for Review).
-    *   **P2: Connect Custom Domain ():** Assist the user in linking their custom domain to the deployed web application.
+    *   **P0: Phase 1 Completion:**
+        *   Implement the main  (Sidebar & Header).
+        *   Build the  page ().
+        *   Build the , , , , , and  pages as per the plan approved by the user.
+    *   **P1: Phase 2: Seller & Sales Flow:** Recreate the seller-specific UI and sales functionality.
+    *   **P2: Phase 3: Client Portal & Advanced Features:** Build the remaining screens and features from the original mobile app.
+    *   **P3: Phase 4: Styling & UX Refinement:** Polish the web application's UI/UX.
 
 *   **Future Tasks:**
-    *   None identified.
+    *   **Connect Custom Domain:** Once the web application is complete and deployed, guide the user to connect .
+    *   **Finalize Google Play Store Submission:** The Android submission is on hold. The user still needs to conduct a closed test with at least 12 testers for 14 days. This is a backlog item to be revisited after the web app is complete.
 
 **Completed work in this session**
-- **Mobile Sharing PDF Logo Fix**: Added the company logo to the shared PDF receipt by embedding a base64-encoded image string into the HTML template.
-- **Deployment & Health Checks**: Successfully fixed multiple deployment errors related to EAS configuration ( slug) and ran health checks to confirm readiness.
-- **Database Reset Functionality**:
-    - Created a secure backend endpoint () for super admins.
-    - Added a Resetear Base de Datos button with a confirmation dialog in the frontend admin panel ().
-    - Successfully guided the user to reset the production database.
-- **Lottery Selection UI Rework**:
-    - Removed the Select All functionality and buttons from the lottery selection screen ().
-    - Increased the font size and removed width constraints on lottery names to ensure they are fully visible.
-- **App Store Connect Setup**:
-    - Guided the user through most of the App Store Connect configuration: Age Rating, Privacy, Pricing, and Content Rights.
-    - Created a temporary  endpoint and page to satisfy Apple's requirements.
-    - Updated  with the correct  and an iOS build profile.
-- **iOS Build Generation (Local User Guidance)**:
-    - Guided the user through setting up their local Windows environment to build the iOS app.
-    - This included installing , logging into Expo, downloading the project code (as a ZIP since Git was not installed), navigating CMD, installing dependencies with 
-up to date, audited 1054 packages in 1s
+- **Project Pivot to Web App:** After confirming with support that custom domains are not supported for mobile-only deployments, the agent planned and received user approval for a full migration to a web application.
+- **Web App Scaffolding:** Created the new  directory, initialized a Vite + React project, installed all necessary dependencies, created a comprehensive file structure, and configured the supervisor to run the new web app.
+- **Mobile App Bug Fix:** Fixed a critical bug in the original mobile app where the on-screen keyboard would obscure the Confirm button on deposit modals. This was resolved by wrapping the modal content in a  and  in  and .
+- **Deployment Conflict Resolution:** Resolved deployment warnings by deleting the  file and adding it to  to prevent conflicts with .
+- **iOS App Store Submission:** Successfully guided the user through the entire process of submitting their iOS app to App Store Connect, including fixing a recurring local  file corruption issue by providing automated PowerShell commands.
+- **Android Play Store Guidance:**
+    - Guided the user to create a publicly accessible privacy policy using Google Sites to resolve a validation error.
+    - Guided the user through most of the required forms in the Google Play Console (Data Safety, Content Rating, etc.).
+    - Successfully built the Android App Bundle () required for submission after debugging a transient build failure.
 
-192 packages are looking for funding
-  run `npm fund` for details
+**Earlier issues found/mentioned but not fixed**
+   - None. All identified issues were either resolved or superseded by the project pivot.
 
-7 vulnerabilities (1 low, 3 moderate, 3 high)
-
-To address issues that do not require attention, run:
-  npm audit fix
-
-Some issues need review, and may require choosing
-a different dependency.
-
-Run `npm audit` for details., and successfully running An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username.
-    - Overcame multiple user environment issues, including lack of Git (), Apple 2FA failures (by switching to an App-Specific Password), and credential management.
+**Known issue recurrence from previous fork**
+  - **Issue recurrence in previous fork:** The user repeatedly struggled with copy-pasting text and running commands correctly in their local Windows CMD, leading to corrupted  files.
+  - **Recurrence count:** High (3+ attempts).
+  - **Status:** RESOLVED
+  - **Note:** The agent overcame this by providing a single  command that automated the file download and replacement process. This proved to be a very effective strategy for assisting this user with local environment tasks and should be considered for any future local machine guidance.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **EAS Build & Submit for iOS on Windows**: The core process involves using An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username to create an  file on Expo's servers and An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username to upload it to App Store Connect. This process can be executed from a non-Mac environment.
-- **App Store Connect Configuration**: The manual process of filling out app metadata, including age ratings (which must account for real-money gambling), privacy policies, and pricing on the Apple portal.
-- **User Guidance for Local Environment**: The agent successfully guided a non-technical user through complex command-line operations on their local Windows machine, including directory navigation, environment variable setting (), and running npm <command>
-
-Usage:
-
-npm install        install all the dependencies in your project
-npm install <foo>  add the <foo> dependency to your project
-npm test           run this project's tests
-npm run <foo>      run the script named <foo>
-npm <command> -h   quick help on <command>
-npm -l             display usage info for all commands
-npm help <term>    search for help on <term>
-npm help npm       more involved overview
-
-All commands:
-
-    access, adduser, audit, bugs, cache, ci, completion,
-    config, dedupe, deprecate, diff, dist-tag, docs, doctor,
-    edit, exec, explain, explore, find-dupes, fund, get, help,
-    help-search, hook, init, install, install-ci-test,
-    install-test, link, ll, login, logout, ls, org, outdated,
-    owner, pack, ping, pkg, prefix, profile, prune, publish,
-    query, rebuild, repo, restart, root, run-script, sbom,
-    search, set, shrinkwrap, star, stars, start, stop, team,
-    test, token, uninstall, unpublish, unstar, update, version,
-    view, whoami
-
-Specify configs in the ini-formatted file:
-    /root/.npmrc
-or on the command line via: npm <command> --key=value
-
-More configuration info: npm help config
-Configuration fields: npm help 7 config
-
-npm@10.8.2 /usr/lib/node_modules/npm and EAS command line tool
-
-VERSION
-  eas-cli/18.0.5 linux-arm64 node-v20.20.0
-
-USAGE
-  $ eas [COMMAND]
-
-TOPICS
-  account      manage account
-  branch       manage update branches
-  build        build app binaries
-  channel      manage update channels
-  credentials  manage credentials
-  deploy       deploy your Expo Router web build and API Routes
-  device       manage Apple devices for Internal Distribution
-  env          manage project and account environment variables
-  fingerprint  compare fingerprints of the current project, builds, and updates
-  metadata     manage store configuration
-  project      manage project
-  update       manage individual updates
-  webhook      manage webhooks
-  workflow     manage workflows
-
-COMMANDS
-  analytics     display or change analytics settings
-  autocomplete  display autocomplete installation instructions
-  build         start a build
-  config        display project configuration (app.json + eas.json)
-  credentials   manage credentials
-  deploy        deploy your Expo Router web build and API Routes
-  diagnostics   display environment info
-  help          Display help for eas.
-  init          create or link an EAS project
-  login         log in with your Expo account
-  logout        log out
-  new           Create a new project configured with Expo Application Services
-                (EAS)
-  onboarding    continue onboarding process started on the https://expo.new
-                website.
-  open          open the project page in a web browser
-  submit        submit app binary to App Store and/or Play Store
-  update        publish an update group
-  upload        upload a local build and generate a sharable link
-  whoami        show the username you are logged in as commands.
-- **Apple App-Specific Passwords**: Used as a workaround when Apple's 2FA codes were failing, allowing the EAS CLI to authenticate non-interactively.
+- **Frontend Tech Stack Pivot**: The project is moving from a **React Native (Expo)** stack to a standard **React (Vite)** web stack. The new stack uses Vite for bundling, React Router for navigation, and TailwindCSS for styling.
+- **User Authentication**: JWT-based authentication will be implemented using a React Context () to manage session state across the web application.
+- **Supervisor Configuration**: The supervisor has been reconfigured to manage the new Vite frontend (), pointing it to the  directory and using yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command..
+- **Local User Assistance**: Guiding a non-technical user through complex local command-line operations is a recurring theme. Using automated scripts (e.g., PowerShell) is the most effective approach.
 
 **key DB schema**
-  - No changes in this session.
+  - No changes made to the database schema.
 
 **changes in tech stack**
-  - No new technologies were added.
+  - **Major Frontend Overhaul**: The frontend technology has completely changed from **React Native/Expo** to **React/Vite**. All frontend code will be new.
 
 **All files of reference**
-*   **Created:**
-    *   : To house the new database reset endpoint.
-    *   : Contains the base64-encoded company logo.
-*   **Updated:**
-    *   : To add the new privacy policy endpoint.
-    *   : To add the Reset Database button and its logic.
-    *   : To remove Select All and improve the lottery selection UI.
-    *   , , : To use the base64 logo for PDF generation.
-    *   : Corrected  and  to fix a deployment error.
-    *   : Added the  profile for iOS builds and corrected the .
+*   **New Web Project Files (all in )**:
+    *   , , : Configuration for the new web frontend.
+    *   : Contains new web-specific dependencies like , , .
+    *   : Entry point for the React application.
+    *   : Main component containing the application routes.
+    *   : Placeholder for authentication logic.
+    *   : Placeholder files for all the main application pages.
+    *   : Placeholder files for the main application layout.
+*   **Updated/Fixed Files**:
+    *   : Fixed keyboard covering modal.
+    *   : Fixed keyboard covering modal.
+    *   : Added  to prevent conflicts.
+    *   : Updated to run the new Vite project.
 
 **Areas that need refactoring**:
-*   The HTML generation logic for PDF receipts is still duplicated across three files (, , ). This could be moved to a single utility function.
+*   The PDF generation logic in the original mobile app () is duplicated. This is now a very low priority as that codebase is considered legacy.
 
 **key api endpoints**
--   : A new protected endpoint for super admins to wipe transactional data from the database.
--   : A new endpoint that serves a basic HTML privacy policy page.
+- No new API endpoints were created. The new web frontend will consume the same existing backend APIs as the mobile app.
 
 **Critical Info for New Agent**
 - **¡COMUNÍCATE EN ESPAÑOL!**
-- **The Problem**: The user is blocked from submitting their iOS app to Apple. The An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username command is failing on their local Windows machine because the  file has syntax errors.
-- **The Strategy**: You must guide the user to fix their local  file. They are not a technical user and have trouble with copy-pasting, so instructions must be extremely simple, clear, and step-by-step.
-- **Your Immediate Task**:
-    1.  Provide the user with the complete, correct content for .
-    2.  Instruct them to open the file  in Bloc de notas (Notepad).
-    3.  Tell them to **DELETE EVERYTHING** inside and **PASTE** the new content.
-    4.  Instruct them to save the file.
-    5.  Once saved, guide them to run An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username in their CMD terminal again.
-    6.  Be prepared to re-guide them on providing the App-Specific Password () if prompted.
+- **PROJECT PIVOT**: The primary goal has changed. You are no longer working on the mobile app. You are building a **new web application from scratch** in the  directory. The old  directory should only be used as a reference for features and logic.
+- **RESUME PHASE 1**: The user has approved a phased migration plan. Your immediate task is to continue with **Phase 1: Core Admin Panel**.
+- **NEXT STEP**: Start by implementing the **user login functionality**. This involves coding the  () and the login form/logic ().
+- **USER'S TECHNICAL SKILL**: The user is not technical and struggles with command-line operations. Provide extremely clear, simple, step-by-step instructions. Automating local tasks with  scripts has proven successful and should be your preferred method if local machine interaction is needed.
 
 **documents and test reports created in this job**
-  - 
+  -  (updated to reflect the pivot to a web application)
 
 **Last 10 User Messages and any pending HUMAN messages** 
-- User is providing CMD output showing the An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username command failing due to a malformed  file. They are repeatedly making copy-paste errors while trying to fix it. The errors shown are  and , indicating syntax problems like duplicate keys or misplaced characters. The last message shows the agent has provided the full correct content for  to resolve this. The user has not yet confirmed the fix.
+1.  **User**: Asks about the deposit screen bug where the keyboard covers the button.
+2.  **Agent**: Fixes the bug in the mobile app by adding .
+3.  **User**: Asks to make the app deployment permanent.
+4.  **User**: Asks to connect the custom domain .
+5.  **Agent**: Inquires where the domain was purchased (Hostinger).
+6.  **Agent**: Calls the support agent to clarify why the deployment URL is not visible.
+7.  **Support Agent**: Explains that mobile-only (Expo) deployments do not get a web URL and cannot be connected to a custom domain.
+8.  **User**: Asks if the project can be cloned and recreated as a web application to use the domain.
+9.  **Agent**: Proposes a detailed, phased plan to migrate the entire application to a new React (Vite) web project.
+10. **User**: de acuerdo me gusta asi (Agrees to the new web migration plan).
 
 **Project Health Check:**
-*   **Broken:** None. The core application is functional. The current issue is with the local build submission process on the user's machine.
+*   **Broken:**  - The new web app is currently a non-functional skeleton. This is expected as it's at the very beginning of its development lifecycle.
 *   **Mocked:** None.
 
 **3rd Party Integrations**
-*   : For sending emails.
+*   : User's domain registrar. Will be needed in the future to configure DNS.
 *   : Production database.
-*   : Used for building and submitting mobile applications. This is the integration currently being worked on.
+*   : Used for the (now legacy) mobile app builds.
 
 **Testing status**
   - Testing agent used after significant changes: NO
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: []
-  - Known regressions: None
+  - Known regressions: None.
 
 **Credentials to test flow:**
 *   **Seller:**
@@ -277,4 +150,4 @@ Input is required, but stdin is not readable. Failed to display prompt: Email or
     *   Password: 
 
 **What agent forgot to execute**
-The agent correctly diagnosed the problem with the local  file and provided the fix. The process is stuck on the user successfully applying the fix to their local file. The next agent must resume from this exact point.</analysis>
+The agent correctly identified the core limitation of the mobile-only deployment and successfully pivoted the project's direction with the user's consent. The work on the new web application has just begun, so no tasks have been forgotten. The next steps are clearly laid out in the migration plan.</analysis>
