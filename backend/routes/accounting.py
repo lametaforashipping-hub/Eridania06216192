@@ -444,6 +444,148 @@ async def get_sellers_report(
     }
 
 
+@router.get("/country-comparison")
+async def get_country_comparison(
+    period: str = "month",
+    current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))
+):
+    """Get sales comparison between RD and US"""
+    db = get_db()
+    now = datetime.utcnow()
+    
+    if period == "day":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "week":
+        start = now - timedelta(days=7)
+    else:
+        start = now - timedelta(days=30)
+    
+    countries_data = {}
+    for country_code in ["RD", "US"]:
+        country_lotteries = await db.lotteries.find({"country": country_code}, {"id": 1, "_id": 0}).to_list(500)
+        lottery_ids = [l["id"] for l in country_lotteries]
+        
+        # Also match by seller_country for multi-play tickets
+        lottery_filter = []
+        if lottery_ids:
+            lottery_filter.append({"lottery_id": {"$in": lottery_ids}})
+            lottery_filter.append({"plays.lottery_id": {"$in": lottery_ids}})
+        lottery_filter.append({"seller_country": country_code})
+        
+        query = {
+            "created_at": {"$gte": start, "$lte": now},
+            "status": {"$ne": TicketStatus.CANCELLED.value},
+            "$or": lottery_filter
+        }
+        
+        pipeline = [
+            {"$match": query},
+            {"$group": {
+                "_id": None,
+                "total_sales": {"$sum": {"$ifNull": [{"$ifNull": ["$amount", "$total_amount"]}, 0]}},
+                "total_tickets": {"$sum": 1}
+            }}
+        ]
+        result = await db.tickets.aggregate(pipeline).to_list(1)
+        stats = result[0] if result else {"total_sales": 0, "total_tickets": 0}
+        
+        # Wins
+        wins_query = {
+            "created_at": {"$gte": start, "$lte": now},
+            "status": {"$in": [TicketStatus.WON.value, TicketStatus.PAID.value]},
+            "$or": lottery_filter
+        }
+        wins_pipeline = [
+            {"$match": wins_query},
+            {"$group": {
+                "_id": None,
+                "total_wins": {"$sum": {"$ifNull": [{"$ifNull": ["$prize", "$total_prize"]}, 0]}}
+            }}
+        ]
+        wins_result = await db.tickets.aggregate(wins_pipeline).to_list(1)
+        total_wins = wins_result[0]["total_wins"] if wins_result else 0
+        
+        # Sellers count
+        sellers_count = await db.users.count_documents({"role": "vendedor", "country": country_code, "active": True})
+        
+        # Daily breakdown for chart
+        daily = []
+        days_count = 7 if period == "week" else (1 if period == "day" else 14)
+        for i in range(days_count - 1, -1, -1):
+            day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            day_query = {
+                "created_at": {"$gte": day_start, "$lt": day_end},
+                "status": {"$ne": TicketStatus.CANCELLED.value},
+                "$or": lottery_filter
+            }
+            day_pipeline = [
+                {"$match": day_query},
+                {"$group": {"_id": None, "sales": {"$sum": {"$ifNull": [{"$ifNull": ["$amount", "$total_amount"]}, 0]}}, "count": {"$sum": 1}}}
+            ]
+            day_result = await db.tickets.aggregate(day_pipeline).to_list(1)
+            day_names = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+            daily.append({
+                "date": day_start.strftime("%d/%m"),
+                "day_name": day_names[day_start.weekday()],
+                "sales": day_result[0]["sales"] if day_result else 0,
+                "tickets": day_result[0]["count"] if day_result else 0
+            })
+        
+        # Top lotteries - use unwind for multi-play tickets
+        if lottery_ids:
+            lottery_pipeline = [
+                {"$match": {
+                    "created_at": {"$gte": start, "$lte": now},
+                    "status": {"$ne": TicketStatus.CANCELLED.value},
+                    "$or": lottery_filter
+                }},
+                {"$project": {
+                    "lottery_id": {"$ifNull": ["$lottery_id", None]},
+                    "plays": {"$ifNull": ["$plays", []]},
+                    "amount": {"$ifNull": [{"$ifNull": ["$amount", "$total_amount"]}, 0]}
+                }},
+                {"$unwind": {"path": "$plays", "preserveNullAndEmptyArrays": True}},
+                {"$project": {
+                    "lid": {"$ifNull": ["$plays.lottery_id", "$lottery_id"]},
+                    "amt": {"$ifNull": ["$plays.amount", "$amount"]}
+                }},
+                {"$match": {"lid": {"$in": lottery_ids}}},
+                {"$group": {"_id": "$lid", "total": {"$sum": "$amt"}, "count": {"$sum": 1}}},
+                {"$sort": {"total": -1}},
+                {"$limit": 5}
+            ]
+            top_lotteries_raw = await db.tickets.aggregate(lottery_pipeline).to_list(5)
+        else:
+            top_lotteries_raw = []
+        top_lotteries = []
+        for tl in top_lotteries_raw:
+            lot = await db.lotteries.find_one({"id": tl["_id"]}, {"_id": 0, "name": 1})
+            top_lotteries.append({
+                "name": lot["name"] if lot else "N/A",
+                "total": tl["total"],
+                "count": tl["count"]
+            })
+        
+        total_sales = stats.get("total_sales", 0)
+        countries_data[country_code] = {
+            "country": country_code,
+            "currency": "RD$" if country_code == "RD" else "US$",
+            "total_sales": total_sales,
+            "total_wins": total_wins,
+            "net_profit": total_sales - total_wins,
+            "total_tickets": stats.get("total_tickets", 0),
+            "active_sellers": sellers_count,
+            "daily": daily,
+            "top_lotteries": top_lotteries
+        }
+    
+    return {
+        "period": period,
+        "countries": countries_data
+    }
+
+
 @router.get("/daily-chart")
 async def get_daily_chart_data(
     days: int = 7,

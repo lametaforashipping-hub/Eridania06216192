@@ -10,6 +10,11 @@ import Venta from './pages/Venta'
 import Statistics from './pages/Statistics'
 import ComingSoon from './pages/ComingSoon'
 import PrizeConfig from './pages/PrizeConfig'
+import SalesReport from './pages/SalesReport'
+import SellersReport from './pages/SellersReport'
+import AccountingPage from './pages/AccountingPage'
+import CommissionReport from './pages/CommissionReport'
+import UserReport from './pages/UserReport'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -49,13 +54,14 @@ export default function App() {
       <Route path="/live-tickets" element={<ProtectedRoute><ComingSoon title="Tickets En Vivo" /></ProtectedRoute>} />
       <Route path="/monitoring" element={<ProtectedRoute><ComingSoon title="Monitoreo" /></ProtectedRoute>} />
       <Route path="/number-limits" element={<ProtectedRoute><ComingSoon title="Límites de Números" /></ProtectedRoute>} />
-      <Route path="/user-report" element={<ProtectedRoute><ComingSoon title="Mi Reporte" /></ProtectedRoute>} />
-      <Route path="/sellers-report" element={<ProtectedRoute><ComingSoon title="Reporte Vendedores" /></ProtectedRoute>} />
+      <Route path="/user-report" element={<ProtectedRoute><UserReport /></ProtectedRoute>} />
+      <Route path="/sellers-report" element={<ProtectedRoute><SellersReport /></ProtectedRoute>} />
+      <Route path="/sales-report" element={<ProtectedRoute><SalesReport /></ProtectedRoute>} />
       <Route path="/terminals" element={<ProtectedRoute><ComingSoon title="Terminales" /></ProtectedRoute>} />
       <Route path="/admin-stats" element={<ProtectedRoute><ComingSoon title="Dashboard Admin" /></ProtectedRoute>} />
       <Route path="/sales-goals" element={<ProtectedRoute><ComingSoon title="Metas de Ventas" /></ProtectedRoute>} />
-      <Route path="/accounting" element={<ProtectedRoute><ComingSoon title="Contabilidad" /></ProtectedRoute>} />
-      <Route path="/commission-report" element={<ProtectedRoute><ComingSoon title="Comisiones" /></ProtectedRoute>} />
+      <Route path="/accounting" element={<ProtectedRoute><AccountingPage /></ProtectedRoute>} />
+      <Route path="/commission-report" element={<ProtectedRoute><CommissionReport /></ProtectedRoute>} />
       <Route path="/pay-prizes" element={<ProtectedRoute><ComingSoon title="Pagar Premios" /></ProtectedRoute>} />
       <Route path="/admin-pending-payments" element={<ProtectedRoute><ComingSoon title="Pagos Pendientes" /></ProtectedRoute>} />
       <Route path="/bank-accounts" element={<ProtectedRoute><ComingSoon title="Cuentas de Banco" /></ProtectedRoute>} />

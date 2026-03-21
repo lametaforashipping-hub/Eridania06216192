@@ -1,15 +1,20 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LayoutDashboard, Users, Ticket, Trophy, ShoppingCart, BarChart3, LogOut, Menu, X, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, Users, Ticket, Trophy, ShoppingCart, BarChart3, LogOut, Menu, X, ChevronDown, Globe, Receipt, DollarSign, FileText } from 'lucide-react'
 
 const adminLinks = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/users', icon: Users, label: 'Usuarios' },
   { to: '/lotteries', icon: Ticket, label: 'Loterias' },
-  { to: '/tickets', icon: ShoppingCart, label: 'Tickets' },
+  { to: '/venta', icon: ShoppingCart, label: 'Venta' },
+  { to: '/tickets', icon: Ticket, label: 'Tickets' },
   { to: '/results', icon: Trophy, label: 'Resultados' },
-  { to: '/statistics', icon: BarChart3, label: 'Estadisticas' },
+  { to: '/sales-report', icon: Globe, label: 'Reporte País' },
+  { to: '/sellers-report', icon: Users, label: 'Vendedores' },
+  { to: '/accounting', icon: DollarSign, label: 'Contabilidad' },
+  { to: '/commission-report', icon: Receipt, label: 'Comisiones' },
+  { to: '/statistics', icon: BarChart3, label: 'Estadísticas' },
 ]
 
 const sellerLinks = [
@@ -17,6 +22,7 @@ const sellerLinks = [
   { to: '/venta', icon: ShoppingCart, label: 'Venta' },
   { to: '/tickets', icon: Ticket, label: 'Mis Tickets' },
   { to: '/results', icon: Trophy, label: 'Resultados' },
+  { to: '/user-report', icon: FileText, label: 'Mi Reporte' },
 ]
 
 export default function Layout() {

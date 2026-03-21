@@ -67,7 +67,7 @@ export default function Dashboard() {
     { icon: Users, label: 'Vendedores', route: '/sellers-report', roles: ['super_admin', 'admin'], color: '#06b6d4' },
     { icon: ChevronRight, label: 'Terminales', route: '/terminals', roles: ['super_admin', 'admin'], color: '#22c55e' },
     { icon: TrendingUp, label: 'Estadísticas', route: '/stats', roles: ['super_admin', 'admin', 'vendedor'], color: '#14b8a6' },
-    { icon: BarChart3, label: 'Dashboard', route: '/admin-stats', roles: ['super_admin', 'admin'], color: '#7c3aed' },
+    { icon: BarChart3, label: 'Reporte País', route: '/sales-report', roles: ['super_admin', 'admin'], color: '#7c3aed' },
     { icon: Target, label: 'Metas Ventas', route: '/sales-goals', roles: ['super_admin', 'admin'], color: '#ec4899' },
     { icon: Calculator, label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: Receipt, label: 'Comisiones', route: '/commission-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
