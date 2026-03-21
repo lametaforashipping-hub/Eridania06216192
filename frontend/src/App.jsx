@@ -17,11 +17,14 @@ import CommissionReport from './pages/CommissionReport'
 import UserReport from './pages/UserReport'
 import AlertSettings from './pages/AlertSettings'
 
-function ProtectedRoute({ children }) {
+import Layout from './components/Layout'
+
+function ProtectedRoute({ children, noLayout }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="flex items-center justify-center h-screen bg-[#0f172a]"><div className="spinner" /></div>
   if (!user) return <Navigate to="/login" />
-  return children
+  if (noLayout) return children
+  return <Layout>{children}</Layout>
 }
 
 export default function App() {
@@ -39,7 +42,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/client-login" element={<ComingSoon title="Portal de Clientes" />} />
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute noLayout><Dashboard /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
       <Route path="/lotteries" element={<ProtectedRoute><Lotteries /></ProtectedRoute>} />
       <Route path="/tickets" element={<ProtectedRoute><Tickets /></ProtectedRoute>} />
