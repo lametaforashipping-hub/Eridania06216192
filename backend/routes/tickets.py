@@ -477,6 +477,66 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         "created_at": datetime.utcnow()
     })
     
+    # Check sales milestones
+    try:
+        alert_config = await db.alert_settings.find_one({"type": "global"})
+        if alert_config and alert_config.get("notify_on_milestone", True):
+            milestone = alert_config.get("milestone_rd", 50000) if seller_country != "US" else alert_config.get("milestone_usd", 1000)
+            currency_sym = "RD$" if seller_country != "US" else "US$"
+            
+            # Get today's total sales for this seller
+            today_total_pipeline = [
+                {"$match": {
+                    "seller_id": effective_user["id"],
+                    "created_at": {"$gte": datetime.utcnow().replace(hour=0, minute=0, second=0)},
+                    "status": {"$ne": TicketStatus.CANCELLED.value}
+                }},
+                {"$group": {"_id": None, "total": {"$sum": {"$ifNull": ["$amount", "$total_amount"]}}}}
+            ]
+            today_result = await db.tickets.aggregate(today_total_pipeline).to_list(1)
+            today_total = today_result[0]["total"] if today_result else 0
+            prev_total = today_total - total_amount
+            
+            # Check if milestone just crossed
+            if prev_total < milestone <= today_total:
+                milestone_notification = {
+                    "id": str(uuid.uuid4()),
+                    "type": "sales_milestone",
+                    "target_role": "all",
+                    "title": f"Meta de Ventas Alcanzada",
+                    "message": f"{effective_user['name']} alcanzó {currency_sym} {milestone:,.0f} en ventas hoy (Total: {currency_sym} {today_total:,.0f})",
+                    "seller_id": effective_user["id"],
+                    "seller_name": effective_user["name"],
+                    "milestone": milestone,
+                    "today_total": today_total,
+                    "currency": currency_sym,
+                    "created_at": datetime.utcnow(),
+                    "read_by": []
+                }
+                await db.notifications.insert_one(milestone_notification)
+            
+            # Check daily target
+            daily_target = alert_config.get("daily_target_rd", 100000) if seller_country != "US" else alert_config.get("daily_target_usd", 2000)
+            if alert_config.get("notify_on_daily_target", True) and prev_total < daily_target <= today_total:
+                target_notification = {
+                    "id": str(uuid.uuid4()),
+                    "type": "daily_target",
+                    "target_role": "all",
+                    "title": f"Meta Diaria Alcanzada",
+                    "message": f"{effective_user['name']} alcanzó la meta diaria de {currency_sym} {daily_target:,.0f}",
+                    "seller_id": effective_user["id"],
+                    "seller_name": effective_user["name"],
+                    "daily_target": daily_target,
+                    "today_total": today_total,
+                    "currency": currency_sym,
+                    "created_at": datetime.utcnow(),
+                    "read_by": []
+                }
+                await db.notifications.insert_one(target_notification)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Milestone check failed: {e}")
+    
     response = {**serialize_doc(ticket_doc), "commission_earned": commission}
     if multi_play_limit_warnings:
         response["limit_warnings"] = multi_play_limit_warnings

@@ -15,6 +15,7 @@ import SellersReport from './pages/SellersReport'
 import AccountingPage from './pages/AccountingPage'
 import CommissionReport from './pages/CommissionReport'
 import UserReport from './pages/UserReport'
+import AlertSettings from './pages/AlertSettings'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -67,6 +68,7 @@ export default function App() {
       <Route path="/bank-accounts" element={<ProtectedRoute><ComingSoon title="Cuentas de Banco" /></ProtectedRoute>} />
       <Route path="/play-types-admin" element={<ProtectedRoute><ComingSoon title="Tipos de Jugada" /></ProtectedRoute>} />
       <Route path="/prize-config" element={<ProtectedRoute><PrizeConfig /></ProtectedRoute>} />
+      <Route path="/alert-settings" element={<ProtectedRoute><AlertSettings /></ProtectedRoute>} />
       <Route path="/company-profile" element={<ProtectedRoute><ComingSoon title="Mi Empresa" /></ProtectedRoute>} />
       <Route path="/system-settings" element={<ProtectedRoute><ComingSoon title="Configuración" /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />

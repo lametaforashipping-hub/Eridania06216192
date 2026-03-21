@@ -56,6 +56,7 @@ from routes.clients import router as clients_router
 from routes.payments import router as payments_router
 from routes.goals import router as goals_router
 from routes.prize_config import router as prize_config_router
+from routes.alert_settings import router as alert_settings_router
 
 # Register all routers with the API router
 api_router.include_router(auth_router)
@@ -78,6 +79,7 @@ api_router.include_router(clients_router)
 api_router.include_router(payments_router)
 api_router.include_router(goals_router)
 api_router.include_router(prize_config_router)
+api_router.include_router(alert_settings_router)
 
 # Include the main API router
 app.include_router(api_router)

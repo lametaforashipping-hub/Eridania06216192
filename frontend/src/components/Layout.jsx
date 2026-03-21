@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LayoutDashboard, Users, Ticket, Trophy, ShoppingCart, BarChart3, LogOut, Menu, X, ChevronDown, Globe, Receipt, DollarSign, FileText } from 'lucide-react'
+import { LayoutDashboard, Users, Ticket, Trophy, ShoppingCart, BarChart3, LogOut, Menu, X, ChevronDown, Globe, Receipt, DollarSign, FileText, Bell } from 'lucide-react'
+import NotificationCenter from './NotificationCenter'
 
 const adminLinks = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -15,6 +16,7 @@ const adminLinks = [
   { to: '/accounting', icon: DollarSign, label: 'Contabilidad' },
   { to: '/commission-report', icon: Receipt, label: 'Comisiones' },
   { to: '/statistics', icon: BarChart3, label: 'Estadísticas' },
+  { to: '/alert-settings', icon: Bell, label: 'Alertas' },
 ]
 
 const sellerLinks = [
@@ -98,6 +100,7 @@ export default function Layout() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
+            <NotificationCenter />
             <span className="text-xs text-slate-500 hidden sm:block">{user?.email}</span>
             <div className="w-7 h-7 rounded-full bg-[--color-primary] flex items-center justify-center text-xs font-bold">
               {user?.name?.charAt(0)?.toUpperCase()}
