@@ -5,7 +5,7 @@ import {
   LogOut, Bell, User, ShoppingCart, QrCode, Ticket, Heart, Trophy,
   Zap, Radio, Eye, Gauge, BarChart3, Users, Landmark, Grid3X3,
   Target, Calculator, Receipt, Banknote, CreditCard, Building2,
-  Settings, TrendingUp, TrendingDown, Calendar, DollarSign, ChevronRight
+  Settings, TrendingUp, TrendingDown, Calendar, DollarSign, ChevronRight, Gift
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -76,6 +76,7 @@ export default function Dashboard() {
     { icon: Users, label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
     { icon: Landmark, label: 'Cuentas Banco', route: '/bank-accounts', roles: ['super_admin', 'admin'], color: '#0d9488' },
     { icon: Grid3X3, label: 'Loterías', route: '/lotteries', roles: ['super_admin'], color: '#a855f7' },
+    { icon: Gift, label: 'Premios País', route: '/prize-config', roles: ['super_admin'], color: '#22c55e' },
     { icon: Target, label: 'Tipos Jugada', route: '/play-types-admin', roles: ['super_admin'], color: '#f43f5e' },
     { icon: Building2, label: 'Mi Empresa', route: '/company-profile', roles: ['super_admin'], color: '#6366f1' },
     { icon: Settings, label: 'Configuración', route: '/system-settings', roles: ['super_admin'], color: '#64748b' },

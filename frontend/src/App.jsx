@@ -9,6 +9,7 @@ import Results from './pages/Results'
 import Venta from './pages/Venta'
 import Statistics from './pages/Statistics'
 import ComingSoon from './pages/ComingSoon'
+import PrizeConfig from './pages/PrizeConfig'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -59,6 +60,7 @@ export default function App() {
       <Route path="/admin-pending-payments" element={<ProtectedRoute><ComingSoon title="Pagos Pendientes" /></ProtectedRoute>} />
       <Route path="/bank-accounts" element={<ProtectedRoute><ComingSoon title="Cuentas de Banco" /></ProtectedRoute>} />
       <Route path="/play-types-admin" element={<ProtectedRoute><ComingSoon title="Tipos de Jugada" /></ProtectedRoute>} />
+      <Route path="/prize-config" element={<ProtectedRoute><PrizeConfig /></ProtectedRoute>} />
       <Route path="/company-profile" element={<ProtectedRoute><ComingSoon title="Mi Empresa" /></ProtectedRoute>} />
       <Route path="/system-settings" element={<ProtectedRoute><ComingSoon title="Configuración" /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />

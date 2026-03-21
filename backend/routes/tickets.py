@@ -305,12 +305,37 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
                             "remaining": remaining
                         })
         
-        multiplier = lottery.get("prize_multiplier", 70)
-        if play.position and lottery.get("prize_rules"):
-            for rule in lottery["prize_rules"]:
-                if rule.get("position") == play.position:
-                    multiplier = rule.get("multiplier", multiplier)
-                    break
+        # Get multipliers based on seller's country
+        seller_country = effective_user.get("country", "RD")
+        prize_config = await db.prize_config.find_one({"country": seller_country})
+        
+        # Default multipliers
+        DEFAULT_MULTIPLIERS = {
+            "RD": {
+                "quiniela": {"first": 70, "second": 20, "third": 10},
+                "pale": {"first": 1000, "second": 100, "third": 50},
+                "tripleta": {"first": 50000, "second": 5000, "third": 2500},
+                "super_pale": {"first": 2500, "second": 250, "third": 125}
+            },
+            "US": {
+                "quiniela": {"first": 56, "second": 16, "third": 8},
+                "pale": {"first": 1500, "second": 150, "third": 75},
+                "tripleta": {"first": 40000, "second": 4000, "third": 2000},
+                "super_pale": {"first": 2000, "second": 200, "third": 100}
+            }
+        }
+        
+        # Get the multiplier for this play type
+        play_type_lower = play.lottery_type.lower()
+        if prize_config and play_type_lower in prize_config:
+            multipliers = prize_config[play_type_lower]
+        else:
+            defaults = DEFAULT_MULTIPLIERS.get(seller_country, DEFAULT_MULTIPLIERS["RD"])
+            multipliers = defaults.get(play_type_lower, defaults["quiniela"])
+        
+        # Determine which position multiplier to use
+        position = play.position or "first"
+        multiplier = multipliers.get(position, multipliers.get("first", 70))
         
         potential_win = play.amount * multiplier
         
@@ -322,7 +347,8 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
             "amount": play.amount,
             "position": play.position,
             "potential_win": potential_win,
-            "multiplier": multiplier
+            "multiplier": multiplier,
+            "seller_country": seller_country
         })
         
         total_amount += play.amount
@@ -356,17 +382,25 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         if current_sales + total_amount > effective_user["credit_limit"]:
             raise HTTPException(status_code=400, detail="Límite de crédito excedido")
     
+    # Determine currency based on seller's country
+    seller_country = effective_user.get("country", "RD")
+    if seller_country == "US":
+        ticket_currency = "USD"
+    else:
+        ticket_currency = "RD$"
+    
     ticket_doc = {
         "id": str(uuid.uuid4()),
         "ticket_number": generate_ticket_number(),
         "ticket_type": "multi_play",
         "seller_id": effective_user["id"],
         "seller_name": effective_user["name"],
+        "seller_country": seller_country,
         "plays": plays_data,
         "plays_count": len(plays_data),
         "total_amount": total_amount,
         "total_potential_win": total_potential_win,
-        "currency": ticket_data.currency.value,
+        "currency": ticket_currency,
         "status": TicketStatus.PENDING.value,
         "customer_name": ticket_data.customer_name,
         "created_at": datetime.utcnow(),
