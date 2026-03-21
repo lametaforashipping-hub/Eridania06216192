@@ -17,7 +17,7 @@ import os
 
 BASE_URL = os.environ.get('VITE_API_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://multi-play-receipt.preview.emergentagent.com"
+    BASE_URL = "https://expo-seller-app.preview.emergentagent.com"
 
 # Test credentials from review request
 US_SELLER = {"email": "admin@loteria.com", "password": "admin123"}  # country: US, currency: USD
