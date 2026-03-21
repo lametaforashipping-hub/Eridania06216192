@@ -486,7 +486,11 @@ export default function Tickets() {
       
       if (Platform.OS !== 'web') {
         // Download the image to a temporary file
-        const localUri = `${FileSystem.cacheDirectory}ticket_${selectedTicket.ticket_number}.png`;
+        const cacheDir = FileSystem.cacheDirectory;
+        if (!cacheDir) {
+          throw new Error('Cache directory not available');
+        }
+        const localUri = `${cacheDir}ticket_${selectedTicket.ticket_number}.png`;
         
         const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
         

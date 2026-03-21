@@ -416,7 +416,11 @@ const showAlert = (title: string, message: string) => {
       
       if (Platform.OS !== 'web') {
         // Download the image to a temporary file
-        const localUri = `${FileSystem.cacheDirectory}ticket_${lastTicket.ticket_number}.png`;
+        const cacheDir = FileSystem.cacheDirectory;
+        if (!cacheDir) {
+          throw new Error('Cache directory not available');
+        }
+        const localUri = `${cacheDir}ticket_${lastTicket.ticket_number}.png`;
         
         const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
         
