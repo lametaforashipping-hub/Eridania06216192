@@ -4,6 +4,7 @@ from datetime import datetime
 import io
 import base64
 import uuid
+import os
 from typing import Optional
 from models.schemas import TicketCreate, MultiPlayTicketCreate
 from models.enums import UserRole, TicketStatus, TransactionType
@@ -661,9 +662,11 @@ async def get_qr_code(ticket_number: str):
 
 @router.get("/receipt-image/{ticket_number}")
 async def get_receipt_image(ticket_number: str):
-    """Generate a complete receipt image for sharing via WhatsApp"""
+    """Generate a complete receipt image for sharing via WhatsApp - matches mobile app format"""
     import qrcode
     from PIL import Image, ImageDraw, ImageFont
+    import requests
+    from collections import defaultdict
     
     db = get_db()
     
@@ -674,68 +677,104 @@ async def get_receipt_image(ticket_number: str):
     
     # Get company profile
     company = await db.company_profile.find_one({})
-    company_name = company.get("name", "Loteria Magica") if company else "Loteria Magica"
+    company_name = company.get("company_name", "LOTERIA MAGICA") if company else "LOTERIA MAGICA"
+    company_slogan = company.get("slogan", "Tu suerte está aqui") if company else "Tu suerte está aqui"
     company_phone = company.get("phone", "") if company else ""
+    logo_url = company.get("logo_url", "") if company else ""
     
     # Fonts
     try:
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 20)
-        font_bold = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 14)
-        font_normal = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 13)
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 11)
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 28)
+        font_slogan = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf", 14)
+        font_ticket_num = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 18)
+        font_date = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 14)
+        font_lottery_name = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 16)
+        font_play = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 14)
+        font_total_label = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 20)
+        font_total_value = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 24)
+        font_footer = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 12)
+        font_phone = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 12)
     except Exception:
         font_title = ImageFont.load_default()
-        font_bold = font_title
-        font_normal = font_title
-        font_small = font_title
+        font_slogan = font_title
+        font_ticket_num = font_title
+        font_date = font_title
+        font_lottery_name = font_title
+        font_play = font_title
+        font_total_label = font_title
+        font_total_value = font_title
+        font_footer = font_title
+        font_phone = font_title
     
-    # Receipt dimensions
-    width = 380
-    margin = 16
-    content_width = width - (margin * 2)
+    # Receipt dimensions - wider for better readability
+    width = 420
+    margin = 24
     
-    # Pre-calculate height
+    # Abbreviations for play types
+    PLAY_TYPE_ABBR = {
+        "quiniela": "Q", "pale": "P", "tripleta": "T",
+        "super_pale": "SP", "first": "1ra", "second": "2da", "third": "3ra"
+    }
+    
+    # Group plays by lottery name
     plays = ticket.get("plays", [])
-    play_count = len(plays)
-    # Header(~90) + separator(16) + ticket info(50) + separator(16) + plays(play_count*36) + separator(16) + total(30) + qr(110) + footer(60)
-    estimated_height = 90 + 16 + 50 + 16 + (play_count * 36) + 16 + 30 + 120 + 70
+    plays_by_lottery = defaultdict(list)
+    for play in plays:
+        lottery_name = play.get("lottery_name", "")
+        plays_by_lottery[lottery_name].append(play)
     
-    img = Image.new('RGB', (width, estimated_height + 40), 'white')
+    # Calculate height based on content
+    num_lottery_sections = len(plays_by_lottery)
+    total_plays = len(plays)
+    # Header with logo (~120) + ticket info (70) + lottery sections + total (80) + QR (140) + footer (80)
+    estimated_height = 120 + 70 + (num_lottery_sections * 30) + (total_plays * 24) + 80 + 140 + 80 + 40
+    
+    img = Image.new('RGB', (width, estimated_height), 'white')
     draw = ImageDraw.Draw(img)
     
-    y = 16
+    y = 24
+    
+    # === COMPANY LOGO (if available) ===
+    logo_loaded = False
+    if logo_url:
+        try:
+            # Load logo from local path
+            logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public", logo_url.lstrip("/"))
+            if os.path.exists(logo_path):
+                logo_img = Image.open(logo_path)
+                # Resize logo to fit (max 60px height)
+                max_logo_height = 60
+                ratio = max_logo_height / logo_img.height
+                new_width = int(logo_img.width * ratio)
+                logo_img = logo_img.resize((new_width, max_logo_height), Image.Resampling.LANCZOS)
+                # Center the logo
+                logo_x = (width - new_width) // 2
+                img.paste(logo_img, (logo_x, y))
+                y += max_logo_height + 8
+                logo_loaded = True
+        except Exception:
+            pass
     
     # === COMPANY NAME ===
-    company_title = "LOTERIA MAGICA"
-    bbox = draw.textbbox((0, 0), company_title, font=font_title)
+    company_display = company_name.upper()
+    bbox = draw.textbbox((0, 0), company_display, font=font_title)
     text_w = bbox[2] - bbox[0]
-    draw.text(((width - text_w) // 2, y), company_title, fill='black', font=font_title)
-    y += 26
+    draw.text(((width - text_w) // 2, y), company_display, fill='black', font=font_title)
+    y += 34
     
-    # Slogan
-    slogan = "Tu Suerte Comienza Aqui"
-    bbox = draw.textbbox((0, 0), slogan, font=font_small)
+    # === SLOGAN (in italic, purple/gray) ===
+    bbox = draw.textbbox((0, 0), company_slogan, font=font_slogan)
     text_w = bbox[2] - bbox[0]
-    draw.text(((width - text_w) // 2, y), slogan, fill='#cc0000', font=font_small)
-    y += 18
+    draw.text(((width - text_w) // 2, y), company_slogan, fill='#7C3AED', font=font_slogan)
+    y += 28
     
-    # Phone
-    if company_phone:
-        bbox = draw.textbbox((0, 0), company_phone, font=font_small)
-        text_w = bbox[2] - bbox[0]
-        draw.text(((width - text_w) // 2, y), company_phone, fill='#666666', font=font_small)
-        y += 18
+    # === TICKET NUMBER (bold, centered) ===
+    bbox = draw.textbbox((0, 0), ticket_number, font=font_ticket_num)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((width - text_w) // 2, y), ticket_number, fill='black', font=font_ticket_num)
+    y += 24
     
-    # === SEPARATOR ===
-    separator = "-" * 48
-    draw.text((margin, y), separator, fill='#999999', font=font_small)
-    y += 16
-    
-    # === TICKET NUMBER ===
-    draw.text((margin, y), f"No: {ticket_number}", fill='black', font=font_bold)
-    y += 20
-    
-    # === DATE ===
+    # === DATE (centered) ===
     created = ticket.get("created_at")
     if created:
         if isinstance(created, str):
@@ -744,91 +783,87 @@ async def get_receipt_image(ticket_number: str):
             except Exception:
                 created = None
         if created:
-            # Format to DR timezone (UTC-4)
             from datetime import timedelta, timezone as tz
             dr_tz = tz(timedelta(hours=-4))
             created_dr = created.astimezone(dr_tz) if created.tzinfo else created
-            date_str = created_dr.strftime("%d/%m/%Y %I:%M %p")
-            draw.text((margin, y), f"Fecha: {date_str}", fill='#444444', font=font_normal)
-            y += 20
+            date_str = created_dr.strftime("%d/%m/%Y, %I:%M p. m.").replace(" 0", " ").replace("AM", "a. m.").replace("PM", "p. m.")
+            bbox = draw.textbbox((0, 0), date_str, font=font_date)
+            text_w = bbox[2] - bbox[0]
+            draw.text(((width - text_w) // 2, y), date_str, fill='#666666', font=font_date)
+            y += 24
     
-    # === SEPARATOR ===
-    draw.text((margin, y), separator, fill='#999999', font=font_small)
+    # === SEPARATOR LINE ===
+    y += 4
+    draw.line([(margin, y), (width - margin, y)], fill='black', width=1)
     y += 16
     
-    # === PLAYS ===
-    PLAY_TYPE_ABBR = {
-        "quiniela": "Q", "pale": "P", "tripleta": "T",
-        "super_pale": "SP", "first": "1ra", "second": "2da", "third": "3ra"
-    }
-    
+    # === PLAYS GROUPED BY LOTTERY ===
     currency = ticket.get("currency", "RD$")
     
-    for play in plays:
-        lottery_name = play.get("lottery_name", play.get("lottery_type", ""))
-        play_type = play.get("play_type", "quiniela")
-        abbr = PLAY_TYPE_ABBR.get(play_type, play_type[:2].upper())
-        numbers = play.get("numbers", play.get("number", ""))
-        if isinstance(numbers, list):
-            numbers = "-".join(str(n) for n in numbers)
-        amount = play.get("amount", 0)
+    for lottery_name, lottery_plays in plays_by_lottery.items():
+        # Lottery name as header (bold)
+        lottery_header = lottery_name.upper() if lottery_name else "LOTERÍA"
+        draw.text((margin, y), lottery_header, fill='black', font=font_lottery_name)
+        y += 24
         
-        # Lottery name (small, gray)
-        draw.text((margin, y), lottery_name.upper(), fill='#666666', font=font_small)
-        y += 16
-        
-        # Play details indented
-        play_line = f"  {abbr} {numbers}"
-        draw.text((margin, y), play_line, fill='black', font=font_normal)
-        
-        # Amount right-aligned
-        amount_text = f"{currency}{amount}"
-        bbox = draw.textbbox((0, 0), amount_text, font=font_bold)
-        amt_w = bbox[2] - bbox[0]
-        draw.text((width - margin - amt_w, y), amount_text, fill='black', font=font_bold)
-        
-        y += 20
+        # Each play under this lottery
+        for play in lottery_plays:
+            play_type = play.get("lottery_type", "quiniela")
+            abbr = PLAY_TYPE_ABBR.get(play_type, play_type[:1].upper())
+            numbers = play.get("numbers", [])
+            if isinstance(numbers, list):
+                numbers_str = "-".join(str(n).zfill(2) for n in numbers)
+            else:
+                numbers_str = str(numbers)
+            amount = play.get("amount", 0)
+            
+            # Format: "  P 04-20 = RD$20" or "  Q 20 = RD$20"
+            play_line = f"  {abbr} {numbers_str} = {currency}{int(amount)}"
+            draw.text((margin, y), play_line, fill='black', font=font_play)
+            y += 22
     
-    # === SEPARATOR ===
-    draw.text((margin, y), separator, fill='#999999', font=font_small)
-    y += 16
+    # === SEPARATOR LINE ===
+    y += 4
+    draw.line([(margin, y), (width - margin, y)], fill='black', width=1)
+    y += 20
     
-    # === TOTAL ===
+    # === TOTAL (larger, bold, centered) ===
     total = ticket.get("total_amount", 0)
-    total_label = f"TOTAL ({play_count})"
-    draw.text((margin, y), total_label, fill='black', font=font_bold)
+    total_text = f"TOTAL: {currency} {total:.2f}"
+    bbox = draw.textbbox((0, 0), total_text, font=font_total_value)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((width - text_w) // 2, y), total_text, fill='black', font=font_total_value)
+    y += 40
     
-    total_value = f"{currency} {total:.2f}"
-    bbox = draw.textbbox((0, 0), total_value, font=font_bold)
-    tv_w = bbox[2] - bbox[0]
-    draw.text((width - margin - tv_w, y), total_value, fill='black', font=font_bold)
-    y += 30
-    
-    # === QR CODE ===
-    qr = qrcode.QRCode(version=1, box_size=4, border=2)
+    # === QR CODE (centered) ===
+    qr = qrcode.QRCode(version=1, box_size=5, border=2)
     qr.add_data(ticket_number)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_w, qr_h = qr_img.size
     qr_x = (width - qr_w) // 2
     img.paste(qr_img, (qr_x, y))
-    y += qr_h + 12
+    y += qr_h + 20
     
-    # === FOOTER ===
-    footer1 = "CONSERVE ESTE BOLETO"
-    bbox = draw.textbbox((0, 0), footer1, font=font_bold)
-    f1_w = bbox[2] - bbox[0]
-    draw.text(((width - f1_w) // 2, y), footer1, fill='black', font=font_bold)
-    y += 20
+    # === FOOTER (centered) ===
+    footer_text = "CONSERVE ESTE BOLETO · ¡BUENA SUERTE!"
+    bbox = draw.textbbox((0, 0), footer_text, font=font_footer)
+    text_w = bbox[2] - bbox[0]
+    draw.text(((width - text_w) // 2, y), footer_text, fill='black', font=font_footer)
+    y += 18
     
-    footer2 = "BUENA SUERTE!"
-    bbox = draw.textbbox((0, 0), footer2, font=font_bold)
-    f2_w = bbox[2] - bbox[0]
-    draw.text(((width - f2_w) // 2, y), footer2, fill='black', font=font_bold)
-    y += 24
+    # Phone number
+    if company_phone:
+        phone_text = f"Tel: {company_phone}"
+        bbox = draw.textbbox((0, 0), phone_text, font=font_phone)
+        text_w = bbox[2] - bbox[0]
+        draw.text(((width - text_w) // 2, y), phone_text, fill='#666666', font=font_phone)
+        y += 20
+    
+    # NO seller name - removed as per user request
     
     # Crop to actual content
-    img = img.crop((0, 0, width, y))
+    img = img.crop((0, 0, width, y + 10))
     
     # Return as raw PNG image
     buf = io.BytesIO()
