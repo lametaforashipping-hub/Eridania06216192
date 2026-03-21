@@ -713,6 +713,7 @@ async def get_receipt_image(ticket_number: str):
     company_name = company.get("company_name", "LOTERIA MAGICA") if company else "LOTERIA MAGICA"
     company_slogan = company.get("slogan", "Tu suerte está aquí") if company else "Tu suerte está aquí"
     company_phone = company.get("phone", "809-000-0000") if company else "809-000-0000"
+    logo_url = company.get("logo_url", "") if company else ""
     
     # Fonts
     try:
@@ -753,16 +754,55 @@ async def get_receipt_image(ticket_number: str):
         lottery_name = play.get("lottery_name", "LOTERÍA")
         plays_by_lottery[lottery_name].append(play)
     
+    # Get the currency from ticket - this is set based on seller's country
+    # USD for USA sellers, RD$ for RD sellers
+    ticket_currency = ticket.get("currency", "RD$")
+    if ticket_currency in ["USD", "US$", "US"]:
+        currency_display = "US$"
+    else:
+        currency_display = "RD$"
+    
     # Calculate height based on grouped content
     num_lotteries = len(plays_by_lottery)
     total_plays = len(plays)
-    # Header (140) + ticket info (100) + separator (30) + lottery sections + separator (30) + total (80) + QR (140) + footer (80)
-    estimated_height = 140 + 100 + 30 + (num_lotteries * 35) + (total_plays * 28) + 30 + 80 + 160 + 80
+    # Logo (80) + Header (100) + ticket info (100) + separator (30) + lottery sections + separator (30) + total (80) + QR (140) + footer (80)
+    estimated_height = 80 + 100 + 100 + 30 + (num_lotteries * 35) + (total_plays * 28) + 30 + 80 + 160 + 80
     
     img = Image.new('RGB', (width, estimated_height), 'white')
     draw = ImageDraw.Draw(img)
     
-    y = 30
+    y = 25
+    
+    # === COMPANY LOGO ===
+    logo_loaded = False
+    if logo_url:
+        try:
+            logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public", logo_url.lstrip("/"))
+            print(f"[RECEIPT] Looking for logo at: {logo_path}")
+            if os.path.exists(logo_path):
+                logo_img = Image.open(logo_path)
+                # Convert to RGB if necessary
+                if logo_img.mode == 'RGBA':
+                    bg = Image.new('RGB', logo_img.size, 'white')
+                    bg.paste(logo_img, mask=logo_img.split()[3])
+                    logo_img = bg
+                elif logo_img.mode != 'RGB':
+                    logo_img = logo_img.convert('RGB')
+                # Resize logo (max 70px height)
+                max_logo_height = 70
+                ratio = max_logo_height / logo_img.height
+                new_width = int(logo_img.width * ratio)
+                logo_img = logo_img.resize((new_width, max_logo_height), Image.Resampling.LANCZOS)
+                # Center the logo
+                logo_x = (width - new_width) // 2
+                img.paste(logo_img, (logo_x, y))
+                y += max_logo_height + 15
+                logo_loaded = True
+                print(f"[RECEIPT] Logo loaded successfully: {new_width}x{max_logo_height}")
+            else:
+                print(f"[RECEIPT] Logo file not found at: {logo_path}")
+        except Exception as e:
+            print(f"[RECEIPT] Logo load error: {e}")
     
     # === COMPANY NAME (large, bold, centered) ===
     company_display = company_name.upper()
@@ -813,17 +853,7 @@ async def get_receipt_image(ticket_number: str):
     y += 25
     
     # === PLAYS GROUPED BY LOTTERY NAME ===
-    currency = ticket.get("currency", "RD$")
-    if currency == "USD" or currency == "US$":
-        currency_display = "RD$" if "RD" in currency else "RD$"
-    else:
-        currency_display = "RD$"
-    # Use the actual currency from ticket
-    currency_display = ticket.get("currency", "RD$")
-    if currency_display == "USD":
-        currency_display = "USD"
-    elif "RD" in currency_display:
-        currency_display = "RD$"
+    # currency_display is already set correctly above based on ticket currency
     
     for lottery_name, lottery_plays in plays_by_lottery.items():
         # Lottery name as header (bold, left aligned)
