@@ -100,6 +100,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         "balance": current_user["balance"],
         "commission_rate": current_user.get("commission_rate", 10.0),
         "currency": current_user["currency"],
+        "country": current_user.get("country", "RD"),
+        "active": current_user.get("active", True),
         "total_sales": current_user.get("total_sales", 0.0),
         "total_commission": current_user.get("total_commission", 0.0)
     }
