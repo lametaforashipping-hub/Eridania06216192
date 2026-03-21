@@ -481,21 +481,22 @@ export default function Tickets() {
     if (!selectedTicket) return;
     
     try {
-      // Get the receipt image from the backend (same image that matches the app's display)
-      const imageUrl = `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}`;
+      // Get the receipt image from the backend - add timestamp to avoid cache
+      const imageUrl = `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}?t=${Date.now()}`;
       
       if (Platform.OS !== 'web') {
-        // Download the image to a temporary file
         const cacheDir = FileSystem.cacheDirectory;
         if (!cacheDir) {
           throw new Error('Cache directory not available');
         }
-        const localUri = `${cacheDir}ticket_${selectedTicket.ticket_number}.png`;
+        // Unique filename to avoid cached old images
+        const localUri = `${cacheDir}ticket_${selectedTicket.ticket_number}_${Date.now()}.png`;
         
+        console.log('[WhatsApp] Downloading receipt from:', imageUrl);
         const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
+        console.log('[WhatsApp] Download status:', downloadResult.status);
         
         if (downloadResult.status === 200) {
-          // Share the downloaded image
           const isAvailable = await Sharing.isAvailableAsync();
           if (isAvailable) {
             await Sharing.shareAsync(downloadResult.uri, {
@@ -503,26 +504,39 @@ export default function Tickets() {
               dialogTitle: 'Enviar ticket por WhatsApp',
             });
             return;
+          } else {
+            Alert.alert('Error', 'Compartir no está disponible');
           }
+        } else {
+          console.error('[WhatsApp] Download failed:', downloadResult.status);
+          Alert.alert('Error', `No se pudo descargar la imagen (${downloadResult.status})`);
         }
-      }
-      
-      // Web fallback: open image in new tab
-      if (Platform.OS === 'web') {
+      } else {
         if (typeof window !== 'undefined') {
           window.open(imageUrl, '_blank');
         }
-      } else {
-        // Fallback to text message
-        const message = `*BOLETO DE LOTERIA*\n\n` +
-          `Boleto: ${selectedTicket.ticket_number}\n` +
-          `Loteria: ${selectedTicket.lottery_name}\n` +
-          `Total: ${selectedTicket.currency} ${(selectedTicket.total_amount || 0).toLocaleString()}\n` +
-          `Estado: ${getStatusText(selectedTicket.status)}\n`;
-        await Share.share({ message });
       }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo compartir');
+    } catch (error: any) {
+      console.error('[WhatsApp] Share error:', error?.message || error);
+      Alert.alert(
+        'Error al compartir',
+        `No se pudo descargar la imagen.\n\nError: ${error?.message || 'Desconocido'}\n\n¿Compartir como texto?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Compartir texto', onPress: async () => {
+            try {
+              const message = `*BOLETO DE LOTERIA*\n\n` +
+                `Boleto: ${selectedTicket.ticket_number}\n` +
+                `Loteria: ${selectedTicket.lottery_name}\n` +
+                `Total: ${selectedTicket.currency} ${(selectedTicket.total_amount || 0).toLocaleString()}\n` +
+                `Estado: ${getStatusText(selectedTicket.status)}\n`;
+              await Share.share({ message });
+            } catch (e) {
+              Alert.alert('Error', 'No se pudo compartir');
+            }
+          }}
+        ]
+      );
     }
   };
 

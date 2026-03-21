@@ -411,21 +411,22 @@ const showAlert = (title: string, message: string) => {
     if (!lastTicket) return;
     
     try {
-      // Get the receipt image from the backend (same image that matches the app's display)
-      const imageUrl = `${API_URL}/api/tickets/receipt-image/${lastTicket.ticket_number}`;
+      // Get the receipt image from the backend - add timestamp to avoid cache
+      const imageUrl = `${API_URL}/api/tickets/receipt-image/${lastTicket.ticket_number}?t=${Date.now()}`;
       
       if (Platform.OS !== 'web') {
-        // Download the image to a temporary file
         const cacheDir = FileSystem.cacheDirectory;
         if (!cacheDir) {
           throw new Error('Cache directory not available');
         }
-        const localUri = `${cacheDir}ticket_${lastTicket.ticket_number}.png`;
+        // Use unique filename to avoid cached old images
+        const localUri = `${cacheDir}ticket_${lastTicket.ticket_number}_${Date.now()}.png`;
         
+        console.log('[WhatsApp] Downloading receipt image from:', imageUrl);
         const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
+        console.log('[WhatsApp] Download status:', downloadResult.status, 'URI:', downloadResult.uri);
         
         if (downloadResult.status === 200) {
-          // Share the downloaded image
           const isAvailable = await Sharing.isAvailableAsync();
           if (isAvailable) {
             await Sharing.shareAsync(downloadResult.uri, {
@@ -433,44 +434,51 @@ const showAlert = (title: string, message: string) => {
               dialogTitle: 'Enviar ticket por WhatsApp',
             });
             return;
+          } else {
+            Alert.alert('Error', 'Compartir no está disponible en este dispositivo');
           }
         } else {
-          // Fallback to PDF if image download fails
-          throw new Error('Image download failed');
+          console.error('[WhatsApp] Download failed with status:', downloadResult.status);
+          Alert.alert('Error', `No se pudo descargar la imagen (${downloadResult.status}). Verifique su conexión.`);
         }
       } else {
-        // Web: Just open the image in a new tab or provide download link
         if (typeof window !== 'undefined') {
           window.open(imageUrl, '_blank');
         }
       }
-    } catch (error) {
-      console.error('Share error:', error);
-      // Fallback: Share text message
-      try {
-        const date = new Date(lastTicket.created_at);
-        const playsText = lastTicket.plays.map((p: any) => 
-          `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')} x ${lastTicket.currency} ${p.amount}`
-        ).join('\n');
+    } catch (error: any) {
+      console.error('[WhatsApp] Share error:', error?.message || error);
+      Alert.alert(
+        'Error al compartir',
+        `No se pudo descargar la imagen del ticket.\n\nURL: ${API_URL}\nError: ${error?.message || 'Desconocido'}\n\n¿Desea compartir como texto?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Compartir texto', onPress: () => shareAsText(lastTicket) }
+        ]
+      );
+    }
+  };
 
-        const message = `*${companyProfile?.company_name || 'LOTERIA MAGICA'}*\n\n` +
-          `Boleto: ${lastTicket.ticket_number}\n` +
-          `Fecha: ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}\n` +
-          `\nJUGADAS (${lastTicket.plays.length}):\n${playsText}\n\n` +
-          `Total: ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +
-          `\n¡Buena Suerte!`;
-
-        if (Platform.OS === 'web') {
-          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-          if (typeof window !== 'undefined') {
-            window.open(whatsappUrl, '_blank');
-          }
-        } else {
-          await Share.share({ message });
-        }
-      } catch (fallbackError) {
-        Alert.alert('Error', 'No se pudo compartir');
+  const shareAsText = async (ticket: any) => {
+    try {
+      const date = new Date(ticket.created_at);
+      const playsText = ticket.plays.map((p: any) => 
+        `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')} x ${ticket.currency} ${p.amount}`
+      ).join('\n');
+      const message = `*${companyProfile?.company_name || 'LOTERIA MAGICA'}*\n\n` +
+        `Boleto: ${ticket.ticket_number}\n` +
+        `Fecha: ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}\n` +
+        `\nJUGADAS (${ticket.plays.length}):\n${playsText}\n\n` +
+        `Total: ${ticket.currency} ${ticket.total_amount.toLocaleString()}\n` +
+        `\n¡Buena Suerte!`;
+      if (Platform.OS === 'web') {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        if (typeof window !== 'undefined') window.open(whatsappUrl, '_blank');
+      } else {
+        await Share.share({ message });
       }
+    } catch (e) {
+      Alert.alert('Error', 'No se pudo compartir');
     }
   };
 
