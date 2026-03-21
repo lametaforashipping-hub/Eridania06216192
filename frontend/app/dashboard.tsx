@@ -188,6 +188,7 @@ export default function Dashboard() {
     { icon: 'options-outline', emoji: '🎯', label: 'Tipos Jugada', route: '/play-types-admin', roles: ['super_admin'], color: '#f43f5e' },
     { icon: 'business-outline', emoji: '🏢', label: 'Mi Empresa', route: '/company-profile', roles: ['super_admin'], color: '#6366f1' },
     { icon: 'settings-outline', emoji: '⚙️', label: 'Configuración', route: '/system-settings', roles: ['super_admin'], color: '#64748b' },
+    { icon: 'notifications-outline', emoji: '🔔', label: 'Alertas', route: '/alert-settings', roles: ['super_admin', 'admin'], color: '#ef4444' },
   ];
 
   const visibleMenuItems = menuItems.filter(item => 
