@@ -1,0 +1,1334 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../src/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  credit_limit: number;
+  balance: number;
+  currency: string;
+  country?: string;
+  active: boolean;
+  created_at: string;
+  commission_rate?: number;
+  phone?: string;
+  address?: string;
+  cedula?: string;
+  terminal_id?: string;
+}
+
+export default function Users() {
+  const { token, user: currentUser } = useAuth();
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Form states
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState('vendedor');
+  const [newCreditLimit, setNewCreditLimit] = useState('10000');
+  const [newCommissionRate, setNewCommissionRate] = useState('10');
+  const [newPhone, setNewPhone] = useState('');
+  const [newAddress, setNewAddress] = useState('');
+  const [newCedula, setNewCedula] = useState('');
+  const [newCountry, setNewCountry] = useState('RD');
+  const [newTerminalId, setNewTerminalId] = useState('');
+  const [depositAmount, setDepositAmount] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+
+  const fetchUsers = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/users`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUsers();
+    setRefreshing(false);
+  };
+
+  const handleCreateUser = async () => {
+    if (!newEmail || !newPassword || !newName) {
+      Alert.alert('Error', 'Completa todos los campos obligatorios');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const payload = {
+        email: newEmail.trim().toLowerCase(),
+        password: newPassword,
+        name: newName.trim(),
+        role: newRole,
+        credit_limit: parseFloat(newCreditLimit) || 10000,
+        commission_rate: parseFloat(newCommissionRate) || 10,
+        country: newCountry,
+        phone: newPhone?.trim() || null,
+        address: newAddress?.trim() || null,
+        cedula: newCedula?.trim() || null,
+        terminal_id: newTerminalId?.trim()?.toUpperCase() || null,
+      };
+
+      console.log('Creating user with payload:', JSON.stringify(payload));
+
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log('Create user response:', response.status, JSON.stringify(data));
+
+      if (response.ok) {
+        Alert.alert('Éxito', 'Usuario creado correctamente');
+        setShowCreateModal(false);
+        resetForm();
+        fetchUsers();
+      } else {
+        Alert.alert('Error', data.detail || 'No se pudo crear el usuario');
+      }
+    } catch (error) {
+      console.error('Create user error:', error);
+      Alert.alert('Error', 'Error de conexión. Verifica tu conexión a internet.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleEditUser = async () => {
+    if (!selectedUser) return;
+
+    setUpdating(true);
+    try {
+      const payload = {
+        name: newName?.trim() || undefined,
+        credit_limit: newCreditLimit ? parseFloat(newCreditLimit) : undefined,
+        commission_rate: newCommissionRate ? parseFloat(newCommissionRate) : undefined,
+        phone: newPhone?.trim() || undefined,
+        address: newAddress?.trim() || undefined,
+        cedula: newCedula?.trim() || undefined,
+        terminal_id: newTerminalId?.trim()?.toUpperCase() || undefined,
+        country: newCountry || undefined,
+      };
+
+      // Remove undefined values
+      const cleanPayload = Object.fromEntries(
+        Object.entries(payload).filter(([_, v]) => v !== undefined)
+      );
+
+      console.log('Updating user with payload:', JSON.stringify(cleanPayload));
+
+      const response = await fetch(`${API_URL}/api/users/${selectedUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(cleanPayload),
+      });
+
+      const data = await response.json();
+      console.log('Update user response:', response.status, JSON.stringify(data));
+
+      if (response.ok) {
+        Alert.alert('Éxito', 'Usuario actualizado correctamente');
+        setShowEditModal(false);
+        setSelectedUser(null);
+        resetForm();
+        fetchUsers();
+      } else {
+        Alert.alert('Error', data.detail || 'No se pudo actualizar el usuario');
+      }
+    } catch (error) {
+      console.error('Update user error:', error);
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const openEditModal = (user: User) => {
+    setSelectedUser(user);
+    setNewName(user.name);
+    setNewCreditLimit(user.credit_limit.toString());
+    setNewCommissionRate((user.commission_rate || 10).toString());
+    setNewPhone(user.phone || '');
+    setNewAddress(user.address || '');
+    setNewCedula(user.cedula || '');
+    setNewTerminalId(user.terminal_id || '');
+    setNewCountry(user.country || 'RD');
+    setShowEditModal(true);
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    if (user.role === 'super_admin') {
+      Alert.alert('Error', 'No puedes eliminar a un super admin');
+      return;
+    }
+
+    Alert.alert(
+      'Confirmar Eliminación',
+      `¿Estás seguro de eliminar a "${user.name}"?\n\nEsta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              const response = await fetch(`${API_URL}/api/users/${user.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+
+              if (response.ok) {
+                Alert.alert('Éxito', 'Usuario eliminado correctamente');
+                fetchUsers();
+              } else {
+                const data = await response.json();
+                Alert.alert('Error', data.detail || 'No se pudo eliminar el usuario');
+              }
+            } catch (error) {
+              console.error('Delete user error:', error);
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const openPasswordModal = (user: User) => {
+    setSelectedUser(user);
+    setResetPassword('');
+    setShowPasswordModal(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser || !resetPassword) {
+      Alert.alert('Error', 'Ingresa la nueva contraseña');
+      return;
+    }
+
+    if (resetPassword.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/api/users/${selectedUser.id}/password?new_password=${encodeURIComponent(resetPassword)}`,
+        {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+
+      if (response.ok) {
+        Alert.alert('Éxito', `Contraseña de "${selectedUser.name}" actualizada correctamente`);
+        setShowPasswordModal(false);
+        setResetPassword('');
+      } else {
+        const data = await response.json();
+        Alert.alert('Error', data.detail || 'No se pudo cambiar la contraseña');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      Alert.alert('Error', 'Error de conexión');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!selectedUser || !depositAmount) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/users/${selectedUser.id}/deposit?amount=${parseFloat(depositAmount)}`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert('Éxito', `Nuevo balance: ${selectedUser.currency} ${data.new_balance.toLocaleString()}`);
+        setShowDepositModal(false);
+        setDepositAmount('');
+        fetchUsers();
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.detail || 'No se pudo realizar el depósito');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión');
+    }
+  };
+
+  const toggleUserStatus = async (user: User) => {
+    try {
+      const response = await fetch(`${API_URL}/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ active: !user.active }),
+      });
+
+      if (response.ok) {
+        fetchUsers();
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión');
+    }
+  };
+
+  const resetForm = () => {
+    setNewEmail('');
+    setNewPassword('');
+    setNewName('');
+    setNewRole('vendedor');
+    setNewCreditLimit('10000');
+    setNewCommissionRate('10');
+    setNewPhone('');
+    setNewAddress('');
+    setNewCedula('');
+    setNewCountry('RD');
+    setNewTerminalId('');
+  };
+
+  const getCountryLabel = (country: string) => {
+    return country === 'US' ? 'Estados Unidos (USD)' : 'Rep. Dominicana (RD$)';
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'Super Admin';
+      case 'admin': return 'Admin';
+      case 'vendedor': return 'Vendedor';
+      default: return role;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'super_admin': return '#ef4444';
+      case 'admin': return '#f59e0b';
+      case 'vendedor': return '#22c55e';
+      default: return '#94a3b8';
+    }
+  };
+
+  // Verificar si el usuario actual puede gestionar a otro usuario
+  const canManageUser = (targetUser: User) => {
+    // Super Admin puede gestionar a todos
+    if (currentUser?.role === 'super_admin') return true;
+    // Admin NO puede gestionar a otros admins ni super admins
+    if (targetUser.role === 'admin' || targetUser.role === 'super_admin') return false;
+    // Admin puede gestionar vendedores
+    return true;
+  };
+
+  const renderUser = ({ item }: { item: User }) => {
+    const canManage = canManageUser(item);
+    
+    return (
+    <View style={[styles.userCard, !item.active && styles.userCardInactive]}>
+      <View style={styles.userHeader}>
+        <View style={styles.userAvatar}>
+          <Text style={styles.userAvatarText}>
+            {item.terminal_id ? item.terminal_id.slice(0, 2) : item.name.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <View style={styles.userInfo}>
+          <View style={styles.nameRow}>
+            <Text style={styles.userName}>{item.name}</Text>
+            {item.terminal_id && (
+              <View style={styles.terminalBadge}>
+                <Text style={styles.terminalText}>{item.terminal_id}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.userEmail}>{item.email}</Text>
+          {item.phone && <Text style={styles.userPhone}>{item.phone}</Text>}
+          <View style={[styles.roleBadge, { backgroundColor: getRoleColor(item.role) + '30' }]}>
+            <Text style={[styles.roleText, { color: getRoleColor(item.role) }]}>
+              {getRoleLabel(item.role)}
+            </Text>
+          </View>
+        </View>
+        {canManage ? (
+          <TouchableOpacity
+            style={[styles.statusToggle, item.active ? styles.statusActive : styles.statusInactive]}
+            onPress={() => toggleUserStatus(item)}
+          >
+            <Text style={styles.statusText}>{item.active ? 'Activo' : 'Inactivo'}</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.statusToggle, styles.statusProtected]}>
+            <Ionicons name="shield-checkmark" size={14} color="#f59e0b" />
+            <Text style={[styles.statusText, { color: '#f59e0b', marginLeft: 4 }]}>Protegido</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.userDetails}>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Límite de Crédito</Text>
+          <Text style={styles.detailValue}>
+            {item.currency} {item.credit_limit.toLocaleString()}
+          </Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Comisión</Text>
+          <Text style={[styles.detailValue, styles.commissionValue]}>
+            {item.commission_rate || 10}%
+          </Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Balance</Text>
+          <Text style={[styles.detailValue, styles.balanceValue]}>
+            {item.currency} {item.balance.toLocaleString()}
+          </Text>
+        </View>
+      </View>
+
+      {(item.cedula || item.terminal_id) && (
+        <View style={styles.extraInfoRow}>
+          {item.terminal_id && (
+            <View style={styles.extraInfo}>
+              <Ionicons name="hardware-chip-outline" size={14} color="#22c55e" />
+              <Text style={[styles.extraInfoText, { color: '#22c55e' }]}>Terminal: {item.terminal_id}</Text>
+            </View>
+          )}
+          {item.cedula && (
+            <View style={styles.extraInfo}>
+              <Ionicons name="card-outline" size={14} color="#64748b" />
+              <Text style={styles.extraInfoText}>Cédula: {item.cedula}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {canManage ? (
+        <View style={styles.userActions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => openEditModal(item)}
+            data-testid={`edit-user-${item.id}`}
+          >
+            <Ionicons name="create" size={18} color="#3b82f6" />
+            <Text style={[styles.actionText, { color: '#3b82f6' }]}>Editar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              setSelectedUser(item);
+              setShowDepositModal(true);
+            }}
+          >
+            <Ionicons name="wallet" size={18} color="#22c55e" />
+            <Text style={styles.actionText}>Depositar</Text>
+          </TouchableOpacity>
+          {currentUser?.role === 'super_admin' && (
+            <>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => openPasswordModal(item)}
+                data-testid={`password-user-${item.id}`}
+              >
+                <Ionicons name="key" size={18} color="#f59e0b" />
+                <Text style={[styles.actionText, { color: '#f59e0b' }]}>Clave</Text>
+              </TouchableOpacity>
+              {item.role !== 'super_admin' && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleDeleteUser(item)}
+                  data-testid={`delete-user-${item.id}`}
+                >
+                  <Ionicons name="trash" size={18} color="#ef4444" />
+                  <Text style={[styles.actionText, { color: '#ef4444' }]}>Eliminar</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+      ) : (
+        <View style={styles.protectedNotice}>
+          <Ionicons name="information-circle" size={16} color="#94a3b8" />
+          <Text style={styles.protectedNoticeText}>
+            Solo el Super Admin puede gestionar este usuario
+          </Text>
+        </View>
+      )}
+    </View>
+  )};
+
+  const availableRoles = currentUser?.role === 'super_admin' 
+    ? ['admin', 'vendedor'] 
+    : ['vendedor'];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} testID="back-button">
+          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Usuarios</Text>
+        <TouchableOpacity 
+          onPress={() => setShowCreateModal(true)}
+          testID="create-user-button"
+          style={styles.addButton}
+          accessibilityLabel="Crear usuario"
+        >
+          <View style={styles.addButtonContent}>
+            <Ionicons name="add-circle" size={24} color="#22c55e" />
+            <Text style={styles.addButtonText}>Nuevo</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
+      ) : (
+        <FlatList
+          data={users}
+          renderItem={renderUser}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="people-outline" size={64} color="#475569" />
+              <Text style={styles.emptyText}>No hay usuarios</Text>
+            </View>
+          }
+        />
+      )}
+
+      {/* Create User Modal */}
+      <Modal visible={showCreateModal} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Crear Usuario</Text>
+              <TouchableOpacity onPress={() => setShowCreateModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.inputLabel}>Nombre *</Text>
+              <TextInput
+                style={styles.input}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="Nombre completo"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>Email *</Text>
+              <TextInput
+                style={styles.input}
+                value={newEmail}
+                onChangeText={setNewEmail}
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor="#64748b"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <Text style={styles.inputLabel}>Contraseña *</Text>
+              <TextInput
+                style={styles.input}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="Contraseña"
+                placeholderTextColor="#64748b"
+                secureTextEntry
+              />
+
+              <Text style={styles.inputLabel}>Cédula / Identificación</Text>
+              <TextInput
+                style={styles.input}
+                value={newCedula}
+                onChangeText={setNewCedula}
+                placeholder="000-0000000-0"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>ID de Terminal (Ej: T001)</Text>
+              <TextInput
+                style={styles.input}
+                value={newTerminalId}
+                onChangeText={setNewTerminalId}
+                placeholder="T001"
+                placeholderTextColor="#64748b"
+                autoCapitalize="characters"
+              />
+
+              <Text style={styles.inputLabel}>Teléfono</Text>
+              <TextInput
+                style={styles.input}
+                value={newPhone}
+                onChangeText={setNewPhone}
+                placeholder="809-000-0000"
+                placeholderTextColor="#64748b"
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.inputLabel}>Dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={newAddress}
+                onChangeText={setNewAddress}
+                placeholder="Dirección completa"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>Rol</Text>
+              <View style={styles.roleSelector}>
+                {availableRoles.map((role) => (
+                  <TouchableOpacity
+                    key={role}
+                    style={[styles.roleOption, newRole === role && styles.roleOptionSelected]}
+                    onPress={() => setNewRole(role)}
+                  >
+                    <Text style={[styles.roleOptionText, newRole === role && styles.roleOptionTextSelected]}>
+                      {getRoleLabel(role)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.inputLabel}>País y Moneda</Text>
+              <View style={styles.roleSelector}>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'RD' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('RD')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'RD' && styles.roleOptionTextSelected]}>
+                    Rep. Dominicana (RD$)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'US' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('US')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'US' && styles.roleOptionTextSelected]}>
+                    Estados Unidos (USD)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.inputLabel}>Porcentaje de Comisión (%)</Text>
+              <TextInput
+                style={styles.input}
+                value={newCommissionRate}
+                onChangeText={setNewCommissionRate}
+                placeholder="10"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+
+              <Text style={styles.inputLabel}>Límite de Crédito (RD$)</Text>
+              <TextInput
+                style={styles.input}
+                value={newCreditLimit}
+                onChangeText={setNewCreditLimit}
+                placeholder="10000"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+
+              <TouchableOpacity
+                style={[styles.submitButton, creating && styles.submitButtonDisabled]}
+                onPress={handleCreateUser}
+                disabled={creating}
+              >
+                {creating ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Crear Usuario</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Deposit Modal */}
+      <Modal visible={showDepositModal} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.modalContent, styles.depositModal]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Depositar a {selectedUser?.name}</Text>
+              <TouchableOpacity onPress={() => setShowDepositModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.inputLabel}>Monto ({selectedUser?.currency})</Text>
+              <TextInput
+                style={styles.input}
+                value={depositAmount}
+                onChangeText={setDepositAmount}
+                placeholder="0.00"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+              <TouchableOpacity style={styles.submitButton} onPress={handleDeposit}>
+                <Text style={styles.submitButtonText}>Confirmar Depósito</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Edit User Modal */}
+      <Modal visible={showEditModal} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Editar Usuario</Text>
+              <TouchableOpacity onPress={() => { setShowEditModal(false); setSelectedUser(null); resetForm(); }}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.editUserHeader}>
+                <Text style={styles.editUserEmail}>{selectedUser?.email}</Text>
+                <View style={[styles.roleBadge, { backgroundColor: getRoleColor(selectedUser?.role || '') + '30' }]}>
+                  <Text style={[styles.roleText, { color: getRoleColor(selectedUser?.role || '') }]}>
+                    {getRoleLabel(selectedUser?.role || '')}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.inputLabel}>Nombre</Text>
+              <TextInput
+                style={styles.input}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="Nombre completo"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>Cédula / Identificación</Text>
+              <TextInput
+                style={styles.input}
+                value={newCedula}
+                onChangeText={setNewCedula}
+                placeholder="000-0000000-0"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>ID de Terminal</Text>
+              <TextInput
+                style={styles.input}
+                value={newTerminalId}
+                onChangeText={setNewTerminalId}
+                placeholder="T001"
+                placeholderTextColor="#64748b"
+                autoCapitalize="characters"
+              />
+
+              <Text style={styles.inputLabel}>Teléfono</Text>
+              <TextInput
+                style={styles.input}
+                value={newPhone}
+                onChangeText={setNewPhone}
+                placeholder="809-000-0000"
+                placeholderTextColor="#64748b"
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.inputLabel}>Dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={newAddress}
+                onChangeText={setNewAddress}
+                placeholder="Dirección completa"
+                placeholderTextColor="#64748b"
+              />
+
+              <Text style={styles.inputLabel}>País y Moneda</Text>
+              <View style={styles.roleSelector}>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'RD' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('RD')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'RD' && styles.roleOptionTextSelected]}>
+                    Rep. Dominicana (RD$)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleOption, newCountry === 'US' && styles.roleOptionSelected]}
+                  onPress={() => setNewCountry('US')}
+                >
+                  <Text style={[styles.roleOptionText, newCountry === 'US' && styles.roleOptionTextSelected]}>
+                    Estados Unidos (USD)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.inputLabel}>Porcentaje de Comisión (%)</Text>
+              <TextInput
+                style={styles.input}
+                value={newCommissionRate}
+                onChangeText={setNewCommissionRate}
+                placeholder="10"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+
+              <Text style={styles.inputLabel}>Límite de Crédito</Text>
+              <TextInput
+                style={styles.input}
+                value={newCreditLimit}
+                onChangeText={setNewCreditLimit}
+                placeholder="10000"
+                placeholderTextColor="#64748b"
+                keyboardType="numeric"
+              />
+
+              <TouchableOpacity
+                style={[styles.submitButton, styles.editButton, updating && styles.submitButtonDisabled]}
+                onPress={handleEditUser}
+                disabled={updating}
+              >
+                {updating ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Guardar Cambios</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Password Reset Modal */}
+      <Modal visible={showPasswordModal} transparent animationType="slide">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+              <TouchableOpacity onPress={() => { setShowPasswordModal(false); setSelectedUser(null); setResetPassword(''); }}>
+                <Ionicons name="close" size={24} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.passwordUserInfo}>
+              <View style={styles.userAvatar}>
+                <Text style={styles.userAvatarText}>
+                  {selectedUser?.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.passwordUserDetails}>
+                <Text style={styles.passwordUserName}>{selectedUser?.name}</Text>
+                <Text style={styles.passwordUserEmail}>{selectedUser?.email}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.inputLabel}>Nueva Contraseña</Text>
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                value={resetPassword}
+                onChangeText={setResetPassword}
+                placeholder="Mínimo 6 caracteres"
+                placeholderTextColor="#64748b"
+                secureTextEntry
+                data-testid="new-password-input"
+              />
+              <Ionicons name="key" size={20} color="#f59e0b" style={styles.passwordIcon} />
+            </View>
+
+            <Text style={styles.passwordNote}>
+              La contraseña anterior será reemplazada. El usuario deberá usar la nueva contraseña para iniciar sesión.
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => { setShowPasswordModal(false); setResetPassword(''); }}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitButton, { backgroundColor: '#f59e0b' }]}
+                onPress={handleResetPassword}
+                disabled={updating}
+                data-testid="save-password-button"
+              >
+                {updating ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Cambiar Contraseña</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#1e293b',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  addButton: {
+    padding: 8,
+  },
+  addButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#14532d',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#22c55e',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  listContent: {
+    padding: 16,
+  },
+  userCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  userCardInactive: {
+    opacity: 0.6,
+  },
+  userHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  userInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  userEmail: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginTop: 2,
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  roleText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  statusToggle: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusActive: {
+    backgroundColor: '#14532d',
+  },
+  statusInactive: {
+    backgroundColor: '#7f1d1d',
+  },
+  statusText: {
+    fontSize: 11,
+    color: '#ffffff',
+    fontWeight: '500',
+  },
+  userDetails: {
+    flexDirection: 'row',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+  },
+  detailItem: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 11,
+    color: '#94a3b8',
+  },
+  detailValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginTop: 2,
+  },
+  balanceValue: {
+    color: '#22c55e',
+  },
+  commissionValue: {
+    color: '#f59e0b',
+  },
+  userPhone: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  terminalBadge: {
+    backgroundColor: '#22c55e',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  terminalText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  extraInfoRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+  },
+  extraInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  extraInfoText: {
+    fontSize: 12,
+    color: '#64748b',
+    marginLeft: 6,
+  },
+  userActions: {
+    flexDirection: 'row',
+    marginTop: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  actionText: {
+    fontSize: 13,
+    color: '#22c55e',
+    marginLeft: 6,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748b',
+    marginTop: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1e293b',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  depositModal: {
+    maxHeight: '40%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  modalBody: {
+    padding: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  input: {
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    height: 48,
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  roleSelector: {
+    flexDirection: 'row',
+  },
+  roleOption: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#0f172a',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  roleOptionSelected: {
+    backgroundColor: '#22c55e',
+  },
+  roleOptionText: {
+    color: '#94a3b8',
+    fontSize: 14,
+  },
+  roleOptionTextSelected: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  submitButton: {
+    backgroundColor: '#22c55e',
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  editUserHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0f172a',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  editUserEmail: {
+    fontSize: 14,
+    color: '#94a3b8',
+  },
+  editButton: {
+    backgroundColor: '#3b82f6',
+  },
+  statusProtected: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  protectedNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  protectedNoticeText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginLeft: 8,
+    fontStyle: 'italic',
+  },
+  // Password modal styles
+  passwordUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  passwordUserDetails: {
+    marginLeft: 12,
+  },
+  passwordUserName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  passwordUserEmail: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginTop: 2,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  passwordIcon: {
+    marginRight: 12,
+  },
+  passwordNote: {
+    fontSize: 12,
+    color: '#64748b',
+    fontStyle: 'italic',
+    marginBottom: 20,
+    lineHeight: 18,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: '#334155',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#94a3b8',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+});

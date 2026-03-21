@@ -1,0 +1,995 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  TextInput,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../src/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+
+interface Draw {
+  id: string;
+  lottery_id: string;
+  lottery_name: string;
+  winning_numbers: number[];
+  first_prize?: number;
+  second_prize?: number;
+  third_prize?: number;
+  draw_time: string;
+  total_tickets: number;
+  total_winners: number;
+  total_paid: number;
+  currency: string;
+}
+
+interface Lottery {
+  id: string;
+  name: string;
+  country: string;
+  lottery_type: string;
+  min_number: number;
+  max_number: number;
+  numbers_to_pick: number;
+  prize_tiers?: { first?: number; second?: number; third?: number };
+}
+
+export default function Draws() {
+  const { token, user } = useAuth();
+  const router = useRouter();
+  const [draws, setDraws] = useState<Draw[]>([]);
+  const [lotteries, setLotteries] = useState<Lottery[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [showLotteryModal, setShowLotteryModal] = useState(false);
+  const [showManualDrawModal, setShowManualDrawModal] = useState(false);
+  const [selectedLottery, setSelectedLottery] = useState<Lottery | null>(null);
+  const [manualNumbers, setManualNumbers] = useState<string[]>([]);
+  
+  // Multi-prize state
+  const [firstPrize, setFirstPrize] = useState('');
+  const [secondPrize, setSecondPrize] = useState('');
+  const [thirdPrize, setThirdPrize] = useState('');
+  const [drawDate, setDrawDate] = useState('');
+  const [drawTime, setDrawTime] = useState('');
+
+  const fetchDraws = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/draws?limit=50`);
+      if (response.ok) {
+        const data = await response.json();
+        setDraws(data);
+      }
+    } catch (error) {
+      console.error('Error fetching draws:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchLotteries = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/lotteries`);
+      if (response.ok) {
+        const data = await response.json();
+        setLotteries(data);
+      }
+    } catch (error) {
+      console.error('Error fetching lotteries:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDraws();
+    fetchLotteries();
+  }, [fetchDraws]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchDraws();
+    setRefreshing(false);
+  };
+
+  const openManualDrawModal = (lottery: Lottery) => {
+    setSelectedLottery(lottery);
+    // Initialize empty inputs based on numbers_to_pick
+    setManualNumbers(Array(lottery.numbers_to_pick).fill(''));
+    // Reset multi-prize fields
+    setFirstPrize('');
+    setSecondPrize('');
+    setThirdPrize('');
+    // Set default date and time to now
+    const now = new Date();
+    setDrawDate(now.toISOString().split('T')[0]);
+    setDrawTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+    setShowLotteryModal(false);
+    setShowManualDrawModal(true);
+  };
+
+  const executeMultiPrizeDraw = async () => {
+    if (!selectedLottery) return;
+
+    // Validate first prize is required
+    const first = parseInt(firstPrize.trim());
+    if (isNaN(first)) {
+      Alert.alert('Error', 'Primer premio es obligatorio');
+      return;
+    }
+    if (first < selectedLottery.min_number || first > selectedLottery.max_number) {
+      Alert.alert('Error', `Primer premio debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    // Validate second prize if provided
+    const second = secondPrize.trim() ? parseInt(secondPrize.trim()) : null;
+    if (second !== null && (isNaN(second) || second < selectedLottery.min_number || second > selectedLottery.max_number)) {
+      Alert.alert('Error', `Segundo premio debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    // Validate third prize if provided
+    const third = thirdPrize.trim() ? parseInt(thirdPrize.trim()) : null;
+    if (third !== null && (isNaN(third) || third < selectedLottery.min_number || third > selectedLottery.max_number)) {
+      Alert.alert('Error', `Tercer premio debe estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    const prizeText = [
+      `1ro: ${first}`,
+      second !== null ? `2do: ${second}` : null,
+      third !== null ? `3ro: ${third}` : null
+    ].filter(Boolean).join(', ');
+
+    Alert.alert(
+      'Confirmar Sorteo',
+      `¿Ejecutar sorteo de ${selectedLottery.name}?\n\n${prizeText}\n\nFecha: ${drawDate}\nHora: ${drawTime}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Ejecutar',
+          onPress: async () => {
+            setCreating(true);
+            setShowManualDrawModal(false);
+            try {
+              const response = await fetch(`${API_URL}/api/draws/multi-prize`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ 
+                  lottery_id: selectedLottery.id,
+                  first_prize: first,
+                  second_prize: second,
+                  third_prize: third,
+                  draw_date: drawDate,
+                  draw_time: drawTime
+                }),
+              });
+
+              if (response.ok) {
+                const draw = await response.json();
+                Alert.alert(
+                  '¡Sorteo Ejecutado!',
+                  `${selectedLottery.name}\n\n` +
+                  `1er Premio: ${draw.first_prize}\n` +
+                  (draw.second_prize ? `2do Premio: ${draw.second_prize}\n` : '') +
+                  (draw.third_prize ? `3er Premio: ${draw.third_prize}\n` : '') +
+                  `\nGanadores: ${draw.total_winners}\nPremios: ${draw.currency} ${draw.total_paid.toLocaleString()}`
+                );
+                fetchDraws();
+                setSelectedLottery(null);
+                setFirstPrize('');
+                setSecondPrize('');
+                setThirdPrize('');
+              } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || 'No se pudo ejecutar el sorteo');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setCreating(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const executeManualDraw = async () => {
+    if (!selectedLottery) return;
+
+    // Validate numbers
+    const numbers = manualNumbers.map(n => parseInt(n.trim()));
+    if (numbers.some(isNaN)) {
+      Alert.alert('Error', 'Todos los números deben ser válidos');
+      return;
+    }
+    if (numbers.some(n => n < selectedLottery.min_number || n > selectedLottery.max_number)) {
+      Alert.alert('Error', `Números deben estar entre ${selectedLottery.min_number} y ${selectedLottery.max_number}`);
+      return;
+    }
+
+    Alert.alert(
+      'Confirmar Sorteo',
+      `¿Ejecutar sorteo de ${selectedLottery.name} con números: ${numbers.join(', ')}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Ejecutar',
+          onPress: async () => {
+            setCreating(true);
+            setShowManualDrawModal(false);
+            try {
+              const response = await fetch(`${API_URL}/api/draws`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ 
+                  lottery_id: selectedLottery.id,
+                  winning_numbers: numbers
+                }),
+              });
+
+              if (response.ok) {
+                const draw = await response.json();
+                Alert.alert(
+                  '¡Sorteo Ejecutado!',
+                  `Números ganadores: ${draw.winning_numbers.join(', ')}\nBoletos: ${draw.total_tickets}\nGanadores: ${draw.total_winners}\nPremios: ${draw.currency} ${draw.total_paid.toLocaleString()}`
+                );
+                fetchDraws();
+                setSelectedLottery(null);
+                setManualNumbers([]);
+              } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || 'No se pudo ejecutar el sorteo');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setCreating(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const executeDraw = async (lotteryId: string, lotteryName: string) => {
+    Alert.alert(
+      'Confirmar Sorteo',
+      `¿Ejecutar sorteo de ${lotteryName}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Ejecutar',
+          onPress: async () => {
+            setCreating(true);
+            setShowLotteryModal(false);
+            try {
+              const response = await fetch(`${API_URL}/api/draws`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ lottery_id: lotteryId }),
+              });
+
+              if (response.ok) {
+                const draw = await response.json();
+                Alert.alert(
+                  '¡Sorteo Ejecutado!',
+                  `Números ganadores: ${draw.winning_numbers.join(', ')}\nBoletos: ${draw.total_tickets}\nGanadores: ${draw.total_winners}\nPremios: ${draw.currency} ${draw.total_paid.toLocaleString()}`
+                );
+                fetchDraws();
+              } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || 'No se pudo ejecutar el sorteo');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Error de conexión');
+            } finally {
+              setCreating(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderDraw = ({ item }: { item: Draw }) => {
+    const drawDate = new Date(item.draw_time);
+    const hasMultiPrize = item.first_prize !== undefined;
+    
+    return (
+      <View style={styles.drawCard}>
+        <View style={styles.drawHeader}>
+          <View>
+            <Text style={styles.lotteryName}>{item.lottery_name}</Text>
+            <Text style={styles.drawTime}>
+              {drawDate.toLocaleDateString('es-DO', { timeZone: 'America/Santo_Domingo', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+            </Text>
+            <Text style={styles.drawHour}>
+              {drawDate.toLocaleTimeString('es-DO', { timeZone: 'America/Santo_Domingo', hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+          <View style={styles.statsContainer}>
+            <View style={styles.statBadge}>
+              <Text style={styles.statValue}>{item.total_winners}</Text>
+              <Text style={styles.statLabel}>Ganadores</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.numbersContainer}>
+          <Text style={styles.numbersLabel}>Números Ganadores</Text>
+          
+          {hasMultiPrize ? (
+            <View style={styles.multiPrizeContainer}>
+              <View style={styles.prizeRow}>
+                <View style={styles.prizeLabel}>
+                  <Ionicons name="trophy" size={16} color="#fbbf24" />
+                  <Text style={styles.prizeLabelText}>1ro</Text>
+                </View>
+                <View style={[styles.numberBall, styles.firstPrizeBall]}>
+                  <Text style={styles.numberBallText}>{item.first_prize?.toString().padStart(2, '0')}</Text>
+                </View>
+              </View>
+              
+              {item.second_prize !== undefined && item.second_prize !== null && (
+                <View style={styles.prizeRow}>
+                  <View style={styles.prizeLabel}>
+                    <Ionicons name="trophy-outline" size={16} color="#94a3b8" />
+                    <Text style={styles.prizeLabelText}>2do</Text>
+                  </View>
+                  <View style={[styles.numberBall, styles.secondPrizeBall]}>
+                    <Text style={styles.numberBallText}>{item.second_prize.toString().padStart(2, '0')}</Text>
+                  </View>
+                </View>
+              )}
+              
+              {item.third_prize !== undefined && item.third_prize !== null && (
+                <View style={styles.prizeRow}>
+                  <View style={styles.prizeLabel}>
+                    <Ionicons name="medal-outline" size={16} color="#cd7f32" />
+                    <Text style={styles.prizeLabelText}>3ro</Text>
+                  </View>
+                  <View style={[styles.numberBall, styles.thirdPrizeBall]}>
+                    <Text style={styles.numberBallText}>{item.third_prize.toString().padStart(2, '0')}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.numberBalls}>
+              {item.winning_numbers.map((num, index) => (
+                <View key={index} style={styles.numberBall}>
+                  <Text style={styles.numberBallText}>{num.toString().padStart(2, '0')}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.drawFooter}>
+          <View style={styles.footerItem}>
+            <Ionicons name="ticket-outline" size={16} color="#94a3b8" />
+            <Text style={styles.footerText}>{item.total_tickets} boletos</Text>
+          </View>
+          <View style={styles.footerItem}>
+            <Ionicons name="cash-outline" size={16} color="#22c55e" />
+            <Text style={[styles.footerText, styles.paidAmount]}>
+              {item.currency} {item.total_paid.toLocaleString()}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const canExecuteDraw = user?.role === 'super_admin' || user?.role === 'admin';
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Sorteos</Text>
+        {canExecuteDraw ? (
+          Platform.OS === 'web' ? (
+            <button
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: creating ? 'not-allowed' : 'pointer',
+                padding: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: creating ? 0.7 : 1,
+              }}
+              onClick={() => !creating && setShowLotteryModal(true)}
+              disabled={creating}
+              data-testid="add-draw-button"
+            >
+              {creating ? (
+                <ActivityIndicator size="small" color="#22c55e" />
+              ) : (
+                <Ionicons name="add-circle" size={28} color="#22c55e" />
+              )}
+            </button>
+          ) : (
+            <TouchableOpacity
+              onPress={() => !creating && setShowLotteryModal(true)}
+              disabled={creating}
+              data-testid="add-draw-button"
+            >
+              {creating ? (
+                <ActivityIndicator size="small" color="#22c55e" />
+              ) : (
+                <Ionicons name="add-circle" size={28} color="#22c55e" />
+              )}
+            </TouchableOpacity>
+          )
+        ) : (
+          <View style={{ width: 28 }} />
+        )}
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
+      ) : (
+        <FlatList
+          data={draws}
+          renderItem={renderDraw}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="trophy-outline" size={64} color="#475569" />
+              <Text style={styles.emptyText}>No hay sorteos</Text>
+            </View>
+          }
+        />
+      )}
+
+      {/* Lottery Selection Modal */}
+      <Modal visible={showLotteryModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Ejecutar Sorteo</Text>
+              <TouchableOpacity onPress={() => setShowLotteryModal(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSubtitle}>Seleccione una lotería para ingresar los números ganadores</Text>
+            <ScrollView>
+              {lotteries.map((lottery) => (
+                <TouchableOpacity
+                  key={lottery.id}
+                  style={styles.lotteryOption}
+                  onPress={() => openManualDrawModal(lottery)}
+                >
+                  <View style={styles.lotteryOptionInfo}>
+                    <Text style={styles.lotteryOptionName}>{lottery.name}</Text>
+                    <Text style={styles.lotteryOptionCountry}>{lottery.country} • {lottery.lottery_type}</Text>
+                    <Text style={styles.lotteryOptionNumbers}>
+                      Rango: {lottery.min_number}-{lottery.max_number} • {lottery.numbers_to_pick} número(s)
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color="#22c55e" />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Manual Draw Modal - Multi Prize */}
+      <Modal visible={showManualDrawModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Ingresar Resultados del Sorteo</Text>
+              <TouchableOpacity onPress={() => { setShowManualDrawModal(false); setSelectedLottery(null); }}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            {selectedLottery && (
+              <ScrollView style={styles.modalBody}>
+                <View style={styles.selectedLotteryInfo}>
+                  <Text style={styles.selectedLotteryName}>{selectedLottery.name}</Text>
+                  <Text style={styles.selectedLotteryDetails}>
+                    Rango: {selectedLottery.min_number} - {selectedLottery.max_number}
+                  </Text>
+                </View>
+
+                {/* Date and Time Inputs */}
+                <View style={styles.dateTimeRow}>
+                  <View style={styles.dateTimeInput}>
+                    <Text style={styles.inputLabel}>Fecha</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={drawDate}
+                      onChangeText={setDrawDate}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#64748b"
+                    />
+                  </View>
+                  <View style={styles.dateTimeInput}>
+                    <Text style={styles.inputLabel}>Hora</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={drawTime}
+                      onChangeText={setDrawTime}
+                      placeholder="HH:MM"
+                      placeholderTextColor="#64748b"
+                    />
+                  </View>
+                </View>
+
+                {/* Prize Inputs */}
+                <Text style={styles.prizesSectionTitle}>Números Ganadores</Text>
+                
+                <View style={styles.prizeInputRow}>
+                  <View style={styles.prizeInputLabel}>
+                    <Ionicons name="trophy" size={24} color="#fbbf24" />
+                    <Text style={styles.prizeInputLabelText}>1er Premio *</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.prizeInput, styles.firstPrizeInput]}
+                    value={firstPrize}
+                    onChangeText={setFirstPrize}
+                    keyboardType="numeric"
+                    placeholder="00"
+                    placeholderTextColor="#64748b"
+                    maxLength={3}
+                  />
+                </View>
+
+                <View style={styles.prizeInputRow}>
+                  <View style={styles.prizeInputLabel}>
+                    <Ionicons name="trophy-outline" size={24} color="#94a3b8" />
+                    <Text style={styles.prizeInputLabelText}>2do Premio</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.prizeInput, styles.secondPrizeInput]}
+                    value={secondPrize}
+                    onChangeText={setSecondPrize}
+                    keyboardType="numeric"
+                    placeholder="00"
+                    placeholderTextColor="#64748b"
+                    maxLength={3}
+                  />
+                </View>
+
+                <View style={styles.prizeInputRow}>
+                  <View style={styles.prizeInputLabel}>
+                    <Ionicons name="medal-outline" size={24} color="#cd7f32" />
+                    <Text style={styles.prizeInputLabelText}>3er Premio</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.prizeInput, styles.thirdPrizeInput]}
+                    value={thirdPrize}
+                    onChangeText={setThirdPrize}
+                    keyboardType="numeric"
+                    placeholder="00"
+                    placeholderTextColor="#64748b"
+                    maxLength={3}
+                  />
+                </View>
+
+                <Text style={styles.infoText}>
+                  * Primer premio es obligatorio. 2do y 3er premio son opcionales.
+                </Text>
+
+                <TouchableOpacity
+                  style={[styles.executeButton, creating && styles.executeButtonDisabled]}
+                  onPress={executeMultiPrizeDraw}
+                  disabled={creating}
+                >
+                  {creating ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <>
+                      <Ionicons name="trophy" size={24} color="#ffffff" />
+                      <Text style={styles.executeButtonText}>Guardar Resultados</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#1e293b',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  listContent: {
+    padding: 16,
+  },
+  drawCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  drawHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  lotteryName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  drawTime: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginTop: 4,
+  },
+  statsContainer: {
+    alignItems: 'flex-end',
+  },
+  statBadge: {
+    backgroundColor: '#14532d',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#86efac',
+  },
+  numbersContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#334155',
+  },
+  numbersLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginBottom: 12,
+  },
+  numberBalls: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  numberBall: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#22c55e',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 4,
+  },
+  numberBallText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  drawFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  footerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginLeft: 6,
+  },
+  paidAmount: {
+    color: '#22c55e',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748b',
+    marginTop: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1e293b',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  lotteryOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  lotteryOptionInfo: {
+    flex: 1,
+  },
+  lotteryOptionName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#ffffff',
+  },
+  lotteryOptionCountry: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginTop: 2,
+  },
+  lotteryOptionNumbers: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#94a3b8',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    textAlign: 'center',
+  },
+  modalBody: {
+    padding: 16,
+  },
+  selectedLotteryInfo: {
+    backgroundColor: '#0f172a',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  selectedLotteryName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
+  selectedLotteryDetails: {
+    fontSize: 13,
+    color: '#94a3b8',
+    marginTop: 4,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  numbersInputContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  numberInputWrapper: {
+    alignItems: 'center',
+    marginHorizontal: 6,
+    marginVertical: 6,
+  },
+  numberInputLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  numberInput: {
+    backgroundColor: '#0f172a',
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#22c55e',
+    textAlign: 'center',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  executeButton: {
+    backgroundColor: '#22c55e',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 24,
+  },
+  executeButtonDisabled: {
+    opacity: 0.7,
+  },
+  executeButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  drawHour: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  multiPrizeContainer: {
+    width: '100%',
+  },
+  prizeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 6,
+  },
+  prizeLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 60,
+  },
+  prizeLabelText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginLeft: 4,
+  },
+  firstPrizeBall: {
+    backgroundColor: '#fbbf24',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  secondPrizeBall: {
+    backgroundColor: '#9ca3af',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  thirdPrizeBall: {
+    backgroundColor: '#b45309',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  dateTimeInput: {
+    flex: 1,
+  },
+  dateInput: {
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    color: '#ffffff',
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  prizesSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  prizeInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 10,
+  },
+  prizeInputLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  prizeInputLabelText: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '500',
+  },
+  prizeInput: {
+    backgroundColor: '#0f172a',
+    width: 80,
+    height: 60,
+    borderRadius: 12,
+    textAlign: 'center',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    borderWidth: 2,
+  },
+  firstPrizeInput: {
+    borderColor: '#fbbf24',
+  },
+  secondPrizeInput: {
+    borderColor: '#94a3b8',
+  },
+  thirdPrizeInput: {
+    borderColor: '#cd7f32',
+  },
+});
