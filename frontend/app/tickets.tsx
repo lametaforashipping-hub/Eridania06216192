@@ -468,7 +468,10 @@ export default function Tickets() {
   const handlePrint = async () => {
     if (!selectedTicket) return;
     try {
-      await Print.printAsync({ html: generateTicketHTML(selectedTicket) });
+      // Use the same receipt image from backend for printing
+      const imageUrl = `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}`;
+      const html = `<html><head><style>body{margin:0;padding:20px;display:flex;justify-content:center;}img{max-width:100%;}</style></head><body><img src="${imageUrl}" /></body></html>`;
+      await Print.printAsync({ html });
     } catch (error) {
       Alert.alert('Error', 'No se pudo imprimir');
     }
@@ -478,37 +481,40 @@ export default function Tickets() {
     if (!selectedTicket) return;
     
     try {
+      // Get the receipt image from the backend (same image that matches the app's display)
+      const imageUrl = `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}`;
+      
       if (Platform.OS !== 'web') {
-        // ON MOBILE: Use expo-print to generate PDF, then share
-        // This does NOT depend on FileSystem directories (which are null in Expo Go)
-        const html = generateTicketHTML(selectedTicket);
-        const { uri } = await Print.printToFileAsync({ html });
+        // Download the image to a temporary file
+        const localUri = `${FileSystem.cacheDirectory}ticket_${selectedTicket.ticket_number}.png`;
         
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          await Sharing.shareAsync(uri, {
-            mimeType: 'application/pdf',
-            dialogTitle: 'Enviar ticket por WhatsApp',
-          });
-          return;
+        const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
+        
+        if (downloadResult.status === 200) {
+          // Share the downloaded image
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(downloadResult.uri, {
+              mimeType: 'image/png',
+              dialogTitle: 'Enviar ticket por WhatsApp',
+            });
+            return;
+          }
         }
       }
       
-      // Web fallback or if image sharing failed: share as text via WhatsApp
-      const message = `*BOLETO DE LOTERIA*\n\n` +
-        `Boleto: ${selectedTicket.ticket_number}\n` +
-        `Loteria: ${selectedTicket.lottery_name}\n` +
-        `Numeros: ${(selectedTicket.numbers || []).map((n: any) => n?.toString().padStart(2, '0') || '--').join(' - ')}\n` +
-        `Monto: ${selectedTicket.currency} ${(selectedTicket.amount || 0).toLocaleString()}\n` +
-        `Estado: ${getStatusText(selectedTicket.status)}\n` +
-        `${selectedTicket.status === 'won' ? `Premio: ${selectedTicket.currency} ${(selectedTicket.potential_win || 0).toLocaleString()}\n` : ''}`;
-      
+      // Web fallback: open image in new tab
       if (Platform.OS === 'web') {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         if (typeof window !== 'undefined') {
-          window.open(whatsappUrl, '_blank');
+          window.open(imageUrl, '_blank');
         }
       } else {
+        // Fallback to text message
+        const message = `*BOLETO DE LOTERIA*\n\n` +
+          `Boleto: ${selectedTicket.ticket_number}\n` +
+          `Loteria: ${selectedTicket.lottery_name}\n` +
+          `Total: ${selectedTicket.currency} ${(selectedTicket.total_amount || 0).toLocaleString()}\n` +
+          `Estado: ${getStatusText(selectedTicket.status)}\n`;
         await Share.share({ message });
       }
     } catch (error) {

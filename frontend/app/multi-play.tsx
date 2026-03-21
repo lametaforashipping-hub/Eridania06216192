@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -23,6 +24,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
+import ViewShot from 'react-native-view-shot';
 import { logoBase64 } from '../src/assets/logoBase64';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 
@@ -92,6 +94,8 @@ export default function MultiPlay() {
   const [submitting, setSubmitting] = useState(false);
   const [lastTicket, setLastTicket] = useState<TicketResponse | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [companyProfile, setCompanyProfile] = useState<any>(null);
+  const ticketViewRef = useRef<any>(null);
   
   // Form state for adding new play
   const [selectedType, setSelectedType] = useState(LOTTERY_TYPES[0]);
@@ -108,7 +112,22 @@ export default function MultiPlay() {
   // Fetch available lotteries on mount
   useEffect(() => {
     fetchLotteries();
+    fetchCompanyProfile();
   }, []);
+
+  const fetchCompanyProfile = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/company-profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCompanyProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching company profile:', error);
+    }
+  };
 
   const fetchLotteries = async () => {
     try {
@@ -379,7 +398,10 @@ const showAlert = (title: string, message: string) => {
   const handlePrintTicket = async () => {
     if (!lastTicket) return;
     try {
-      await Print.printAsync({ html: generateTicketHTML(lastTicket) });
+      // Use the same receipt image from backend for printing
+      const imageUrl = `${API_URL}/api/tickets/receipt-image/${lastTicket.ticket_number}`;
+      const html = `<html><head><style>body{margin:0;padding:20px;display:flex;justify-content:center;}img{max-width:100%;}</style></head><body><img src="${imageUrl}" /></body></html>`;
+      await Print.printAsync({ html });
     } catch (error) {
       Alert.alert('Error', 'No se pudo imprimir');
     }
@@ -389,69 +411,62 @@ const showAlert = (title: string, message: string) => {
     if (!lastTicket) return;
     
     try {
-      if (Platform.OS !== 'web') {
-        // ON MOBILE: Use expo-print to generate PDF, then share
-        // This does NOT depend on FileSystem directories (which are null in Expo Go)
-        const date = new Date(lastTicket.created_at);
-        const playsHTML = lastTicket.plays.map((p: any) => 
-          `<tr><td>${p.lottery_type.toUpperCase()}</td><td>${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')}</td><td>RD$ ${p.amount}</td></tr>`
-        ).join('');
-        
-        const html = `<html><body style="font-family:monospace;padding:20px;max-width:350px;margin:0 auto;">
-          <div style="text-align:center;"><img src="${logoBase64}" style="width:60px;height:60px;object-fit:cover;border:2px solid #000;" /></div>
-          <h2 style="text-align:center;">LOTERIA MAGICA</h2>
-          <p style="text-align:center;font-size:11px;color:#e63946;font-style:italic;">Tu Suerte Comienza Aqui</p>
-          <hr/>
-          <p><b>No:</b> ${lastTicket.ticket_number}</p>
-          <p><b>Fecha:</b> ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}</p>
-          ${lastTicket.customer_name ? `<p><b>Cliente:</b> ${lastTicket.customer_name}</p>` : ''}
-          <hr/>
-          <table style="width:100%;font-size:12px;"><tbody>${playsHTML}</tbody></table>
-          <hr/>
-          <p style="font-size:16px;"><b>TOTAL (${lastTicket.plays.length}): ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}</b></p>
-          <div style="text-align:center;margin:10px 0;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(lastTicket.ticket_number)}" width="80" height="80"/>
-          </div>
-          <p style="text-align:center;"><b>CONSERVE ESTE BOLETO</b><br/>BUENA SUERTE!</p>
-        </body></html>`;
-        
-        const { uri } = await Print.printToFileAsync({ html });
-        
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          await Sharing.shareAsync(uri, {
-            mimeType: 'application/pdf',
-            dialogTitle: 'Enviar ticket por WhatsApp',
-          });
-          return;
-        }
-      }
+      // Get the receipt image from the backend (same image that matches the app's display)
+      const imageUrl = `${API_URL}/api/tickets/receipt-image/${lastTicket.ticket_number}`;
       
-      // Web fallback or if image sharing failed
-      const date = new Date(lastTicket.created_at);
-      const playsText = lastTicket.plays.map((p: any) => 
-        `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')} x RD$ ${p.amount}`
-      ).join('\n');
-
-      const message = `*BOLETO MULTI-JUGADA*\n\n` +
-        `Boleto: ${lastTicket.ticket_number}\n` +
-        `Fecha: ${date.toLocaleDateString('es-DO', {timeZone: 'America/Santo_Domingo'})} ${date.toLocaleTimeString('es-DO', {timeZone: 'America/Santo_Domingo'})}\n` +
-        `${lastTicket.customer_name ? `Cliente: ${lastTicket.customer_name}\n` : ''}` +
-        `\nJUGADAS (${lastTicket.plays.length}):\n${playsText}\n\n` +
-        `Total: ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +
-        `Premio Potencial: ${lastTicket.currency} ${lastTicket.total_potential_win.toLocaleString()}\n` +
-        `\nBuena suerte!`;
-
-      if (Platform.OS === 'web') {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        if (typeof window !== 'undefined') {
-          window.open(whatsappUrl, '_blank');
+      if (Platform.OS !== 'web') {
+        // Download the image to a temporary file
+        const localUri = `${FileSystem.cacheDirectory}ticket_${lastTicket.ticket_number}.png`;
+        
+        const downloadResult = await FileSystem.downloadAsync(imageUrl, localUri);
+        
+        if (downloadResult.status === 200) {
+          // Share the downloaded image
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(downloadResult.uri, {
+              mimeType: 'image/png',
+              dialogTitle: 'Enviar ticket por WhatsApp',
+            });
+            return;
+          }
+        } else {
+          // Fallback to PDF if image download fails
+          throw new Error('Image download failed');
         }
       } else {
-        await Share.share({ message });
+        // Web: Just open the image in a new tab or provide download link
+        if (typeof window !== 'undefined') {
+          window.open(imageUrl, '_blank');
+        }
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo compartir');
+      console.error('Share error:', error);
+      // Fallback: Share text message
+      try {
+        const date = new Date(lastTicket.created_at);
+        const playsText = lastTicket.plays.map((p: any) => 
+          `  ${p.lottery_type.toUpperCase()}: ${p.numbers.map((n: any) => n.toString().padStart(2, '0')).join('-')} x ${lastTicket.currency} ${p.amount}`
+        ).join('\n');
+
+        const message = `*${companyProfile?.company_name || 'LOTERIA MAGICA'}*\n\n` +
+          `Boleto: ${lastTicket.ticket_number}\n` +
+          `Fecha: ${date.toLocaleDateString('es-DO')} ${date.toLocaleTimeString('es-DO')}\n` +
+          `\nJUGADAS (${lastTicket.plays.length}):\n${playsText}\n\n` +
+          `Total: ${lastTicket.currency} ${lastTicket.total_amount.toLocaleString()}\n` +
+          `\n¡Buena Suerte!`;
+
+        if (Platform.OS === 'web') {
+          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+          if (typeof window !== 'undefined') {
+            window.open(whatsappUrl, '_blank');
+          }
+        } else {
+          await Share.share({ message });
+        }
+      } catch (fallbackError) {
+        Alert.alert('Error', 'No se pudo compartir');
+      }
     }
   };
 
