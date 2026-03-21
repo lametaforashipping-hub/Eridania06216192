@@ -485,26 +485,39 @@ export default function Tickets() {
       const dateStr = date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const timeStr = date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
       const currency = selectedTicket.currency || 'RD$';
+      const isMultiPlay = selectedTicket.ticket_type === 'multi_play' && selectedTicket.plays && selectedTicket.plays.length > 0;
       
-      // Group plays by lottery name
-      const playsByLottery: Record<string, any[]> = {};
-      (selectedTicket.plays || []).forEach((p: any) => {
-        const lName = p.lottery_name || 'Loteria';
-        if (!playsByLottery[lName]) playsByLottery[lName] = [];
-        playsByLottery[lName].push(p);
-      });
-      
-      const typeLabels: Record<string, string> = { quiniela: 'Q', pale: 'P', tripleta: 'T', super_pale: 'SP' };
       let playsText = '';
-      Object.entries(playsByLottery).forEach(([lotteryName, plays]) => {
-        playsText += `\n*${lotteryName.toUpperCase()}*\n`;
-        plays.forEach((p: any) => {
-          const typeLabel = typeLabels[p.lottery_type] || p.lottery_type?.charAt(0)?.toUpperCase() || '?';
-          const nums = (p.numbers || []).map((n: any) => n.toString().padStart(2, '0')).join('-');
-          playsText += `  ${typeLabel} ${nums} = ${currency} ${(p.amount || 0).toLocaleString()}\n`;
+      let playsCount = 0;
+      
+      if (isMultiPlay) {
+        // Group plays by lottery name for multi-play tickets
+        const playsByLottery: Record<string, any[]> = {};
+        (selectedTicket.plays || []).forEach((p: any) => {
+          const lName = p.lottery_name || 'Loteria';
+          if (!playsByLottery[lName]) playsByLottery[lName] = [];
+          playsByLottery[lName].push(p);
         });
-      });
+        
+        const typeLabels: Record<string, string> = { quiniela: 'Q', pale: 'P', tripleta: 'T', super_pale: 'SP' };
+        Object.entries(playsByLottery).forEach(([lotteryName, plays]) => {
+          playsText += `\n*${lotteryName.toUpperCase()}*\n`;
+          plays.forEach((p: any) => {
+            const typeLabel = typeLabels[p.lottery_type] || p.lottery_type?.charAt(0)?.toUpperCase() || '?';
+            const nums = (p.numbers || []).map((n: any) => n.toString().padStart(2, '0')).join('-');
+            playsText += `  ${typeLabel} ${nums} = ${currency} ${(p.amount || 0).toLocaleString()}\n`;
+          });
+        });
+        playsCount = selectedTicket.plays?.length || 0;
+      } else {
+        // Single play ticket
+        const nums = (selectedTicket.numbers || []).map((n: any) => n?.toString().padStart(2, '0') || '--').join('-');
+        const lotteryName = selectedTicket.lottery_name || 'Loteria';
+        playsText = `\n*${lotteryName.toUpperCase()}*\n  ${nums} = ${currency} ${(selectedTicket.amount || selectedTicket.total_amount || 0).toLocaleString()}\n`;
+        playsCount = 1;
+      }
 
+      const totalAmount = selectedTicket.total_amount || selectedTicket.amount || 0;
       const receiptUrl = `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}`;
       
       const message = 
@@ -516,10 +529,10 @@ export default function Tickets() {
         `*Fecha:* ${dateStr}, ${timeStr}\n` +
         `*Estado:* ${getStatusText(selectedTicket.status)}\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
-        `*JUGADAS (${selectedTicket.plays?.length || 0}):*\n` +
+        `*JUGADAS (${playsCount}):*\n` +
         playsText +
         `━━━━━━━━━━━━━━━━━━━━\n` +
-        `*TOTAL: ${currency} ${(selectedTicket.total_amount || 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })}*\n` +
+        `*TOTAL: ${currency} ${totalAmount.toLocaleString('es-DO', { minimumFractionDigits: 2 })}*\n` +
         `━━━━━━━━━━━━━━━━━━━━\n\n` +
         `Ver recibo completo:\n${receiptUrl}\n\n` +
         `_CONSERVE ESTE BOLETO_\n` +
