@@ -19,7 +19,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - FastAPI puerto 8001, prefijo /api
 - MongoDB (test_database)
 
-## Estado de Verificación (21/03/2026)
+## Estado de Verificación (25/03/2026)
 
 ### Backend - 38/38 endpoints verificados (100%)
 - Auth (login admin/vendor, auth/me con country/active) - OK
@@ -34,6 +34,15 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - Configuración Premios - OK
 - Cuentas Bancarias - OK
 - Favoritos y Notificaciones - OK
+
+### BUG CRITICO CORREGIDO (25/03/2026): Detección de Ganadores Multi-Play
+**Problema**: Tickets multi-play con jugadas en MÚLTIPLES loterías NO eran detectados como ganadores.
+**Causa Raíz**: 3 bugs en lottery_scheduler.py y draws.py:
+  1. Query usaba lottery_id/numbers a nivel superior, pero multi-play los tiene en plays[]
+  2. Mark-as-lost marcaba TODO ticket como perdido incluyendo multi-play con loterías sin sortear
+  3. Pale/tripleta no verificaba que TODOS los números coincidieran
+**Fix aplicado en**: lottery_scheduler.py (process_new_results + determine_play_win) y draws.py (create_draw_multi_prize)
+**Tests**: 28/28 pasaron (15 unit + 13 API) - iteration_53
 
 ### App Móvil - 47 pantallas verificadas
 - Core: _layout, index, login, dashboard
@@ -62,6 +71,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - iteration_50: Report pages (23/23)
 - iteration_51: Alert system (13/13)
 - iteration_52: Comprehensive mobile API (38/38)
+- iteration_53: Multi-play winner detection bug fix (28/28) - 100%
 
 ## Backlog
 ### P1
