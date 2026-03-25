@@ -43,6 +43,14 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 4. Abreviatura de tipo de jugada incorrecta en recibo
 **Fix aplicado en**: multi-play.tsx (modal de confirmación), tickets.tsx (historial + recibo)
 **Tests**: Backend receipt image verificado visualmente - muestra logo + nombres de lotería correctamente
+
+### NUEVA FUNCIONALIDAD (25/03/2026): Pantalla de Resultados para Vendedores
+- Nueva pantalla `/results` que muestra los últimos resultados de sorteos
+- Filtros: Hoy, Ayer, Todos
+- Muestra bolas de primera (dorado), segunda (morado), tercera (rojo) por lotería
+- Badges de verificación y resultado automático
+- Accesible para todos los roles desde el dashboard
+- Archivo: /app/frontend/app/results.tsx
 **Problema**: Tickets multi-play con jugadas en MÚLTIPLES loterías NO eran detectados como ganadores.
 **Causa Raíz**: 3 bugs en lottery_scheduler.py y draws.py:
   1. Query usaba lottery_id/numbers a nivel superior, pero multi-play los tiene en plays[]
