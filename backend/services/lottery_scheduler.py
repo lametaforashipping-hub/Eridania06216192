@@ -22,31 +22,134 @@ _last_results: Dict[str, LotteryResult] = {}
 _last_fetch_time: Optional[datetime] = None
 
 
+def determine_play_win(play, first_prize, second_prize, third_prize, lottery_play_types):
+    """
+    Determine if a play wins based on its type and the winning numbers.
+    
+    Rules:
+    - quiniela (1 number): wins if the number matches any prize position
+    - pale (2 numbers): wins if BOTH numbers appear among the 3 prizes
+    - tripleta (3 numbers): wins if ALL 3 numbers match the 3 prizes (any order)
+    - super_pale (2 numbers): same logic as pale, different multipliers
+    
+    Returns: (won: bool, position: str, prize_amount: float)
+    """
+    play_type = play.get("lottery_type", "quiniela").lower()
+    numbers = play.get("numbers", [])
+    amount = play.get("amount", 0)
+    
+    # Get multipliers for this specific play type from lottery config
+    type_config = lottery_play_types.get(play_type, {})
+    multipliers = type_config.get("multipliers", {})
+    
+    # Fallback multipliers if not configured
+    if not multipliers:
+        default_multipliers = {
+            "quiniela": {"first": 70, "second": 20, "third": 10},
+            "pale": {"first": 1000, "second": 100, "third": 50},
+            "tripleta": {"first": 50000, "second": 5000, "third": 2500},
+            "super_pale": {"first": 2500, "second": 250, "third": 125},
+        }
+        multipliers = default_multipliers.get(play_type, {"first": 70, "second": 20, "third": 10})
+    
+    # Build the set of winning numbers (non-None values)
+    winning_set = set()
+    if first_prize is not None:
+        winning_set.add(first_prize)
+    if second_prize is not None:
+        winning_set.add(second_prize)
+    if third_prize is not None:
+        winning_set.add(third_prize)
+    
+    if play_type == "quiniela":
+        # Single number: check against each prize position
+        if len(numbers) >= 1:
+            num = numbers[0]
+            if num == first_prize:
+                return True, "primera", amount * multipliers.get("first", 70)
+            elif num == second_prize:
+                return True, "segunda", amount * multipliers.get("second", 20)
+            elif num == third_prize:
+                return True, "tercera", amount * multipliers.get("third", 10)
+        return False, None, 0
+    
+    elif play_type in ("pale", "super_pale"):
+        # Both numbers must appear among the winning numbers
+        if len(numbers) >= 2 and all(n in winning_set for n in numbers):
+            # Determine which prize positions matched to select correct multiplier
+            matched_positions = set()
+            for n in numbers:
+                if n == first_prize:
+                    matched_positions.add("first")
+                elif n == second_prize:
+                    matched_positions.add("second")
+                elif n == third_prize:
+                    matched_positions.add("third")
+            
+            # Pale primera+segunda = best, primera+tercera = medium, segunda+tercera = lowest
+            if "first" in matched_positions and "second" in matched_positions:
+                tier = "first"
+                pos = "primera"
+            elif "first" in matched_positions and "third" in matched_positions:
+                tier = "second"
+                pos = "primera"
+            else:  # segunda + tercera
+                tier = "third"
+                pos = "segunda"
+            
+            return True, pos, amount * multipliers.get(tier, 1000)
+        return False, None, 0
+    
+    elif play_type == "tripleta":
+        # All 3 numbers must match the 3 prizes (any order)
+        if len(numbers) >= 3 and first_prize is not None and second_prize is not None and third_prize is not None:
+            if set(numbers) == winning_set:
+                # Exact order gets first tier
+                if numbers[0] == first_prize and numbers[1] == second_prize and numbers[2] == third_prize:
+                    tier = "first"
+                else:
+                    tier = "first"  # In Dominican lottery, tripleta any order is still top prize
+                return True, "primera", amount * multipliers.get(tier, 50000)
+        return False, None, 0
+    
+    return False, None, 0
+
+
 async def process_new_results(db, validated_result: LotteryResult, lottery_doc: dict):
-    """Process a validated lottery result and update winning tickets"""
+    """Process a validated lottery result and update winning tickets.
+    
+    Handles both simple (single-play) tickets and multi-play tickets.
+    Multi-play tickets have plays in multiple lotteries and should only be 
+    marked as lost when ALL their lotteries have been drawn.
+    """
     from models.enums import TicketStatus, TransactionType
     from services.notifications import notify_winner, notify_draw_complete, notify_client_winner
     import uuid
     
     lottery_id = lottery_doc["id"]
     lottery_name = lottery_doc["name"]
+    first_prize = validated_result.first_prize
+    second_prize = validated_result.second_prize
+    third_prize = validated_result.third_prize
+    play_types_config = lottery_doc.get("play_types", {})
+    currency = lottery_doc.get("currency", "RD$")
     
     # Create the draw record
     draw = {
         "id": str(uuid.uuid4()),
         "lottery_id": lottery_id,
         "lottery_name": lottery_name,
-        "winning_numbers": [validated_result.first_prize],
-        "first_prize": validated_result.first_prize,
-        "second_prize": validated_result.second_prize,
-        "third_prize": validated_result.third_prize,
+        "winning_numbers": [first_prize],
+        "first_prize": first_prize,
+        "second_prize": second_prize,
+        "third_prize": third_prize,
         "position": "primera",
         "draw_time": datetime.now(timezone.utc),
         "draw_date": validated_result.draw_date,
         "total_tickets": 0,
         "total_winners": 0,
         "total_paid": 0.0,
-        "currency": lottery_doc.get("currency", "RD$"),
+        "currency": currency,
         "is_manual": False,
         "is_automated": True,
         "source": validated_result.source,
@@ -59,27 +162,29 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     winner_notifications = []
     client_winner_notifications = []
     
-    # Get prize tiers from lottery config
-    prize_tiers = lottery_doc.get("prize_tiers", {"first": 70, "second": 15, "third": 5})
-    play_types = lottery_doc.get("play_types", {})
-    quiniela_config = play_types.get("quiniela", {})
-    quiniela_multipliers = quiniela_config.get("multipliers", prize_tiers)
+    # Get default quiniela multipliers for simple tickets
+    quiniela_config = play_types_config.get("quiniela", {})
+    quiniela_multipliers = quiniela_config.get("multipliers", {"first": 70, "second": 20, "third": 10})
     
-    # Process each prize position
+    # ═══════════════════════════════════════════════════════════════
+    # STEP 1: Process SIMPLE seller tickets (non multi-play)
+    # These have lottery_id and numbers at the top level
+    # ═══════════════════════════════════════════════════════════════
     for position, prize_number, tier_key in [
-        ("primera", validated_result.first_prize, "first"),
-        ("segunda", validated_result.second_prize, "second"),
-        ("tercera", validated_result.third_prize, "third")
+        ("primera", first_prize, "first"),
+        ("segunda", second_prize, "second"),
+        ("tercera", third_prize, "third")
     ]:
         if prize_number is None:
             continue
         
-        # Find pending tickets (sellers) with this number
+        # Only match simple tickets (not multi-play) with top-level lottery_id and numbers
         ticket_query = {
             "lottery_id": lottery_id,
             "status": TicketStatus.PENDING.value,
             "numbers": prize_number,
-            "client_id": {"$exists": False}  # Only seller tickets
+            "ticket_type": {"$ne": "multi_play"},
+            "client_id": {"$exists": False}
         }
         
         matching_tickets = await db.tickets.find(ticket_query).to_list(10000)
@@ -101,14 +206,13 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             total_winners += 1
             total_paid += prize
             
-            # Create transaction
             await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
                 "user_id": ticket["seller_id"],
                 "user_name": ticket["seller_name"],
                 "transaction_type": TransactionType.WIN.value,
                 "amount": prize,
-                "currency": ticket.get("currency", "RD$"),
+                "currency": ticket.get("currency", currency),
                 "description": f"Premio {position} (Auto) - {lottery_name} - {ticket['numbers']}",
                 "reference_id": ticket["id"],
                 "created_at": datetime.now(timezone.utc)
@@ -119,52 +223,224 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 "ticket_number": ticket["ticket_number"],
                 "prize": prize
             })
+    
+    # ═══════════════════════════════════════════════════════════════
+    # STEP 2: Process MULTI-PLAY seller tickets
+    # These have plays[] array where each play has its own lottery_id
+    # ═══════════════════════════════════════════════════════════════
+    multi_play_query = {
+        "ticket_type": "multi_play",
+        "status": {"$in": [TicketStatus.PENDING.value, TicketStatus.WON.value]},
+        "plays.lottery_id": lottery_id,
+        "client_id": {"$exists": False}
+    }
+    
+    multi_play_tickets = await db.tickets.find(multi_play_query).to_list(10000)
+    logger.info(f"Found {len(multi_play_tickets)} multi-play seller tickets with plays for {lottery_name}")
+    
+    for ticket in multi_play_tickets:
+        ticket_won_any = False
+        ticket_total_prize = ticket.get("potential_win", 0) or 0  # Keep existing wins from other lotteries
+        winning_plays_info = []
+        plays = ticket.get("plays", [])
+        plays_updated = False
         
-        # Find pending CLIENT tickets with this number
-        client_ticket_query = {
+        for i, play in enumerate(plays):
+            # Only check plays for THIS lottery that haven't been resolved yet
+            if play.get("lottery_id") != lottery_id:
+                continue
+            if play.get("play_result") in ("won", "lost"):
+                continue  # Already resolved by a previous draw
+            
+            won, position, prize = determine_play_win(
+                play, first_prize, second_prize, third_prize, play_types_config
+            )
+            
+            if won:
+                plays[i]["play_result"] = "won"
+                plays[i]["won_position"] = position
+                plays[i]["won_prize"] = prize
+                plays[i]["draw_id"] = draw["id"]
+                ticket_won_any = True
+                ticket_total_prize += prize
+                plays_updated = True
+                
+                winning_plays_info.append({
+                    "play_index": i,
+                    "lottery_name": play.get("lottery_name", lottery_name),
+                    "numbers": play.get("numbers", []),
+                    "prize": prize,
+                    "position": position
+                })
+                
+                logger.info(
+                    f"  WINNER: Ticket {ticket['ticket_number']} play #{i+1} "
+                    f"({play.get('lottery_type','?')}) {play.get('numbers',[])} "
+                    f"won {position} = {currency} {prize:,.2f}"
+                )
+            else:
+                # Mark this play as lost for this lottery
+                plays[i]["play_result"] = "lost"
+                plays[i]["draw_id"] = draw["id"]
+                plays_updated = True
+        
+        if plays_updated:
+            update_fields = {"plays": plays}
+            
+            if ticket_won_any:
+                update_fields["status"] = TicketStatus.WON.value
+                update_fields["potential_win"] = ticket_total_prize
+                update_fields["automated_result"] = True
+                update_fields["draw_id"] = draw["id"]
+                total_winners += 1
+                total_paid += sum(wp["prize"] for wp in winning_plays_info)
+                
+                # Create transactions for each winning play
+                for wp in winning_plays_info:
+                    await db.transactions.insert_one({
+                        "id": str(uuid.uuid4()),
+                        "user_id": ticket["seller_id"],
+                        "user_name": ticket["seller_name"],
+                        "transaction_type": TransactionType.WIN.value,
+                        "amount": wp["prize"],
+                        "currency": ticket.get("currency", currency),
+                        "description": f"Premio {wp['position']} (Auto) - {wp['lottery_name']} - {wp['numbers']}",
+                        "reference_id": ticket["id"],
+                        "created_at": datetime.now(timezone.utc)
+                    })
+                
+                winner_notifications.append({
+                    "user_id": ticket["seller_id"],
+                    "ticket_number": ticket["ticket_number"],
+                    "prize": sum(wp["prize"] for wp in winning_plays_info)
+                })
+            else:
+                # Check if ALL plays in this ticket have been resolved
+                all_resolved = all(p.get("play_result") in ("won", "lost") for p in plays)
+                if all_resolved and ticket.get("status") != TicketStatus.WON.value:
+                    # All plays resolved and none won -> ticket is lost
+                    update_fields["status"] = TicketStatus.LOST.value
+                    update_fields["draw_id"] = draw["id"]
+                # If not all resolved, keep ticket as pending (other lotteries haven't drawn yet)
+            
+            await db.tickets.update_one({"id": ticket["id"]}, {"$set": update_fields})
+    
+    # ═══════════════════════════════════════════════════════════════
+    # STEP 3: Process CLIENT tickets (both simple and multi-play)
+    # ═══════════════════════════════════════════════════════════════
+    
+    # 3a: Simple client tickets
+    for position, prize_number, tier_key in [
+        ("primera", first_prize, "first"),
+        ("segunda", second_prize, "second"),
+        ("tercera", third_prize, "third")
+    ]:
+        if prize_number is None:
+            continue
+        
+        client_simple_query = {
             "lottery_id": lottery_id,
             "status": TicketStatus.PENDING.value,
+            "numbers": prize_number,
+            "ticket_type": {"$ne": "multi_play"},
             "client_id": {"$exists": True}
         }
         
-        client_tickets = await db.tickets.find(client_ticket_query).to_list(10000)
+        client_simple_tickets = await db.tickets.find(client_simple_query).to_list(10000)
+        multiplier = quiniela_multipliers.get(tier_key, 70)
         
-        for ticket in client_tickets:
-            # Check if any play in the ticket matches
-            plays = ticket.get("plays", [])
-            for play in plays:
-                play_numbers = play.get("numbers", [])
-                if prize_number in play_numbers:
-                    play_amount = play.get("amount", 0)
-                    prize = play_amount * multiplier
-                    
-                    await db.tickets.update_one(
-                        {"id": ticket["id"]},
-                        {"$set": {
-                            "status": TicketStatus.WON.value,
-                            "draw_id": draw["id"],
-                            "potential_win": prize,
-                            "won_position": position,
-                            "automated_result": True
-                        }}
-                    )
-                    total_winners += 1
-                    total_paid += prize
-                    
-                    # Add to client winner notifications
-                    client_winner_notifications.append({
-                        "client_id": ticket["client_id"],
-                        "ticket_number": ticket.get("ticket_number", ""),
-                        "prize": prize,
-                        "lottery_name": lottery_name
-                    })
-                    break  # Only count once per ticket
+        for ticket in client_simple_tickets:
+            prize = ticket.get("amount", 0) * multiplier
+            await db.tickets.update_one(
+                {"id": ticket["id"]},
+                {"$set": {
+                    "status": TicketStatus.WON.value,
+                    "draw_id": draw["id"],
+                    "potential_win": prize,
+                    "won_position": position,
+                    "automated_result": True
+                }}
+            )
+            total_winners += 1
+            total_paid += prize
+            client_winner_notifications.append({
+                "client_id": ticket["client_id"],
+                "ticket_number": ticket.get("ticket_number", ""),
+                "prize": prize,
+                "lottery_name": lottery_name
+            })
     
-    # Mark remaining pending tickets as lost
+    # 3b: Multi-play client tickets
+    client_multi_query = {
+        "ticket_type": "multi_play",
+        "status": {"$in": [TicketStatus.PENDING.value, TicketStatus.WON.value]},
+        "plays.lottery_id": lottery_id,
+        "client_id": {"$exists": True}
+    }
+    
+    client_multi_tickets = await db.tickets.find(client_multi_query).to_list(10000)
+    
+    for ticket in client_multi_tickets:
+        ticket_won_any = False
+        ticket_total_prize = ticket.get("potential_win", 0) or 0
+        plays = ticket.get("plays", [])
+        plays_updated = False
+        
+        for i, play in enumerate(plays):
+            if play.get("lottery_id") != lottery_id:
+                continue
+            if play.get("play_result") in ("won", "lost"):
+                continue
+            
+            won, position, prize = determine_play_win(
+                play, first_prize, second_prize, third_prize, play_types_config
+            )
+            
+            if won:
+                plays[i]["play_result"] = "won"
+                plays[i]["won_prize"] = prize
+                plays[i]["draw_id"] = draw["id"]
+                ticket_won_any = True
+                ticket_total_prize += prize
+                plays_updated = True
+                
+                client_winner_notifications.append({
+                    "client_id": ticket["client_id"],
+                    "ticket_number": ticket.get("ticket_number", ""),
+                    "prize": prize,
+                    "lottery_name": lottery_name
+                })
+            else:
+                plays[i]["play_result"] = "lost"
+                plays[i]["draw_id"] = draw["id"]
+                plays_updated = True
+        
+        if plays_updated:
+            update_fields = {"plays": plays}
+            if ticket_won_any:
+                update_fields["status"] = TicketStatus.WON.value
+                update_fields["potential_win"] = ticket_total_prize
+                update_fields["automated_result"] = True
+                total_winners += 1
+                total_paid += ticket_total_prize - (ticket.get("potential_win", 0) or 0)
+            else:
+                all_resolved = all(p.get("play_result") in ("won", "lost") for p in plays)
+                if all_resolved and ticket.get("status") != TicketStatus.WON.value:
+                    update_fields["status"] = TicketStatus.LOST.value
+                    update_fields["draw_id"] = draw["id"]
+            
+            await db.tickets.update_one({"id": ticket["id"]}, {"$set": update_fields})
+    
+    # ═══════════════════════════════════════════════════════════════
+    # STEP 4: Mark remaining SIMPLE tickets as lost
+    # IMPORTANT: Only mark simple tickets, NOT multi-play tickets
+    # Multi-play tickets are handled per-play above
+    # ═══════════════════════════════════════════════════════════════
     await db.tickets.update_many(
         {
             "lottery_id": lottery_id,
-            "status": TicketStatus.PENDING.value
+            "status": TicketStatus.PENDING.value,
+            "ticket_type": {"$ne": "multi_play"}
         },
         {"$set": {"status": TicketStatus.LOST.value, "draw_id": draw["id"]}}
     )
@@ -177,16 +453,15 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     await db.draws.insert_one(draw)
     
     # Create draw result notification for all users
-    import uuid
     notification = {
         "id": str(uuid.uuid4()),
         "type": "draw_result",
         "lottery_id": lottery_id,
         "lottery_name": lottery_name,
-        "winning_numbers": [validated_result.first_prize, validated_result.second_prize, validated_result.third_prize],
-        "first_prize": validated_result.first_prize,
-        "second_prize": validated_result.second_prize,
-        "third_prize": validated_result.third_prize,
+        "winning_numbers": [first_prize, second_prize, third_prize],
+        "first_prize": first_prize,
+        "second_prize": second_prize,
+        "third_prize": third_prize,
         "total_winners": total_winners,
         "is_automated": True,
         "created_at": datetime.now(timezone.utc),
@@ -204,8 +479,8 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             "lottery_name": lottery_name,
             "ticket_number": winner["ticket_number"],
             "prize_amount": winner["prize"],
-            "currency": lottery_doc.get("currency", "RD$"),
-            "message": f"🎉 ¡GANADOR! Boleto {winner['ticket_number']} ganó {lottery_doc.get('currency', 'RD$')} {winner['prize']:,.2f}",
+            "currency": currency,
+            "message": f"GANADOR! Boleto {winner['ticket_number']} gano {currency} {winner['prize']:,.2f}",
             "is_automated": True,
             "created_at": datetime.now(timezone.utc),
             "read": False
@@ -216,7 +491,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             winner["user_id"],
             winner["ticket_number"],
             winner["prize"],
-            lottery_doc.get("currency", "RD$"),
+            currency,
             lottery_name
         )
     
@@ -229,24 +504,23 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             client_winner["lottery_name"]
         )
         
-        # Update client stats
         await db.users.update_one(
             {"id": client_winner["client_id"]},
             {"$inc": {"total_won": client_winner["prize"]}}
         )
         
-        logger.info(f"🎉 Client winner notification sent: {client_winner['ticket_number']} - ${client_winner['prize']}")
+        logger.info(f"Client winner notification sent: {client_winner['ticket_number']} - ${client_winner['prize']}")
     
     # Send draw complete notification to admins
     await notify_draw_complete(
         lottery_name,
-        [validated_result.first_prize, validated_result.second_prize, validated_result.third_prize],
+        [first_prize, second_prize, third_prize],
         total_winners,
         total_paid,
-        lottery_doc.get("currency", "RD$")
+        currency
     )
     
-    logger.info(f"✅ Processed draw for {lottery_name}: {total_winners} winners, {total_paid} paid")
+    logger.info(f"Processed draw for {lottery_name}: {total_winners} winners, {total_paid} paid")
     return draw
 
 
