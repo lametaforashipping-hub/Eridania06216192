@@ -810,8 +810,13 @@ const showAlert = (title: string, message: string) => {
         <View style={styles.modalOverlay}>
           <View style={[styles.ticketModalContent, isDesktop && styles.modalContentDesktop]}>
             <View style={styles.ticketModalHeader}>
-              <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-              <Text style={styles.ticketModalTitle}>¡Boleto Creado!</Text>
+              {logoBase64 ? (
+                <Image source={{ uri: logoBase64 }} style={{ width: 60, height: 60, borderRadius: 12, marginBottom: 4 }} />
+              ) : (
+                <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+              )}
+              <Text style={styles.ticketModalTitle}>{companyProfile?.company_name || 'Loteria Magica'}</Text>
+              <Text style={{ color: '#94a3b8', fontSize: 12, marginTop: 2 }}>Boleto Creado</Text>
             </View>
             
             {lastTicket && (
@@ -819,15 +824,30 @@ const showAlert = (title: string, message: string) => {
                 <Text style={styles.ticketNumber}>{lastTicket.ticket_number}</Text>
                 
                 <View style={styles.ticketPlays}>
-                  {lastTicket.plays.map((play, idx) => (
-                    <View key={idx} style={styles.ticketPlayRow}>
-                      <Text style={styles.ticketPlayType}>{play.lottery_type.toUpperCase()}</Text>
-                      <Text style={styles.ticketPlayNumbers}>
-                        {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
-                      </Text>
-                      <Text style={styles.ticketPlayAmount}>RD$ {play.amount}</Text>
-                    </View>
-                  ))}
+                  {(() => {
+                    const grouped: Record<string, typeof lastTicket.plays> = {};
+                    lastTicket.plays.forEach(play => {
+                      const lName = (play as any).lottery_name || 'Loteria';
+                      if (!grouped[lName]) grouped[lName] = [];
+                      grouped[lName].push(play);
+                    });
+                    return Object.entries(grouped).map(([lotteryName, lotteryPlays]) => (
+                      <View key={lotteryName} style={{ marginBottom: 8 }}>
+                        <Text style={{ color: '#f59e0b', fontWeight: 'bold', fontSize: 14, marginBottom: 4 }}>
+                          {lotteryName.toUpperCase()}
+                        </Text>
+                        {lotteryPlays.map((play, idx) => (
+                          <View key={idx} style={styles.ticketPlayRow}>
+                            <Text style={styles.ticketPlayType}>{play.lottery_type.toUpperCase()}</Text>
+                            <Text style={styles.ticketPlayNumbers}>
+                              {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
+                            </Text>
+                            <Text style={styles.ticketPlayAmount}>{lastTicket.currency} {play.amount}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ));
+                  })()}
                 </View>
                 
                 <View style={styles.ticketTotals}>
@@ -845,7 +865,7 @@ const showAlert = (title: string, message: string) => {
                   </View>
                   {lastTicket.commission_earned && (
                     <View style={styles.ticketTotalRow}>
-                      <Text style={styles.ticketTotalLabel}>Tu comisión:</Text>
+                      <Text style={styles.ticketTotalLabel}>Tu comision:</Text>
                       <Text style={[styles.ticketTotalValue, styles.ticketCommission]}>
                         {lastTicket.currency} {lastTicket.commission_earned.toLocaleString()}
                       </Text>

@@ -907,7 +907,7 @@ export default function Tickets() {
                     <View style={styles.playsPreview}>
                       {selectedTicket.plays.slice(0, 4).map((play: any, idx: number) => (
                         <Text key={idx} style={styles.playPreviewText}>
-                          {play.lottery_type || play.lottery_name}: {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
+                          {play.lottery_name || play.lottery_type}: {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')}
                         </Text>
                       ))}
                       {selectedTicket.plays.length > 4 && (
@@ -1016,9 +1016,9 @@ export default function Tickets() {
             {selectedTicket && (
               <View style={styles.receiptBody}>
                 <View style={styles.receiptHeader}>
-                  {companyProfile?.logo_url && (
-                    <Image source={{ uri: companyProfile.logo_url }} style={styles.receiptCompanyLogo} />
-                  )}
+                  {logoBase64 ? (
+                    <Image source={{ uri: logoBase64 }} style={styles.receiptCompanyLogo} />
+                  ) : null}
                   <Text style={styles.receiptLogo}>
                     {companyProfile?.company_name || 'LOTERIA MAGICA'}
                   </Text>
@@ -1037,14 +1037,28 @@ export default function Tickets() {
                 
                 {selectedTicket.ticket_type === 'multi_play' && selectedTicket.plays ? (
                   <View>
-                    {selectedTicket.plays.map((play: any, idx: number) => (
-                      <View key={idx} style={{ marginBottom: 8 }}>
-                        <Text style={styles.receiptLotteryTitle}>{(play.lottery_type || play.lottery_name || '').toUpperCase()}</Text>
-                        <Text style={styles.receiptPlayLine}>
-                          P {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')} = {selectedTicket.currency}{play.amount || 0}
-                        </Text>
-                      </View>
-                    ))}
+                    {(() => {
+                      const ABBR: Record<string, string> = { quiniela: 'Q', pale: 'P', tripleta: 'T', super_pale: 'SP' };
+                      const grouped: Record<string, any[]> = {};
+                      selectedTicket.plays.forEach((play: any) => {
+                        const lName = play.lottery_name || 'Loteria';
+                        if (!grouped[lName]) grouped[lName] = [];
+                        grouped[lName].push(play);
+                      });
+                      return Object.entries(grouped).map(([lotteryName, plays]) => (
+                        <View key={lotteryName} style={{ marginBottom: 8 }}>
+                          <Text style={styles.receiptLotteryTitle}>{lotteryName.toUpperCase()}</Text>
+                          {plays.map((play: any, idx: number) => {
+                            const typeLabel = ABBR[play.lottery_type] || play.lottery_type?.charAt(0)?.toUpperCase() || '?';
+                            return (
+                              <Text key={idx} style={styles.receiptPlayLine}>
+                                {typeLabel} {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')} = {selectedTicket.currency}{play.amount || 0}
+                              </Text>
+                            );
+                          })}
+                        </View>
+                      ));
+                    })()}
                   </View>
                 ) : (
                   <View>

@@ -35,7 +35,14 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - Cuentas Bancarias - OK
 - Favoritos y Notificaciones - OK
 
-### BUG CRITICO CORREGIDO (25/03/2026): Detección de Ganadores Multi-Play
+### BUG FIX (25/03/2026): Información incompleta en boleto/WhatsApp
+**Problemas**:
+1. Modal de confirmación no mostraba nombres de lotería (solo tipo: "quiniela")
+2. Logo no cargaba en modal del recibo (usaba URL relativa en vez de base64)
+3. Moneda hardcodeada como "RD$" en modal de confirmación
+4. Abreviatura de tipo de jugada incorrecta en recibo
+**Fix aplicado en**: multi-play.tsx (modal de confirmación), tickets.tsx (historial + recibo)
+**Tests**: Backend receipt image verificado visualmente - muestra logo + nombres de lotería correctamente
 **Problema**: Tickets multi-play con jugadas en MÚLTIPLES loterías NO eran detectados como ganadores.
 **Causa Raíz**: 3 bugs en lottery_scheduler.py y draws.py:
   1. Query usaba lottery_id/numbers a nivel superior, pero multi-play los tiene en plays[]
