@@ -312,6 +312,22 @@ async def create_draw_multi_prize(draw_data: DrawCreateMultiPrize, current_user:
     # Import the helper function
     from services.lottery_scheduler import determine_play_win
     
+    # Load country-specific prize configs from DB
+    country_configs = {}
+    async for config in db.prize_config.find({}, {"_id": 0}):
+        country_configs[config.get("country", "RD")] = config
+    
+    def get_play_types_for_country(seller_country):
+        cc = country_configs.get(seller_country)
+        if cc:
+            result = {}
+            for ptype in ("quiniela", "pale", "tripleta", "super_pale"):
+                if ptype in cc:
+                    result[ptype] = {"multipliers": cc[ptype]}
+            if result:
+                return result
+        return play_types_config
+    
     quiniela_config = play_types_config.get("quiniela", {})
     quiniela_multipliers = quiniela_config.get("multipliers", {"first": 70, "second": 20, "third": 10})
     
@@ -334,9 +350,15 @@ async def create_draw_multi_prize(draw_data: DrawCreateMultiPrize, current_user:
         }
         
         matching_tickets = await db.tickets.find(ticket_query).to_list(10000)
-        multiplier = quiniela_multipliers.get(tier_key, lottery.get("prize_multiplier", 70))
         
         for ticket in matching_tickets:
+            # Use country-specific multipliers
+            seller_country = ticket.get("seller_country") or ticket.get("country", "RD")
+            ticket_play_types = get_play_types_for_country(seller_country)
+            ticket_q_config = ticket_play_types.get("quiniela", {})
+            ticket_q_mults = ticket_q_config.get("multipliers", quiniela_multipliers)
+            multiplier = ticket_q_mults.get(tier_key, lottery.get("prize_multiplier", 70))
+            
             prize = ticket.get("amount", 0) * multiplier
             
             await db.tickets.update_one(
@@ -386,6 +408,10 @@ async def create_draw_multi_prize(draw_data: DrawCreateMultiPrize, current_user:
         plays = ticket.get("plays", [])
         plays_updated = False
         
+        # Use country-specific multipliers
+        seller_country = ticket.get("seller_country") or ticket.get("country", "RD")
+        ticket_play_types = get_play_types_for_country(seller_country)
+        
         for i, play in enumerate(plays):
             if play.get("lottery_id") != lottery["id"]:
                 continue
@@ -393,7 +419,7 @@ async def create_draw_multi_prize(draw_data: DrawCreateMultiPrize, current_user:
                 continue
             
             won, position, prize = determine_play_win(
-                play, first_prize, second_prize, third_prize, play_types_config
+                play, first_prize, second_prize, third_prize, ticket_play_types
             )
             
             if won:

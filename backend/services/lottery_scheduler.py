@@ -101,15 +101,23 @@ def determine_play_win(play, first_prize, second_prize, third_prize, lottery_pla
         return False, None, 0
     
     elif play_type == "tripleta":
-        # All 3 numbers must match the 3 prizes (any order)
+        # All 3 numbers must match the 3 prizes (any order) for first tier
+        # If only 2 out of 3 match, second tier applies
         if len(numbers) >= 3 and first_prize is not None and second_prize is not None and third_prize is not None:
             if set(numbers) == winning_set:
-                # Exact order gets first tier
-                if numbers[0] == first_prize and numbers[1] == second_prize and numbers[2] == third_prize:
-                    tier = "first"
-                else:
-                    tier = "first"  # In Dominican lottery, tripleta any order is still top prize
-                return True, "primera", amount * multipliers.get(tier, 50000)
+                # All 3 match - first tier
+                return True, "primera", amount * multipliers.get("first", 10000)
+            else:
+                # Check if 2 out of 3 match (partial tripleta)
+                matches = len(set(numbers).intersection(winning_set))
+                if matches >= 2:
+                    return True, "segunda", amount * multipliers.get("second", 150)
+        elif len(numbers) >= 3 and first_prize is not None and second_prize is not None:
+            # Only 2 prizes available, check if 2 numbers match
+            partial_set = {first_prize, second_prize}
+            matches = len(set(numbers).intersection(partial_set))
+            if matches >= 2:
+                return True, "segunda", amount * multipliers.get("second", 150)
         return False, None, 0
     
     return False, None, 0
@@ -162,7 +170,24 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     winner_notifications = []
     client_winner_notifications = []
     
-    # Get default quiniela multipliers for simple tickets
+    # Load country-specific prize configs from DB
+    country_configs = {}
+    async for config in db.prize_config.find({}, {"_id": 0}):
+        country_configs[config.get("country", "RD")] = config
+    
+    def get_play_types_for_country(seller_country):
+        """Get multipliers based on seller's country, fallback to lottery config"""
+        cc = country_configs.get(seller_country)
+        if cc:
+            result = {}
+            for ptype in ("quiniela", "pale", "tripleta", "super_pale"):
+                if ptype in cc:
+                    result[ptype] = {"multipliers": cc[ptype]}
+            if result:
+                return result
+        return play_types_config
+    
+    # Get default quiniela multipliers for simple tickets (fallback)
     quiniela_config = play_types_config.get("quiniela", {})
     quiniela_multipliers = quiniela_config.get("multipliers", {"first": 70, "second": 20, "third": 10})
     
@@ -188,9 +213,15 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
         }
         
         matching_tickets = await db.tickets.find(ticket_query).to_list(10000)
-        multiplier = quiniela_multipliers.get(tier_key, 70)
         
         for ticket in matching_tickets:
+            # Use country-specific multipliers
+            seller_country = ticket.get("seller_country") or ticket.get("country", "RD")
+            ticket_play_types = get_play_types_for_country(seller_country)
+            ticket_q_config = ticket_play_types.get("quiniela", {})
+            ticket_q_mults = ticket_q_config.get("multipliers", quiniela_multipliers)
+            multiplier = ticket_q_mults.get(tier_key, 70)
+            
             prize = ticket.get("amount", 0) * multiplier
             
             await db.tickets.update_one(
@@ -245,6 +276,10 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
         plays = ticket.get("plays", [])
         plays_updated = False
         
+        # Use country-specific multipliers for this ticket
+        seller_country = ticket.get("seller_country") or ticket.get("country", "RD")
+        ticket_play_types = get_play_types_for_country(seller_country)
+        
         for i, play in enumerate(plays):
             # Only check plays for THIS lottery that haven't been resolved yet
             if play.get("lottery_id") != lottery_id:
@@ -253,7 +288,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 continue  # Already resolved by a previous draw
             
             won, position, prize = determine_play_win(
-                play, first_prize, second_prize, third_prize, play_types_config
+                play, first_prize, second_prize, third_prize, ticket_play_types
             )
             
             if won:
@@ -386,6 +421,10 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
         plays = ticket.get("plays", [])
         plays_updated = False
         
+        # Use country-specific multipliers for client tickets too
+        client_country = ticket.get("seller_country") or ticket.get("country", "RD")
+        client_ticket_play_types = get_play_types_for_country(client_country)
+        
         for i, play in enumerate(plays):
             if play.get("lottery_id") != lottery_id:
                 continue
@@ -393,7 +432,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 continue
             
             won, position, prize = determine_play_win(
-                play, first_prize, second_prize, third_prize, play_types_config
+                play, first_prize, second_prize, third_prize, client_ticket_play_types
             )
             
             if won:

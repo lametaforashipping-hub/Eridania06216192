@@ -318,9 +318,9 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
                 "super_pale": {"first": 2500, "second": 250, "third": 125}
             },
             "US": {
-                "quiniela": {"first": 56, "second": 16, "third": 8},
-                "pale": {"first": 1500, "second": 150, "third": 75},
-                "tripleta": {"first": 40000, "second": 4000, "third": 2000},
+                "quiniela": {"first": 60, "second": 12, "third": 4},
+                "pale": {"first": 1500, "second": 100, "third": 100},
+                "tripleta": {"first": 10000, "second": 150, "third": 150},
                 "super_pale": {"first": 2000, "second": 200, "third": 100}
             }
         }

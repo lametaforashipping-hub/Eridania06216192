@@ -87,6 +87,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - iteration_51: Alert system (13/13)
 - iteration_52: Comprehensive mobile API (38/38)
 - iteration_53: Multi-play winner detection bug fix (28/28) - 100%
+- iteration_54: US multipliers + ticket expiry fix + tripleta parcial - all PASS (manual E2E)
 
 ## Backlog
 ### P1
