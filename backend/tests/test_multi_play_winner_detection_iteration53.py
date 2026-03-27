@@ -22,7 +22,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('VITE_API_URL', 'https://expo-seller-app.preview.emergentagent.com')
+BASE_URL = os.environ.get('VITE_API_URL', 'https://production-hotfix-12.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"

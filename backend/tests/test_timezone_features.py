@@ -13,7 +13,7 @@ import requests
 import os
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://expo-seller-app.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://production-hotfix-12.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 SELLER_EMAIL = "vendedor@test.com"

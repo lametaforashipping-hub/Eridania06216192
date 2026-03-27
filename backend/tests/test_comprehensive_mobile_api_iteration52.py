@@ -11,7 +11,7 @@ from datetime import datetime
 # Get BASE_URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', os.environ.get('VITE_API_URL', '')).rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://expo-seller-app.preview.emergentagent.com"
+    BASE_URL = "https://production-hotfix-12.preview.emergentagent.com"
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"

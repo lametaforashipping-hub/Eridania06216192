@@ -1,373 +1,141 @@
-<analysis>**original_problem_statement:**
-The user's initial request was to fix the visual format of a lottery ticket receipt image generated for sharing on WhatsApp, ensuring it matched the mobile app's on-screen version. This evolved to include country-specific currency handling (RD$ vs. US$), fixing deployment build errors related to the Expo mobile app, and implementing a sales report dashboard and a real-time alert system for sales milestones.
+<analysis>**original_problem_statement**: 
+The user needed fixes for the WhatsApp ticket sharing format (missing lottery names and company logo) in the Expo mobile app. Later, the user reported multiple critical production bugs: multi-play tickets were not correctly identified as winners if only one of their lotteries won, and tickets were being prematurely marked as lost before all scheduled draws for the day had occurred. Additionally, the user requested a specific country-based prize configuration for USA sellers (Quiniela pays 60/12/4, Pale 1500/100/100, Tripleta pays 10,000 for 3 matches and 150 for 2 matches) and provided 21 screenshots to perfectly sync the development lottery schedules with their production environment.
 
-A critical point of confusion arose when the user realized that most of the new UI work (reports, alerts) was done on a web-based admin panel, while their primary focus has always been the **Expo mobile app** used by sellers.
+**User's preferred language**: Spanish (INSTRUCT next agent to respond in Spanish)
 
-The current and most critical problem is the persistent failure of the WhatsApp sharing feature in the mobile app. After multiple attempts to share a backend-generated image failed to work reliably, the user, expressing significant frustration, has directed the agent to abandon the image-sharing approach entirely. The new strategy is to send a **well-formatted, non-editable text message** to WhatsApp that contains all the ticket details and a link to the visual receipt.
-
-**User's preferred language**: Spanish
-
-**what currently exists?**
-The project consists of three main parts:
-1.  **FastAPI Backend:** A robust and well-tested API that handles all business logic, including ticket generation, country-specific pricing, sales reporting, and a newly implemented real-time alert system.
-2.  **React/Vite Web App:** A web-based admin panel with pages for managing prize configurations, viewing sales reports by country, and configuring alert thresholds. This is considered secondary to the mobile app.
-3.  **Expo Mobile App:** The primary application for users/sellers, located in . It contains over 47 screens for sales, ticket management, client portals, and reports. The agent has recently modified the WhatsApp sharing logic in this app to send a formatted text message instead of an image.
+**what currently exists?** 
+A full-stack lottery application. The backend is FastAPI with MongoDB, using APScheduler for automated result checking () and ticket expiration (). The primary interface is an Expo React Native mobile app used by sellers to generate tickets and share them via WhatsApp. A secondary web app exists for admin configurations. The backend now supports dynamic prize multipliers based on the seller's country.
 
 **Last working item**:
-    - Last item agent was working: Implementing the user's new strategy for WhatsApp sharing. The agent rewrote the sharing logic in  and  to construct and send a formatted text message with a link to the receipt image, instead of trying to share the image file directly.
-    - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? Manual testing by user via Expo Go QR code.
-    - User Testing Done: N
+- **Last item agent was working**: Synchronizing the development database's lottery schedules with the user's production environment. The user uploaded 21 screenshots of their production lottery configurations because tickets were expiring incorrectly (e.g., Gana Más was set to 02:30 AM instead of 14:30 PM). The agent wrote and executed a bash script to update the MongoDB  collection to match these exact schedules.
+- **Status**: USER VERIFICATION PENDING
+- **Agent Testing Done**: Y (Verified the DB was updated via python script output)
+- **Which testing method agent to use?**: NA (Database update complete, needs user to confirm accuracy).
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: (P0) Verify the new Text-Based WhatsApp Sharing in the Mobile App
-  - Issue 2: (P1) Unstable Expo Go Tunnel Connection for Testing
+Issue 1: 🔴 (P0) Verify Lottery Schedules and Deploy to Production
+Issue 2: 🟡 (P1) Verify USA Prize Multipliers in Production
   
-  Issues Detail:
-  - Issue 1: 
-     - **Description**: After repeated failures with sharing an image file to WhatsApp, the user is frustrated and has requested a new approach. The agent has implemented logic to share a formatted text message instead. This is the highest priority task and must be verified by the user on their device.
-     - **Attempted fixes**: The agent replaced the image download/sharing code in  and  with logic that constructs a detailed text string and opens WhatsApp using a  URL scheme.
-     - **Next debug checklist**:
-        1.  Ensure the Expo Go tunnel is working and provide a scannable QR code to the user.
-        2.  Guide the user to open the app and create/select a ticket.
-        3.  Instruct the user to tap the Share to WhatsApp button.
-        4.  Confirm with the user that WhatsApp opens with a correctly formatted text message containing the ticket number, plays, total amount, and a clickable link to the full receipt image.
-     - **Why fix this issue and what will be achieved with the fix?**: This is the user's main point of frustration. Resolving it is critical to moving forward and restoring the user's confidence in the project.
-     - **Status**: USER VERIFICATION PENDING
-     - **Is recurring issue?** Y
-     - **Should Test frontend/backend/both after fix?** Frontend
-     - **Blocked on other issue**: Issue 2
-  - Issue 2: 
-     - **Description**: The Expo Go development server, which generates the QR code for live testing, has been highly unstable. It has repeatedly failed due to port conflicts, system file watcher limits, and ngrok tunnel conflicts.
-     - **Attempted fixes**: The agent changed Expo's port, killed conflicting processes, and adjusted supervisor environment variables. The current configuration runs Expo with , which disables hot-reloading, requiring a manual service restart after every code change.
-     - **Next debug checklist**:
-        1.  Before providing a QR code, check expo                             STOPPING   and review the logs in .
-        2.  Confirm the ngrok tunnel is active and responding.
-        3.  If it fails, systematically kill all 
-  Usage: expo [command] [options]
+Issues Detail:
+- Issue 1: 
+    - **Attempted fixes**: The agent updated the local database schedules using a script based on 21 screenshots.
+    - **Next debug checklist**: 
+        1. Present the updated list of lottery schedules to the user for final confirmation. 
+        2. Since all these bugs (Multi-play winners, premature expiration, incorrect schedules) are currently affecting the user's **production** environment and causing financial/customer disputes, ask the user if they are ready to DEPLOY these fixes immediately.
+    - **Why fix this issue and what will be achieved with the fix?**: Stops tickets from expiring prematurely and stops the user from losing money due to bugs in production.
+    - **Status**: USER VERIFICATION PENDING
+    - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** Backend / E2E
+    - **Blocked on other issue**: None
 
-  Options:
-  
-    -V, --version                     output the version number
-    --non-interactive                 Fail, if an interactive prompt would be required to continue.
-    -h, --help                        output usage information
-  
-  Commands:
-
-    init [name]                       Create a new Expo project
-    start [path]                      Start a local dev server for the app
-    start:web [path]                  Start a Webpack dev server for the web app
-    export [path]                     Export the static files of the app for hosting it on a web server
-    install [packages...]             Install a module or other package to a project
-    run:android [path]                Run the Android app binary locally
-    run:ios [path]                    Run the iOS app binary locally
-    send [path]                       Share the project's URL to an email address
-
-    login                             Login to an Expo account
-    logout                            Logout of an Expo account
-    register                          Sign up for a new Expo account
-    whoami                            Return the currently authenticated account
-
-    client:install:ios                Install Expo Go for iOS on the simulator
-    client:install:android            Install Expo Go for Android on a connected device or emulator
-
-    config [path]                     Show the project config
-    doctor [path]                     Diagnose issues with the project
-    upgrade [sdk-version]             Upgrade the project packages and config for the given SDK version
-
-    customize:web [path]              Eject the default web files for customization
-    prebuild [path]                   Create native iOS and Android project files before building natively.
-                                      Learn more: https://docs.expo.dev/workflow/customizing/
-
-    build:web [path]                  Build the web app for production
-
-    credentials:manager [path]        Superseded by eas credentials in eas-cli
-
-    url [path]                        Log a URL for opening the project in Expo Go
-    url:ipa [path]                    Log the download URL for the standalone iOS binary
-    url:apk [path]                    Log the download URL for the standalone Android binary
-
-    webhooks [path]                   List all webhooks for a project
-    webhooks:add [path]               Add a webhook to a project
-    webhooks:remove [path]            Delete a webhook
-    webhooks:update [path]            Update an existing webhook
-
-    build:ios [path]                  Superseded by eas build in eas-cli
-    build:android [path]              Superseded by eas build in eas-cli
-    build:status [path]               Superseded by eas build:list in eas-cli
-    eject [path]                      Superseded by expo prebuild
-    fetch:ios:certs [path]            Superseded by eas credentials in eas-cli
-    fetch:android:keystore [path]     Superseded by eas credentials in eas-cli
-    fetch:android:hashes [path]       Superseded by eas credentials in eas-cli
-    fetch:android:upload-cert [path]  Superseded by eas credentials in eas-cli
-    publish [path]                    Superseded by eas update in eas-cli
-    publish:set [path]                Superseded by eas update:republish in eas-cli
-    publish:rollback [path]           Superseded by eas update:republish in eas-cli
-    publish:history [path]            Superseded by eas update:list in eas-cli
-    publish:details [path]            Superseded by eas update:view in eas-cli
-    push:android:upload [path]        Superseded by eas credentials in eas-cli
-    push:android:show [path]          Superseded by eas credentials in eas-cli
-    push:android:clear [path]         Superseded by eas credentials in eas-cli
-    upload:android [path]             Superseded by eas submit in eas-cli
-    upload:ios [path]                 Superseded by eas submit in eas-cli
-    client:ios [path]                 Superseded by Expo Dev Clients
-
-[09:46:57]   Run a command with --help for more info 💡
-[09:46:57]     $ expo start --help
-[09:46:57] and  processes (, ) and restart the supervisor service: expo: ERROR (not running)
-expo: started.
-     - **Why fix this issue and what will be achieved with the fix?**: The user cannot test any mobile app changes without a stable QR code and tunnel. This is a blocker for the P0 issue.
-     - **Status**: IN PROGRESS
-     - **Is recurring issue?** Y
-     - **Should Test frontend/backend/both after fix?** NA
-     - **Blocked on other issue**: None
+- Issue 2:
+    - **Attempted fixes**: Successfully implemented logic in  and  to use  (USA) multipliers instead of default lottery multipliers.
+    - **Next debug checklist**: Ask the user to verify if the USA configuration (Quiniela 60, Pale 1500, Tripleta 10000 or 150 for 2 matches) is working as expected once deployed.
+    - **Why fix this issue and what will be achieved with the fix?**: Ensures accurate payouts for international vendors.
+    - **Status**: USER VERIFICATION PENDING
+    - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** Backend
+    - **Blocked on other issue**: None
 
 **In progress Task List**:
- - None.
+- None active. All recent tasks shifted to fixing the critical production bugs reported by the user.
 
-**Upcoming and Future Tasks**
-*   **Upcoming Tasks:**
-    *   **(P1) Full Mobile App Flow Verification:** After the WhatsApp issue is resolved, perform a full regression test of the main mobile app flows (sales, tickets, client portal) on a real device.
-    *   **(P1) Client Portal (Mobile):** Verify that all screens related to the client portal () are fully functional in the mobile app.
+**Upcoming and Future Tasks**:
+- (P0) Deploy all critical fixes to production.
+- (P1) Full Mobile App Flow Verification: Run regression on physical device flows (sales, tickets, client portal).
+- (P2) Push Notifications for Seller Milestones.
+- (P2) Connect Custom Domain ().
+- (P3) Finalize Google Play Store Submission.
 
-*   **Future Tasks:**
-    *   **(P2) Push Notifications for Seller Milestones:** Implement the frontend part of sending push notifications to the seller's mobile device when they hit a sales milestone.
-    *   **(P2) Connect Custom Domain:** Guide the user to connect their  domain.
-    *   **(P3) Finalize Google Play Store Submission:** The Android submission is on hold pending a closed test by the user.
+**Completed work in this session**:
+- Fixed Bug: Multi-play ticket winner detection (, ). Queries now correctly search inside the  array, and tickets no longer get marked lost prematurely if a secondary lottery hasn't drawn yet. (DONE)
+- Fixed Bug: Premature ticket expiration (). Tickets now only expire after the *last* draw of the day has concluded. (DONE)
+- Implemented USA custom prize multipliers dynamically based on  (Quiniela 60/12/4, Pale 1500, Tripleta 10000). (DONE)
+- Updated Tripleta logic: Now pays out exactly 150 if only 2 out of 3 numbers match. (DONE)
+- Fixed WhatsApp message format and receipt modal: Correctly groups plays by  and successfully displays the company logo base64. (DONE)
+- Created a new Resultados () screen in the Expo mobile app for sellers to see recent winning numbers. (DONE)
+- Updated all lottery schedules in the dev database to mirror production exactly. (DONE)
 
-**Completed work in this session**
-- **Implemented Text-Based WhatsApp Sharing:** Rewrote the sharing logic in  and  to use a formatted text message as per the user's latest request.
-- **Debugged and Stabilized Expo Go Environment:** Resolved multiple critical errors (port conflicts, ngrok conflicts, file watcher limits) that were preventing the Expo development server from running, making it possible for the user to test the mobile app.
-- **Verified All Backend Endpoints for Mobile App:** Ran a comprehensive test using the testing agent () confirming all 38 backend endpoints used by the 47-screen mobile app are working correctly.
-- **Verified Core App Flows:** Systematically tested the main backend flows for Sellers (creating tickets), Admins (canceling/paying tickets), and the Client Portal (registration/login), fixing a bug in the  response along the way.
-- **Project Focus Realignment:** Analyzed and clarified for the user the distinction between the web app and the primary Expo mobile app, realigning the project's focus to the mobile app.
-- **Implemented Real-Time Alert System:** Built a complete system with a backend API (), frontend configuration page (), and notification logic to alert admins of sales milestones.
-- **Implemented Sales Report Dashboard:** Created a new backend endpoint () and a corresponding web page () to display sales data by country.
-- **Resolved Coming Soon Pages:** Replaced several placeholder web pages with functional, data-driven interfaces.
-- **Verified Country-Specific Currency:** Completed and verified the feature to show US or RD on tickets based on the seller's country.
+**Earlier issues found/mentioned but not fixed**:
+- None. All user-reported issues from this session were addressed.
 
-**Code Architecture**
+**Known issue recurrence from previous fork**:
+- Issue recurrence in previous fork: Unstable Expo Go Tunnel Connection (Ngrok timeouts/File watcher limits).
+- Recurrence count: 3
+- Status: IN PROGRESS (Workaround applied: Expo runs in  mode. **Important:** You must manually run expo: ERROR (not running)
+expo: ERROR (abnormal termination) to apply any frontend code changes).
+
+**Code Architecture**:
 
 
-**Key Technical Concepts**
-- **Expo Go Tunneling:** Using yarn run v1.22.22
-$ /app/frontend/node_modules/.bin/expo start --tunnel
-env: load .env
-env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_PACKAGER_PROXY_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT VITE_API_URL
-Starting project at /app/frontend
-Fast resolver is enabled.
-Starting Metro Bundler
-Tunnel connected.
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. to expose the local dev server for testing on a physical device. This process is fragile and has been a major source of issues.
-- **Expo vs. Vite:** The project has two distinct frontends. The **Expo app is the priority**. The Vite app is a secondary admin panel.
-- **WhatsApp Sharing Intent:** The strategy has pivoted from using  with an image file to using  with a  URL scheme for greater reliability.
-- **CI Mode in Expo:** The Expo server is currently running with  as a workaround for file watcher limits. This disables hot-reloading, so the 
-  Usage: expo [command] [options]
+**Key Technical Concepts**:
+- FastAPI backend with MongoDB.
+-  manages background jobs ( runs every 5 mins,  runs every 15 mins).
+- **Multi-play tickets**: Store lotteries in an array (). Queries for checking winners *must* use  instead of top-level .
+- Expo runs in CI mode; hot-reloading is disabled to prevent crashing.
 
-  Options:
-  
-    -V, --version                     output the version number
-    --non-interactive                 Fail, if an interactive prompt would be required to continue.
-    -h, --help                        output usage information
-  
-  Commands:
+**key DB schema**:
+- : 
+- : 
 
-    init [name]                       Create a new Expo project
-    start [path]                      Start a local dev server for the app
-    start:web [path]                  Start a Webpack dev server for the web app
-    export [path]                     Export the static files of the app for hosting it on a web server
-    install [packages...]             Install a module or other package to a project
-    run:android [path]                Run the Android app binary locally
-    run:ios [path]                    Run the iOS app binary locally
-    send [path]                       Share the project's URL to an email address
-
-    login                             Login to an Expo account
-    logout                            Logout of an Expo account
-    register                          Sign up for a new Expo account
-    whoami                            Return the currently authenticated account
-
-    client:install:ios                Install Expo Go for iOS on the simulator
-    client:install:android            Install Expo Go for Android on a connected device or emulator
-
-    config [path]                     Show the project config
-    doctor [path]                     Diagnose issues with the project
-    upgrade [sdk-version]             Upgrade the project packages and config for the given SDK version
-
-    customize:web [path]              Eject the default web files for customization
-    prebuild [path]                   Create native iOS and Android project files before building natively.
-                                      Learn more: https://docs.expo.dev/workflow/customizing/
-
-    build:web [path]                  Build the web app for production
-
-    credentials:manager [path]        Superseded by eas credentials in eas-cli
-
-    url [path]                        Log a URL for opening the project in Expo Go
-    url:ipa [path]                    Log the download URL for the standalone iOS binary
-    url:apk [path]                    Log the download URL for the standalone Android binary
-
-    webhooks [path]                   List all webhooks for a project
-    webhooks:add [path]               Add a webhook to a project
-    webhooks:remove [path]            Delete a webhook
-    webhooks:update [path]            Update an existing webhook
-
-    build:ios [path]                  Superseded by eas build in eas-cli
-    build:android [path]              Superseded by eas build in eas-cli
-    build:status [path]               Superseded by eas build:list in eas-cli
-    eject [path]                      Superseded by expo prebuild
-    fetch:ios:certs [path]            Superseded by eas credentials in eas-cli
-    fetch:android:keystore [path]     Superseded by eas credentials in eas-cli
-    fetch:android:hashes [path]       Superseded by eas credentials in eas-cli
-    fetch:android:upload-cert [path]  Superseded by eas credentials in eas-cli
-    publish [path]                    Superseded by eas update in eas-cli
-    publish:set [path]                Superseded by eas update:republish in eas-cli
-    publish:rollback [path]           Superseded by eas update:republish in eas-cli
-    publish:history [path]            Superseded by eas update:list in eas-cli
-    publish:details [path]            Superseded by eas update:view in eas-cli
-    push:android:upload [path]        Superseded by eas credentials in eas-cli
-    push:android:show [path]          Superseded by eas credentials in eas-cli
-    push:android:clear [path]         Superseded by eas credentials in eas-cli
-    upload:android [path]             Superseded by eas submit in eas-cli
-    upload:ios [path]                 Superseded by eas submit in eas-cli
-    client:ios [path]                 Superseded by Expo Dev Clients
-
-[09:47:01]   Run a command with --help for more info 💡
-[09:47:01]     $ expo start --help
-[09:47:01] service must be manually restarted (expo: stopped
-expo: started) to apply any changes in the mobile app code.
-
-**key DB schema**
-- **:** Stores various alert types, including  and .
-- **:** New collection to store admin-configurable alert thresholds.
-- **:** The  field is critical for currency logic and has been confirmed to be included in the  response.
-
-**changes in tech stack**
+**changes in tech stack**:
 - None.
 
-**All files of reference**
-- ****: Mobile app screen where the primary WhatsApp sharing logic was rewritten.
-- ****: Mobile app screen for viewing past tickets; its sharing logic was also rewritten.
-- ****: Configuration file modified to run Expo on a dedicated port (19000) and manage its environment to prevent crashes.
-- ****: Key backend file containing logic for ticket creation and receipt image generation.
-- ****: Contains the authentication logic for the client portal.
+**All files of reference**:
+- : Contains the core logic for automatically marking tickets as won/lost.
+- : Contains logic for expiring tickets at the end of the day.
+- : Handles manual draw entries and their associated win logic.
+- : Comprehensive test suite for the new multi-play and USA multiplier logic.
+-  & : Handles the WhatsApp message generation.
 
-**Critical Info for New Agent**
-- **¡COMUNÍCATE EN ESPAÑOL!**
-- **PRIORIDAD MÁXIMA (P0):** The user is extremely frustrated. Your first and only goal is to **verify the new text-based WhatsApp sharing is working**. Guide the user through testing it on their phone. Do not proceed with any other task until they confirm it works.
-- **FOCUS ON THE MOBILE APP:** The primary application is the **Expo mobile app** in . The web app () is a secondary admin panel.
-- **EXPO ENVIRONMENT IS FRAGILE:** The Expo Go testing tunnel is unstable. Be prepared to debug it by checking logs, killing / processes, and restarting the 
-  Usage: expo [command] [options]
+**Areas that need refactoring**:
+-  and  have slightly duplicated logic for handling timezone offsets and checking if a lottery is closed. This could be abstracted into .
 
-  Options:
-  
-    -V, --version                     output the version number
-    --non-interactive                 Fail, if an interactive prompt would be required to continue.
-    -h, --help                        output usage information
-  
-  Commands:
+**key api endpoints**:
+- : Creates multi-play tickets.
+- : Submits manual draws and triggers winner calculations.
+- : Generates the PNG receipt.
 
-    init [name]                       Create a new Expo project
-    start [path]                      Start a local dev server for the app
-    start:web [path]                  Start a Webpack dev server for the web app
-    export [path]                     Export the static files of the app for hosting it on a web server
-    install [packages...]             Install a module or other package to a project
-    run:android [path]                Run the Android app binary locally
-    run:ios [path]                    Run the iOS app binary locally
-    send [path]                       Share the project's URL to an email address
+**Critical Info for New Agent**:
+- **COMMUNICATE IN SPANISH.**
+- **PRODUCTION CONTEXT:** The user is actively experiencing critical bugs *in their live production environment* (money is at stake regarding winning tickets marked as lost). You have successfully fixed these issues in the development environment. Your immediate priority is to summarize the fixes, verify the lottery schedules are correct, and highly suggest a **DEPLOYMENT** so the user stops losing money.
+- **USA Multipliers:** You must remember that Tripleta now explicitly pays a fallback of 150 if 2 out of 3 numbers match. This is custom domain logic for the USA configured in this session.
+- **Expo limitations:** If you make frontend changes, expo: ERROR (not running)
+expo: started is mandatory.
 
-    login                             Login to an Expo account
-    logout                            Logout of an Expo account
-    register                          Sign up for a new Expo account
-    whoami                            Return the currently authenticated account
+**documents and test reports created in this job**:
+-  (100% pass rate for multi-play ticket bug fix)
+- 
 
-    client:install:ios                Install Expo Go for iOS on the simulator
-    client:install:android            Install Expo Go for Android on a connected device or emulator
+**Last 10 User Messages and any pending HUMAN messages**:
+1. **User**: Confirms adding a Results history screen to the app.
+2. **User**: Asks what time the system is currently configured to.
+3. **User**: Reports a bug: a ticket played at 12:31 PM in two lotteries won at 8:00 PM but was marked as lost.
+4. **User**: Uploads a receipt image showing a ticket that hit #20 but was marked lost before the 9:00 PM draw.
+5. **User**: Requests USA prize multipliers (Quiniela 60/12/4, Pale 1500, Tripleta 10000 or 150 for 2 numbers) for all USA lotteries.
+6. **User**: Uploads an image saying a Gana Más ticket was marked lost even though the lottery hasn't closed yet.
+7. **User**: Says they will send the exact configuration for each lottery (e.g., Gana Mas at 2:30 PM, closes 15 mins before).
+8. **User**: Chqueee bien analice bien and uploads 21 screenshots of their production lottery schedules.
 
-    config [path]                     Show the project config
-    doctor [path]                     Diagnose issues with the project
-    upgrade [sdk-version]             Upgrade the project packages and config for the given SDK version
+**Project Health Check**:
+- **Working**: Backend logic for winner calculations is robustly tested. USA configurations are implemented.
+- **Broken**: The user's production environment is currently running old code, meaning tickets are actively failing. Needs immediate deployment.
+- **Mocked**: None.
 
-    customize:web [path]              Eject the default web files for customization
-    prebuild [path]                   Create native iOS and Android project files before building natively.
-                                      Learn more: https://docs.expo.dev/workflow/customizing/
+**3rd Party Integrations**:
+- Expo Application Services (EAS) — Requires User API Key (Used for builds/updates).
+- Ngrok — Used for Expo tunneling (fragile).
 
-    build:web [path]                  Build the web app for production
+**Testing status**:
+- Testing agent used after significant changes: YES (iteration 53 for multi-play backend fixes).
+- Troubleshoot agent used after agent stuck in loop: NO.
+- Test files created: 
+- Known regressions: None currently in dev. Production has severe data state issues due to the bugs, but dev code is fixed.
 
-    credentials:manager [path]        Superseded by eas credentials in eas-cli
+**Credentials to test flow**:
+- Super Admin:  / 
+- Seller:  / 
 
-    url [path]                        Log a URL for opening the project in Expo Go
-    url:ipa [path]                    Log the download URL for the standalone iOS binary
-    url:apk [path]                    Log the download URL for the standalone Android binary
-
-    webhooks [path]                   List all webhooks for a project
-    webhooks:add [path]               Add a webhook to a project
-    webhooks:remove [path]            Delete a webhook
-    webhooks:update [path]            Update an existing webhook
-
-    build:ios [path]                  Superseded by eas build in eas-cli
-    build:android [path]              Superseded by eas build in eas-cli
-    build:status [path]               Superseded by eas build:list in eas-cli
-    eject [path]                      Superseded by expo prebuild
-    fetch:ios:certs [path]            Superseded by eas credentials in eas-cli
-    fetch:android:keystore [path]     Superseded by eas credentials in eas-cli
-    fetch:android:hashes [path]       Superseded by eas credentials in eas-cli
-    fetch:android:upload-cert [path]  Superseded by eas credentials in eas-cli
-    publish [path]                    Superseded by eas update in eas-cli
-    publish:set [path]                Superseded by eas update:republish in eas-cli
-    publish:rollback [path]           Superseded by eas update:republish in eas-cli
-    publish:history [path]            Superseded by eas update:list in eas-cli
-    publish:details [path]            Superseded by eas update:view in eas-cli
-    push:android:upload [path]        Superseded by eas credentials in eas-cli
-    push:android:show [path]          Superseded by eas credentials in eas-cli
-    push:android:clear [path]         Superseded by eas credentials in eas-cli
-    upload:android [path]             Superseded by eas submit in eas-cli
-    upload:ios [path]                 Superseded by eas submit in eas-cli
-    client:ios [path]                 Superseded by Expo Dev Clients
-
-[09:47:03]   Run a command with --help for more info 💡
-[09:47:03]     $ expo start --help
-[09:47:03] service (expo: stopped
-expo: started).
-- **NO HOT-RELOAD:** The Expo server runs in  mode. You **MUST restart the Expo service** via expo: stopped
-expo: started after making any code changes to the mobile app for them to be applied.
-
-**documents and test reports created in this job**
--  (Comprehensive backend API verification)
--  (Updated to reflect focus shift to mobile app)
-
-**Last 10 User Messages and any pending HUMAN messages** 
-1.  **User:** Asks for clarification on how An Expo user account is required to proceed.
-
-Log in to EAS with email or username (exit and run eas login --help to see other login options)
-Input is required, but stdin is not readable. Failed to display prompt: Email or username works.
-2.  **User:** States that updates used to work simply by scanning a QR code with their phone.
-3.  **User:** Reports the app is not updating after scanning the QR code.
-4.  **User:** Frustrated about the mobile app not updating, confirms that the WhatsApp ticket format and logo are the most important issues to solve.
-5.  **User:** Asks the agent to verify all mobile app flows to ensure everything is working.
-6.  **User:** After another test, reports the WhatsApp receipt is *still* not updating with the correct logo and format.
-7.  **User:** Expresses extreme frustration with the time lost on the image sharing feature and proposes a new strategy: send a well-structured, non-editable text message with a link to the receipt instead.
-8.  **User:** Confirms the WhatsApp ticket sharing is the biggest problem.
-9.  **User:** Asks to verify mobile flows and client portal.
-10. **User:** Asks the agent to call the Deployer Agent to check for deployment readiness.
-
-**Project Health Check:**
-*   **Working:** Backend API is robust, fully tested, and functional. The secondary web admin panel is also functional.
-*   **Broken:** The core user-facing workflow—sharing a ticket from the mobile app to WhatsApp—is not working to the user's satisfaction. The development/testing loop for the mobile app via Expo Go has been unstable.
-*   **Mocked:** None.
-
-**3rd Party Integrations**
-*   **Expo Application Services (EAS):** Used for mobile app builds and updates.
-*   **Ngrok:** Used by Expo to create a development tunnel for live testing. This has been a source of instability.
-
-**Testing status**
-  - Testing agent used after significant changes: YES (For backend endpoints)
-  - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: []
-  - Known regressions: The primary user-facing feature of sharing a ticket is considered broken from the user's perspective.
-
-**Credentials to test flow:**
-*   **Super Admin:**  / 
-*   **Seller:**  / 
-
-**What agent forgot to execute**
-The agent spent significant time building features for the secondary web app before realizing the user's primary focus was the Expo mobile app. This caused user frustration and a perceived loss of time. The agent also struggled to provide a stable testing environment (Expo Go QR code), which is a critical blocker for verifying any mobile app changes.</analysis>
+**What agent forgot to execute**:
+The agent successfully implemented and tested all requested logic, including adapting to heavy context-switching (interruptions with new bugs and USA multiplier requests). The agent did not forget anything, but the final step of explicitly prompting the user to *deploy* these critical hotfixes to production is the immediate missing link.</analysis>
