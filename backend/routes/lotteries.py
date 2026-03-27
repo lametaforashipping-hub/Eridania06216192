@@ -51,7 +51,7 @@ async def create_lottery(lottery: LotteryCreate, current_user: dict = Depends(re
 
 @router.get("")
 async def get_lotteries(active_only: bool = True, country: Optional[str] = None):
-    """Get all lotteries with their current status"""
+    """Get all lotteries with their current status, sorted: open first by draw time, closed at bottom"""
     db = get_db()
     query = {}
     if active_only:
@@ -59,22 +59,34 @@ async def get_lotteries(active_only: bool = True, country: Optional[str] = None)
     if country:
         query["country"] = country
     
-    lotteries = await db.lotteries.find(query).to_list(100)
+    # Sort by sort_order (time-based) from database
+    lotteries = await db.lotteries.find(query).sort("sort_order", 1).to_list(100)
     
-    result = []
+    open_lotteries = []
+    closed_lotteries = []
+    
     for l in lotteries:
         is_open, next_draw, closed_message, today_hours, holiday_info = check_lottery_open(l)
-        result.append({
+        lottery_data = {
             **serialize_doc(l),
             "is_open": is_open,
             "next_draw_time": next_draw,
             "closed_message": closed_message,
             "today_hours": today_hours,
             "is_holiday": holiday_info is not None,
-            "holiday_name": holiday_info.get("name") if holiday_info else None
-        })
+            "holiday_name": holiday_info.get("name") if holiday_info else None,
+            "display_time": l.get("display_time", ""),
+            "display_closing": l.get("display_closing", "")
+        }
+        
+        # Separate open and closed lotteries
+        if is_open:
+            open_lotteries.append(lottery_data)
+        else:
+            closed_lotteries.append(lottery_data)
     
-    return result
+    # Return open lotteries first (sorted by time), then closed ones
+    return open_lotteries + closed_lotteries
 
 
 @router.get("/{lottery_id}")
