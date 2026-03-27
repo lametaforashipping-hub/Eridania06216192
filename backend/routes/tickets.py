@@ -810,8 +810,19 @@ async def get_receipt_image(ticket_number: str):
     # Group plays by lottery name
     plays = ticket.get("plays", [])
     plays_by_lottery = defaultdict(list)
+    
+    # Build lottery ID to name mapping for lookups
+    lottery_id_to_name = {}
+    all_lotteries = await db.lotteries.find({}, {"id": 1, "name": 1}).to_list(100)
+    for lot in all_lotteries:
+        lottery_id_to_name[lot.get("id", "")] = lot.get("name", "LOTERÍA")
+    
     for play in plays:
-        lottery_name = play.get("lottery_name", "LOTERÍA")
+        # Try to get lottery name from play, or look it up by lottery_id
+        lottery_name = play.get("lottery_name")
+        if not lottery_name or lottery_name == "LOTERÍA":
+            lottery_id = play.get("lottery_id", "")
+            lottery_name = lottery_id_to_name.get(lottery_id, "LOTERÍA")
         plays_by_lottery[lottery_name].append(play)
     
     # Get the currency from ticket - this is set based on seller's country
@@ -833,36 +844,37 @@ async def get_receipt_image(ticket_number: str):
     
     y = 25
     
-    # === COMPANY LOGO ===
+    # === COMPANY LOGO (Always use embedded base64 logo) ===
     logo_loaded = False
-    if logo_url:
-        try:
-            logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public", logo_url.lstrip("/"))
-            print(f"[RECEIPT] Looking for logo at: {logo_path}")
-            if os.path.exists(logo_path):
-                logo_img = Image.open(logo_path)
-                # Convert to RGB if necessary
-                if logo_img.mode == 'RGBA':
-                    bg = Image.new('RGB', logo_img.size, 'white')
-                    bg.paste(logo_img, mask=logo_img.split()[3])
-                    logo_img = bg
-                elif logo_img.mode != 'RGB':
-                    logo_img = logo_img.convert('RGB')
-                # Resize logo (max 70px height)
-                max_logo_height = 70
-                ratio = max_logo_height / logo_img.height
-                new_width = int(logo_img.width * ratio)
-                logo_img = logo_img.resize((new_width, max_logo_height), Image.Resampling.LANCZOS)
-                # Center the logo
-                logo_x = (width - new_width) // 2
-                img.paste(logo_img, (logo_x, y))
-                y += max_logo_height + 15
-                logo_loaded = True
-                print(f"[RECEIPT] Logo loaded successfully: {new_width}x{max_logo_height}")
-            else:
-                print(f"[RECEIPT] Logo file not found at: {logo_path}")
-        except Exception as e:
-            print(f"[RECEIPT] Logo load error: {e}")
+    try:
+        import base64
+        # Default logo base64 - Loteria Magica star logo (PNG)
+        DEFAULT_LOGO_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAE6klEQVR4nO2cXWsUZxTH/5PNJm6yG9BIK6zeqkHYYLQRdelbtCS98Vb6JXqhfggRv0XplSCCeGGsoIjREipJDYVSkIKjiLTgjm7Q7IsX64TJujM7L8/LOc88v6skM5uZeX57zjPznLPrdLtdWOgwovsELDuxQohhhRDDCiGGMUKq1Vkj7k6MEWIKRgipVme77m/rRkSJEUJMgr0QPzoAwIQoYS/ENFgLCUaHKbAWMgjuacs4IdxhKyQqXXGOErZCTIWlEBMncx+WQuLANW2xE2JydAAMhSSBY5QYLYQjrISYnq4AZkLSwC1tsRGSh+gAGAnJCyyEZI0OTmmLhZA8kRshXKKEvJC8TOY+5IXkDdJCREcHh7RFWkgeIStE1txBPUpGdZ8AoKcvd9AxXXfNUX0e/TgyP0EVd6Cp3EVVF2qx9pMpLpUQbgMtGpniIoWEDbypAy2aMHFRooZGSN4ezGRSXagNjZqhd1muu+bEDVFLOHFkAAnmED992WhJhv9mjjufJJ7UbQqLT9yoCJL4wdCmsHikkQGkfFK3UqJJKwPI+GAoI339emsPLl3dv/37Xzc2MFVup3otAFy9+Bznl/4fuP+127vx8+UDO/525cJz/PTj4P3jkEUGkHEti0Ok3F6ZCt22/Ch8WxqyygAELC5Sl3J/tYz3Hz4fo1bLwb3VsrDjiJABCFrt9aVQErNv7xYAYPP9CB78Ufls++M/J+G9KwAAvpzeSn0c/7pFrW8JW3533TWHUrTMzTRRGOnNj4PSlp+uCiNd1A5upjqGL0LkYqPweggVKaXxDmqHegO9vFJB/73LnZVe1Mwe3sRYMcUCq8CoCCKlQEVByoeWg2+OewCAV/8Vsf53aXvbM3ccz9xxAMDXxzy028nGVZYMQGLFULeUTsfBwry3/XswbS0Hfj570kOS+JApA5BcwtUt5ehME1/saQHYKWH5U7rat3cLswebsf+fbBmAgpq6TimOA/xw6g0AYOOfEl68LsJrFvD700kAwOLpBpyYw6tCBqCopu66a46u1eLFegO/3JwGANxbraAy0Uar5Xza9mbo65Ou1mZFWZODf0GqV4vrR9+iMtGG1yzg4ZMySrs6AICpchsna+8iX6sqKoIobwNSncKKo118f6I3ua+sT+LBk97T+ZkTHkZHI8rXGmQAmvqyVEtZqjcAAC9fF/HvizEA0elKlwyAcKOcSL6bb+x4+Bsf6+Lbr7yIV+iDRKNcFDPnjkRu3z3VxtPrG5H7lCc6qM+9xd3Hvdvd+pyHyVJH2DmKREuE6CgDLwVS1OLpRuS+OttNpXYuhsGhLp+rSd0SjhVCDOVCOKQrQN88YiOEGFYIMawQYigVwmX+8NExj9gIIYYVQgxjhOhuqhAF+cXFYQQrejKqkv48YlzFUPSEPqi0GqxKAjw/XMQyQoYt/OkqF4uAlZCkDQc6myvSwkJIls4PbtGipB6SZTBE1iWyRItRfVlpkNEPxWHSJydERWMa5TRGRojqDkH/WNSiRfocEuddqLMPavscYohRcZ5aI0RHVIRBJY1pEUJJRD+605hyIRTS0zB0Rov0b5TzL4hyVETRHy2y31DKvuKPm4h+VF2L9JTFXYRP/0OlLLS0klrCMaZiaApWCDGsEGJYIcSwQohhhRDDCiGGFUIMK4QYVggxrBBiWCHE+AhWF4biWffoPQAAAABJRU5ErkJggg=="
+        
+        logo_data = base64.b64decode(DEFAULT_LOGO_BASE64)
+        logo_img = Image.open(io.BytesIO(logo_data))
+        
+        # Convert to RGB if necessary
+        if logo_img.mode == 'RGBA':
+            bg = Image.new('RGB', logo_img.size, 'white')
+            bg.paste(logo_img, mask=logo_img.split()[3])
+            logo_img = bg
+        elif logo_img.mode != 'RGB':
+            logo_img = logo_img.convert('RGB')
+        
+        # Resize logo (max 70px height)
+        max_logo_height = 70
+        ratio = max_logo_height / logo_img.height
+        new_width = int(logo_img.width * ratio)
+        logo_img = logo_img.resize((new_width, max_logo_height), Image.Resampling.LANCZOS)
+        
+        # Center the logo
+        logo_x = (width - new_width) // 2
+        img.paste(logo_img, (logo_x, y))
+        y += max_logo_height + 15
+        logo_loaded = True
+    except Exception as e:
+        print(f"[RECEIPT] Logo load error: {e}")
     
     # === COMPANY NAME (large, bold, centered) ===
     company_display = company_name.upper()
