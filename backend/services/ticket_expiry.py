@@ -39,39 +39,43 @@ async def expire_old_pending_tickets():
             {"_id": 0, "id": 1, "name": 1, "closing_time": 1, "schedule": 1}
         ).to_list(100)
         
-        # Build a map of lottery_id -> has_closed_today
+        # Build a map of lottery_id -> ALL draws completed for today
         lottery_closed_map = {}
         for lottery in lotteries:
             lottery_id = lottery["id"]
             schedule = lottery.get("schedule", [])
             closing_time_str = lottery.get("closing_time", "22:00")
             
-            # Check if the last draw time for today has passed
-            last_draw_passed = False
+            # A lottery is "closed" ONLY when its LAST draw of the day has passed
+            # NOT when the first draw passes (tickets could be for later draws)
+            all_draws_done = False
             if schedule:
-                for draw_time_str in sorted(schedule, reverse=True):
-                    try:
+                try:
+                    draw_times = []
+                    for draw_time_str in schedule:
                         parts = draw_time_str.split(":")
                         h, m = int(parts[0]), int(parts[1]) if len(parts) > 1 else 0
                         draw_dt = dr_now.replace(hour=h, minute=m, second=0, microsecond=0)
-                        if draw_dt < dr_now:
-                            last_draw_passed = True
-                            break
-                    except (ValueError, IndexError):
-                        continue
+                        draw_times.append(draw_dt)
+                    if draw_times:
+                        last_draw_of_day = max(draw_times)
+                        if last_draw_of_day < dr_now:
+                            all_draws_done = True
+                except (ValueError, IndexError):
+                    pass
             
             # Fallback: use closing_time
-            if not last_draw_passed and closing_time_str:
+            if not all_draws_done and closing_time_str:
                 try:
                     parts = closing_time_str.split(":")
                     h, m = int(parts[0]), int(parts[1]) if len(parts) > 1 else 0
                     close_dt = dr_now.replace(hour=h, minute=m, second=0, microsecond=0)
                     if close_dt < dr_now:
-                        last_draw_passed = True
+                        all_draws_done = True
                 except (ValueError, IndexError):
                     pass
             
-            lottery_closed_map[lottery_id] = last_draw_passed
+            lottery_closed_map[lottery_id] = all_draws_done
         
         total_expired = 0
         
