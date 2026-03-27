@@ -481,74 +481,43 @@ export default function Tickets() {
     if (!selectedTicket) return;
     
     try {
-      const date = new Date(selectedTicket.created_at);
-      const dateStr = date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const timeStr = date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
-      const currency = selectedTicket.currency || 'RD$';
-      const isMultiPlay = selectedTicket.ticket_type === 'multi_play' && selectedTicket.plays && selectedTicket.plays.length > 0;
-      
-      let playsText = '';
-      let playsCount = 0;
-      
-      if (isMultiPlay) {
-        // Group plays by lottery name for multi-play tickets
-        const playsByLottery: Record<string, any[]> = {};
-        (selectedTicket.plays || []).forEach((p: any) => {
-          const lName = p.lottery_name || 'Loteria';
-          if (!playsByLottery[lName]) playsByLottery[lName] = [];
-          playsByLottery[lName].push(p);
-        });
-        
-        const typeLabels: Record<string, string> = { quiniela: 'Q', pale: 'P', tripleta: 'T', super_pale: 'SP' };
-        Object.entries(playsByLottery).forEach(([lotteryName, plays]) => {
-          playsText += `\n*${lotteryName.toUpperCase()}*\n`;
-          plays.forEach((p: any) => {
-            const typeLabel = typeLabels[p.lottery_type] || p.lottery_type?.charAt(0)?.toUpperCase() || '?';
-            const nums = (p.numbers || []).map((n: any) => n.toString().padStart(2, '0')).join('-');
-            playsText += `  ${typeLabel} ${nums} = ${currency} ${(p.amount || 0).toLocaleString()}\n`;
-          });
-        });
-        playsCount = selectedTicket.plays?.length || 0;
-      } else {
-        // Single play ticket
-        const nums = (selectedTicket.numbers || []).map((n: any) => n?.toString().padStart(2, '0') || '--').join('-');
-        const lotteryName = selectedTicket.lottery_name || 'Loteria';
-        playsText = `\n*${lotteryName.toUpperCase()}*\n  ${nums} = ${currency} ${(selectedTicket.amount || selectedTicket.total_amount || 0).toLocaleString()}\n`;
-        playsCount = 1;
-      }
-
-      const totalAmount = selectedTicket.total_amount || selectedTicket.amount || 0;
+      // Download ticket image from server
       const receiptUrl = `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}`;
+      const fileUri = `${FileSystem.cacheDirectory}ticket_${selectedTicket.ticket_number}.png`;
       
-      const message = 
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `     *LOTERIA MAGICA*\n` +
-        `       _Tu suerte esta aqui_\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `*Boleto:* ${selectedTicket.ticket_number}\n` +
-        `*Fecha:* ${dateStr}, ${timeStr}\n` +
-        `*Estado:* ${getStatusText(selectedTicket.status)}\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `*JUGADAS (${playsCount}):*\n` +
-        playsText +
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `*TOTAL: ${currency} ${totalAmount.toLocaleString('es-DO', { minimumFractionDigits: 2 })}*\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `Ver recibo completo:\n${receiptUrl}\n\n` +
-        `_CONSERVE ESTE BOLETO_\n` +
-        `_BUENA SUERTE!_`;
-
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-      const canOpen = await Linking.canOpenURL(whatsappUrl);
+      // Download the image
+      const downloadResult = await FileSystem.downloadAsync(receiptUrl, fileUri);
       
-      if (canOpen) {
-        await Linking.openURL(whatsappUrl);
+      if (downloadResult.status !== 200) {
+        throw new Error('No se pudo descargar la imagen del ticket');
+      }
+      
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync();
+      
+      if (isAvailable) {
+        // Share the image directly - this opens the share sheet where user can select WhatsApp
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'image/png',
+          dialogTitle: 'Compartir Ticket por WhatsApp',
+          UTI: 'public.png'
+        });
       } else {
-        await Share.share({ message });
+        // Fallback: open WhatsApp with text message and link to image
+        const currency = selectedTicket.currency || 'RD$';
+        const totalAmount = selectedTicket.total_amount || selectedTicket.amount || 0;
+        const message = 
+          `*LOTERIA MAGICA*\n` +
+          `Boleto: ${selectedTicket.ticket_number}\n` +
+          `Total: ${currency} ${totalAmount.toLocaleString('es-DO', { minimumFractionDigits: 2 })}\n\n` +
+          `Ver ticket: ${receiptUrl}`;
+        
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        await Linking.openURL(whatsappUrl);
       }
     } catch (error: any) {
       console.error('[Share] Error:', error);
-      Alert.alert('Error', 'No se pudo compartir el ticket');
+      Alert.alert('Error', 'No se pudo compartir el ticket. Intente de nuevo.');
     }
   };
 
