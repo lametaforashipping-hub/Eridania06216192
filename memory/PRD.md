@@ -31,7 +31,9 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - Mensaje cerrada: "Abre mañana [día] a las 7:00 AM"
 
 ### 2. Recibo de Ticket (WhatsApp)
-- Logo fijo embebido en base64 (estrella con "LM")
+- Logo bola dorada con "7" embebido en base64
+- Tipografía toda en NEGRITA y +1 punto más grande
+- Jugadas en formato tabla compacta (una línea por jugada) para boletos más cortos
 - Muestra nombres de lotería correctamente agrupados
 - Lookup de lottery_name si no está en el ticket
 - WhatsApp ahora envía IMAGEN PNG directamente (expo-sharing)

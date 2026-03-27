@@ -776,30 +776,25 @@ async def get_receipt_image(ticket_number: str):
     company_city = company.get("city", "DISTRITO NACIONAL") if company else "DISTRITO NACIONAL"
     company_rnc = company.get("rnc", "123-456-789") if company else "123-456-789"
     
-    # Fonts - different sizes for hierarchy
+    # Fonts - ALL BOLD, bigger for better readability
+    BOLD = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
     try:
-        font_company = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 24)
-        font_address = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 14)
-        font_label = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 14)
-        font_ticket_num = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 20)
-        font_date = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 14)
-        font_lottery_name = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 13)
-        font_numbers = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 16)
-        font_amount = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 13)
-        font_type_badge = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 12)
-        font_total_label = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 16)
-        font_total_amount = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 22)
-        font_footer = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 14)
+        font_company = ImageFont.truetype(BOLD, 26)
+        font_address = ImageFont.truetype(BOLD, 15)
+        font_label = ImageFont.truetype(BOLD, 15)
+        font_ticket_num = ImageFont.truetype(BOLD, 22)
+        font_date = ImageFont.truetype(BOLD, 15)
+        font_play_row = ImageFont.truetype(BOLD, 14)
+        font_total_label = ImageFont.truetype(BOLD, 17)
+        font_total_amount = ImageFont.truetype(BOLD, 24)
+        font_footer = ImageFont.truetype(BOLD, 15)
     except Exception:
         font_company = ImageFont.load_default()
         font_address = font_company
         font_label = font_company
         font_ticket_num = font_company
         font_date = font_company
-        font_lottery_name = font_company
-        font_numbers = font_company
-        font_amount = font_company
-        font_type_badge = font_company
+        font_play_row = font_company
         font_total_label = font_company
         font_total_amount = font_company
         font_footer = font_company
@@ -835,11 +830,10 @@ async def get_receipt_image(ticket_number: str):
     ticket_currency = ticket.get("currency", "RD$")
     currency_display = "US$" if ticket_currency in ["USD", "US$", "US"] else "RD$"
     
-    # Calculate height - plays in card grid (2 per row)
+    # Calculate height - compact list (one row per play)
     total_plays = len(plays)
-    rows_of_plays = (total_plays + 1) // 2  # Ceiling division for 2 cards per row
-    card_height = 65
-    estimated_height = 120 + 120 + 100 + (rows_of_plays * (card_height + 15)) + 80 + 180 + 100
+    row_height = 24
+    estimated_height = 120 + 120 + 100 + (total_plays * row_height) + 40 + 80 + 180 + 100
     
     img = Image.new('RGB', (width, estimated_height), 'white')
     draw = ImageDraw.Draw(img)
@@ -935,66 +929,53 @@ async def get_receipt_image(ticket_number: str):
     draw.line([(margin, y), (width - margin, y)], fill='#cccccc', width=1)
     y += 20
     
-    # === PLAYS IN CARD GRID FORMAT (2 per row) ===
+    # === PLAYS AS COMPACT LIST (one line per play) ===
+    # Header row
+    draw.text((margin, y), "LOTERÍA", fill='#3949ab', font=font_play_row)
+    draw.text((margin + 190, y), "NÚM.", fill='#3949ab', font=font_play_row)
+    amount_header = "MONTO"
+    bbox = draw.textbbox((0, 0), amount_header, font=font_play_row)
+    draw.text((width - margin - (bbox[2] - bbox[0]), y), amount_header, fill='#3949ab', font=font_play_row)
+    y += 20
+    draw.line([(margin, y), (width - margin, y)], fill='#cccccc', width=1)
+    y += 8
+    
     all_plays = []
     for lottery_name, lottery_plays in plays_by_lottery.items():
         for play in lottery_plays:
             all_plays.append((lottery_name, play))
     
-    card_width = (width - margin * 2 - 15) // 2  # 2 cards per row with 15px gap
-    card_x_start = margin
-    
     for i, (lottery_name, play) in enumerate(all_plays):
-        col = i % 2
-        row = i // 2
+        # Alternate row background
+        if i % 2 == 0:
+            draw.rectangle([(margin - 5, y - 2), (width - margin + 5, y + row_height - 4)], fill='#f5f5f5')
         
-        if col == 0 and i > 0:
-            y += card_height + 15
-        
-        card_x = card_x_start + col * (card_width + 15)
-        card_y = y if col == 0 or i == 0 else y
-        
-        # Draw card background with light gray border
-        draw.rectangle(
-            [(card_x, card_y), (card_x + card_width, card_y + card_height)],
-            fill='#f8f9fa',
-            outline='#e0e0e0',
-            width=1
-        )
-        
-        # Lottery name (inside card, top left)
-        lottery_short = (lottery_name or "Lotería")[:18]
-        draw.text((card_x + 8, card_y + 6), lottery_short, fill='#666666', font=font_lottery_name)
-        
-        # Play type badge (top right corner of card) - blue background
+        # Play type abbreviation + Lottery name
         play_type = play.get("lottery_type", "quiniela")
         abbr = PLAY_TYPE_ABBR.get(play_type, play_type[:1].upper())
-        badge_x = card_x + card_width - 28
-        badge_y = card_y + 5
-        draw.rectangle([(badge_x, badge_y), (badge_x + 22, badge_y + 18)], fill='#3949ab')
-        bbox = draw.textbbox((0, 0), abbr, font=font_type_badge)
-        abbr_w = bbox[2] - bbox[0]
-        draw.text((badge_x + (22 - abbr_w) // 2, badge_y + 2), abbr, fill='white', font=font_type_badge)
+        lottery_short = (lottery_name or "Lotería")[:20]
+        play_label = f"[{abbr}] {lottery_short}"
+        draw.text((margin, y), play_label, fill='#1a1a2e', font=font_play_row)
         
-        # Numbers (bold, larger, below lottery name)
+        # Numbers
         numbers = play.get("numbers", [])
         if isinstance(numbers, list):
             numbers_str = "-".join(str(n).zfill(2) for n in numbers)
         else:
             numbers_str = str(numbers)
-        draw.text((card_x + 8, card_y + 26), numbers_str, fill='#1a1a2e', font=font_numbers)
+        draw.text((margin + 190, y), numbers_str, fill='#1a1a2e', font=font_play_row)
         
-        # Amount (right side of card, below badge)
+        # Amount (right-aligned)
         amount = play.get("amount", 0)
         amount_text = f"{currency_display} {int(amount)}"
-        bbox = draw.textbbox((0, 0), amount_text, font=font_amount)
+        bbox = draw.textbbox((0, 0), amount_text, font=font_play_row)
         amount_w = bbox[2] - bbox[0]
-        draw.text((card_x + card_width - amount_w - 8, card_y + 45), amount_text, fill='#666666', font=font_amount)
+        draw.text((width - margin - amount_w, y), amount_text, fill='#1a1a2e', font=font_play_row)
+        
+        y += row_height
     
-    # Move y to after the last row of cards
-    total_rows = (len(all_plays) + 1) // 2
     if len(all_plays) > 0:
-        y += card_height + 25
+        y += 15
     else:
         y += 10
     
