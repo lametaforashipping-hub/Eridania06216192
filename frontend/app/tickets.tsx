@@ -49,6 +49,11 @@ interface Play {
   amount: number;
   position?: number;
   potential_win?: number;
+  // Winner details
+  play_result?: 'won' | 'lost' | 'pending';
+  won_position?: string;  // "primera", "segunda", "tercera"
+  won_prize?: number;
+  winning_numbers?: number[];
 }
 
 interface Ticket {
@@ -67,6 +72,13 @@ interface Ticket {
   seller_name: string;
   ticket_type?: string;
   plays?: Play[];
+  // Winner details for simple tickets
+  won_position?: string;
+  won_number?: number;
+  winning_numbers?: number[];
+  won_lottery_name?: string;
+  paid_at?: string;
+  paid_amount?: number;
 }
 
 export default function Tickets() {
@@ -225,6 +237,38 @@ export default function Tickets() {
       case 'paid': return 'PAGADO';
       case 'lost': return 'PERDIDO';
       case 'cancelled': return 'CANCELADO';
+      default: return 'PENDIENTE';
+    }
+  };
+
+  // Helper to get position text in Spanish
+  const getPositionText = (position?: string): string => {
+    if (!position) return '';
+    switch (position.toLowerCase()) {
+      case 'primera': return '1er Premio';
+      case 'segunda': return '2do Premio';
+      case 'tercera': return '3er Premio';
+      case 'first': return '1er Premio';
+      case 'second': return '2do Premio';
+      case 'third': return '3er Premio';
+      default: return position;
+    }
+  };
+
+  // Helper to get play result color
+  const getPlayResultColor = (playResult?: string): string => {
+    switch (playResult) {
+      case 'won': return '#22c55e';
+      case 'lost': return '#ef4444';
+      default: return '#f59e0b';
+    }
+  };
+
+  // Helper to get play result text
+  const getPlayResultText = (playResult?: string): string => {
+    switch (playResult) {
+      case 'won': return 'GANÓ';
+      case 'lost': return 'NO GANÓ';
       default: return 'PENDIENTE';
     }
   };
@@ -635,63 +679,148 @@ export default function Tickets() {
         {/* Multi-play expandable section */}
         {isMultiPlay && item.plays && item.plays.length > 0 && (
           <View style={styles.multiPlaySection}>
-            {/* Collapsed preview - show first 2 plays */}
+            {/* Collapsed preview - show first 2 plays with winner status */}
             {!isExpanded && (
               <View style={styles.playsPreviewContainer}>
-                {item.plays.slice(0, 2).map((play: Play, idx: number) => (
-                  <View key={idx} style={styles.playPreviewRow}>
-                    <View style={[styles.playTypeBadge, { backgroundColor: getLotteryTypeColor(play.lottery_type) }]}>
-                      <Text style={styles.playTypeBadgeText}>
-                        {(play.lottery_type || 'Q').substring(0, 1).toUpperCase()}
-                      </Text>
-                    </View>
-                    <Text style={styles.playLotteryText} numberOfLines={1}>
-                      {play.lottery_name || play.lottery_type || 'Lotería'}
-                    </Text>
-                    <View style={styles.playNumbersPreview}>
-                      {play.numbers.map((n: number, i: number) => (
-                        <Text key={i} style={styles.playNumberText}>
-                          {n.toString().padStart(2, '0')}{i < play.numbers.length - 1 ? '-' : ''}
+                {item.plays.slice(0, 2).map((play: Play, idx: number) => {
+                  const isWinnerPlay = play.play_result === 'won';
+                  return (
+                    <View key={idx} style={[
+                      styles.playPreviewRow,
+                      isWinnerPlay && styles.playPreviewRowWinner
+                    ]}>
+                      <View style={[
+                        styles.playTypeBadge, 
+                        { backgroundColor: isWinnerPlay ? '#22c55e' : getLotteryTypeColor(play.lottery_type) }
+                      ]}>
+                        <Text style={styles.playTypeBadgeText}>
+                          {isWinnerPlay ? '✓' : (play.lottery_type || 'Q').substring(0, 1).toUpperCase()}
                         </Text>
-                      ))}
+                      </View>
+                      <Text style={[
+                        styles.playLotteryText,
+                        isWinnerPlay && styles.playLotteryTextWinner
+                      ]} numberOfLines={1}>
+                        {play.lottery_name || play.lottery_type || 'Lotería'}
+                      </Text>
+                      <View style={styles.playNumbersPreview}>
+                        {play.numbers.map((n: number, i: number) => (
+                          <Text key={i} style={[
+                            styles.playNumberText,
+                            isWinnerPlay && play.winning_numbers?.includes(n) && styles.playNumberTextWinner
+                          ]}>
+                            {n.toString().padStart(2, '0')}{i < play.numbers.length - 1 ? '-' : ''}
+                          </Text>
+                        ))}
+                      </View>
+                      {isWinnerPlay && play.won_prize ? (
+                        <Text style={styles.playWonAmountText}>+{item.currency}{play.won_prize}</Text>
+                      ) : (
+                        <Text style={styles.playAmountText}>{item.currency}{play.amount}</Text>
+                      )}
                     </View>
-                    <Text style={styles.playAmountText}>{item.currency}{play.amount}</Text>
-                  </View>
-                ))}
-                {playsCount > 2 && (
-                  <Text style={styles.morePlaysBadge}>+{playsCount - 2} más</Text>
-                )}
+                  );
+                })}
+                {/* Show count of winning plays */}
+                {(() => {
+                  const wonCount = item.plays.filter(p => p.play_result === 'won').length;
+                  const lostCount = item.plays.filter(p => p.play_result === 'lost').length;
+                  if (wonCount > 0 || lostCount > 0) {
+                    return (
+                      <View style={styles.playsSummaryBadge}>
+                        {wonCount > 0 && (
+                          <Text style={styles.wonCountText}>{wonCount} ganó</Text>
+                        )}
+                        {lostCount > 0 && (
+                          <Text style={styles.lostCountText}>{lostCount} no ganó</Text>
+                        )}
+                      </View>
+                    );
+                  }
+                  return playsCount > 2 ? <Text style={styles.morePlaysBadge}>+{playsCount - 2} más</Text> : null;
+                })()}
               </View>
             )}
 
-            {/* Expanded view - show all plays */}
+            {/* Expanded view - show all plays with winner details */}
             {isExpanded && (
               <View style={styles.playsExpandedContainer}>
-                {item.plays.map((play: Play, idx: number) => (
-                  <View key={idx} style={styles.playCard}>
-                    <View style={styles.playCardHeader}>
-                      <View style={[styles.playTypeIndicator, { backgroundColor: getLotteryTypeColor(play.lottery_type) }]} />
-                      <Text style={styles.playCardType}>
-                        {(play.lottery_type || 'quiniela').toUpperCase()}
-                      </Text>
-                      <Text style={styles.playCardIndex}>#{idx + 1}</Text>
+                {item.plays.map((play: Play, idx: number) => {
+                  const isWinnerPlay = play.play_result === 'won';
+                  const isLostPlay = play.play_result === 'lost';
+                  
+                  return (
+                    <View key={idx} style={[
+                      styles.playCard,
+                      isWinnerPlay && styles.playCardWinner,
+                      isLostPlay && styles.playCardLost
+                    ]}>
+                      <View style={styles.playCardHeader}>
+                        <View style={[styles.playTypeIndicator, { backgroundColor: getLotteryTypeColor(play.lottery_type) }]} />
+                        <Text style={styles.playCardType}>
+                          {(play.lottery_type || 'quiniela').toUpperCase()}
+                        </Text>
+                        <Text style={styles.playCardIndex}>#{idx + 1}</Text>
+                        
+                        {/* Show play result badge */}
+                        {play.play_result && (
+                          <View style={[styles.playResultBadge, { backgroundColor: getPlayResultColor(play.play_result) }]}>
+                            <Text style={styles.playResultBadgeText}>{getPlayResultText(play.play_result)}</Text>
+                          </View>
+                        )}
+                      </View>
+                      
+                      <Text style={styles.playCardLottery}>{play.lottery_name || 'Lotería'}</Text>
+                      
+                      {/* Numbers with winner highlight */}
+                      <View style={styles.playCardNumbers}>
+                        {play.numbers.map((n: number, i: number) => {
+                          // Check if this number is a winning number
+                          const isWinningNumber = play.winning_numbers?.includes(n);
+                          return (
+                            <View key={i} style={[
+                              styles.playNumberBall, 
+                              { borderColor: getLotteryTypeColor(play.lottery_type) },
+                              isWinningNumber && styles.winningNumberBall
+                            ]}>
+                              <Text style={[
+                                styles.playNumberBallText,
+                                isWinningNumber && styles.winningNumberText
+                              ]}>
+                                {n.toString().padStart(2, '0')}
+                              </Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                      
+                      <View style={styles.playCardFooter}>
+                        <Text style={styles.playCardAmount}>{item.currency} {play.amount.toFixed(2)}</Text>
+                        
+                        {/* Show winning details if won */}
+                        {isWinnerPlay && (
+                          <View style={styles.winnerDetailsContainer}>
+                            {play.won_position && (
+                              <Text style={styles.wonPositionText}>
+                                {getPositionText(play.won_position)}
+                              </Text>
+                            )}
+                            {play.won_prize !== undefined && play.won_prize > 0 && (
+                              <Text style={styles.wonPrizeText}>
+                                Ganó: {item.currency} {play.won_prize.toLocaleString()}
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                        
+                        {/* Show potential win for pending plays */}
+                        {!play.play_result && play.potential_win && (
+                          <Text style={styles.playCardPotential}>Premio: {item.currency} {play.potential_win.toFixed(2)}</Text>
+                        )}
+                      </View>
                     </View>
-                    <Text style={styles.playCardLottery}>{play.lottery_name || 'Lotería'}</Text>
-                    <View style={styles.playCardNumbers}>
-                      {play.numbers.map((n: number, i: number) => (
-                        <View key={i} style={[styles.playNumberBall, { borderColor: getLotteryTypeColor(play.lottery_type) }]}>
-                          <Text style={styles.playNumberBallText}>{n.toString().padStart(2, '0')}</Text>
-                        </View>
-                      ))}
-                    </View>
-                    <View style={styles.playCardFooter}>
-                      <Text style={styles.playCardAmount}>{item.currency} {play.amount.toFixed(2)}</Text>
-                      {play.potential_win && (
-                        <Text style={styles.playCardPotential}>Premio: {item.currency} {play.potential_win.toFixed(2)}</Text>
-                      )}
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             )}
 
@@ -1915,5 +2044,87 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 11,
     marginTop: 8,
+  },
+  // Winner play card styles
+  playCardWinner: {
+    borderWidth: 2,
+    borderColor: '#22c55e',
+    backgroundColor: '#14532d20',
+  },
+  playCardLost: {
+    opacity: 0.6,
+    backgroundColor: '#1e293b80',
+  },
+  playResultBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  playResultBadgeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  winningNumberBall: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+    borderWidth: 2,
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  winningNumberText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  winnerDetailsContainer: {
+    alignItems: 'flex-end',
+  },
+  wonPositionText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#fbbf24',
+    marginBottom: 2,
+  },
+  wonPrizeText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
+  // Preview row winner styles
+  playPreviewRowWinner: {
+    backgroundColor: '#14532d30',
+    borderRadius: 6,
+  },
+  playLotteryTextWinner: {
+    color: '#22c55e',
+    fontWeight: 'bold',
+  },
+  playNumberTextWinner: {
+    color: '#22c55e',
+    fontWeight: 'bold',
+  },
+  playWonAmountText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
+  playsSummaryBadge: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    paddingTop: 8,
+  },
+  wonCountText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#22c55e',
+  },
+  lostCountText: {
+    fontSize: 12,
+    color: '#64748b',
   },
 });

@@ -21,6 +21,18 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 
 ## Cambios Recientes (28/03/2026)
 
+### 13. MEJORA VISUAL DE BOLETOS GANADORES (28/03/2026)
+- **Tickets multi-play mejorados**: Muestra claramente qué números ganaron en cada jugada
+- **Detalles de premio**: Posición (1er/2do/3er Premio) y monto ganado por cada número
+- **Resaltado visual**:
+  - Números ganadores en verde brillante con borde
+  - Badge "GANÓ" / "NO GANÓ" / "PENDIENTE" para cada jugada
+  - Tarjetas de jugada con borde verde para ganadores
+- **Vista colapsada**: Muestra resumen "X ganó, Y no ganó"
+- **Vista expandida**: Detalles completos de cada jugada con premios
+- **Archivos modificados**:
+  - `tickets.tsx` - Interface Play con campos winner, estilos de ganador
+
 ### 12. FILTRO DE FECHA EN RESULTADOS Y NOTIFICACIONES (28/03/2026)
 - **Nueva funcionalidad**: Filtro por fecha en la página de Resultados (Web) y Notificaciones (App Móvil)
 - **Por defecto**: Muestra solo los resultados/notificaciones de HOY
