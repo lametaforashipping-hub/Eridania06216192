@@ -2,17 +2,19 @@
 from fastapi import APIRouter, Depends, Query
 from datetime import datetime, timezone, timedelta
 from typing import Optional
+import logging
 from utils.database import get_db
 from utils.helpers import serialize_doc
 from utils.auth import get_current_user
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 
 @router.get("")
 async def get_notifications(
     limit: int = 50, 
-    date: Optional[str] = Query(None, description="Filter by date (YYYY-MM-DD). If not provided, returns today's notifications."),
+    date: Optional[str] = Query(None, description="Filter by date (YYYY-MM-DD) in Dominican Republic time. Defaults to today."),
     current_user: dict = Depends(get_current_user)
 ):
     """Get notifications for current user, filtered by date (defaults to today)"""
@@ -32,28 +34,68 @@ async def get_notifications(
     else:
         filter_date = now_dr.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Calculate date range (full day in UTC)
-    # DR midnight = UTC 04:00
-    start_utc = filter_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=4)
+    # For Dominican Republic (UTC-4):
+    # A day starts at 00:00 DR = 04:00 UTC
+    # A day ends at 23:59 DR = 03:59 UTC next day
+    # 
+    # So for DR date 2026-03-28:
+    # - Starts at 2026-03-28 04:00 UTC (midnight DR)
+    # - Ends at 2026-03-29 04:00 UTC (midnight DR next day)
+    
+    start_utc = filter_date.replace(hour=4, minute=0, second=0, microsecond=0)  # 00:00 DR = 04:00 UTC
     end_utc = start_utc + timedelta(days=1)
     
-    query = {
+    logger.info(f"Notifications filter: date={date or 'today'}, range={start_utc} to {end_utc}")
+    
+    # Base query for user's notifications
+    base_query = {
         "$or": [
             {"user_id": {"$exists": False}},
             {"user_id": user_id}
-        ],
-        "created_at": {"$gte": start_utc, "$lt": end_utc}
+        ]
     }
     
-    notifications = await db.notifications.find(query).sort("created_at", -1).to_list(limit)
+    # Get all notifications first
+    all_notifications = await db.notifications.find(base_query).sort("created_at", -1).to_list(500)
     
-    for n in notifications:
+    # Filter by date manually (more robust - handles both datetime and string)
+    filtered_notifications = []
+    for n in all_notifications:
+        created_at = n.get("created_at")
+        if created_at is None:
+            continue
+            
+        # Handle both datetime and string formats
+        if isinstance(created_at, str):
+            try:
+                # Parse ISO format
+                created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                # Convert to naive UTC
+                if created_at.tzinfo:
+                    created_at = created_at.astimezone(timezone.utc).replace(tzinfo=None)
+            except:
+                continue
+        elif hasattr(created_at, 'tzinfo') and created_at.tzinfo:
+            # It's a timezone-aware datetime, convert to naive UTC
+            created_at = created_at.astimezone(timezone.utc).replace(tzinfo=None)
+        
+        # Check if within date range
+        if start_utc <= created_at < end_utc:
+            filtered_notifications.append(n)
+    
+    logger.info(f"Notifications: total={len(all_notifications)}, filtered={len(filtered_notifications)} for {date or 'today'}")
+    
+    # Mark read status
+    for n in filtered_notifications:
         if "user_id" in n:
             n["is_read"] = n.get("read", False)
         else:
             n["is_read"] = user_id in n.get("read_by", [])
     
-    return serialize_doc(notifications)
+    # Limit results
+    filtered_notifications = filtered_notifications[:limit]
+    
+    return serialize_doc(filtered_notifications)
 
 
 @router.post("/{notification_id}/read")
