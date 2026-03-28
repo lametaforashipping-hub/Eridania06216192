@@ -8,13 +8,12 @@ import {
   RefreshControl,
   ActivityIndicator,
   Dimensions,
-  Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const { width } = Dimensions.get('window');
@@ -47,21 +46,30 @@ const formatApiDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-// Format date for display
-const formatDisplayDate = (date: Date): string => {
+// Format date for display (shorter)
+const formatShortDate = (date: Date): string => {
   const options: Intl.DateTimeFormatOptions = { 
-    weekday: 'long', 
+    weekday: 'short', 
     day: 'numeric', 
-    month: 'long', 
-    year: 'numeric' 
+    month: 'short'
   };
   return date.toLocaleDateString('es-DO', options);
 };
 
-// Check if date is today
-const isToday = (date: Date): boolean => {
-  const today = new Date();
-  return date.toDateString() === today.toDateString();
+// Get last 7 days
+const getLast7Days = (): Date[] => {
+  const days: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+  return days;
+};
+
+// Check if same day
+const isSameDay = (d1: Date, d2: Date): boolean => {
+  return d1.toDateString() === d2.toDateString();
 };
 
 export default function Notifications() {
@@ -71,7 +79,9 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  
+  const last7Days = getLast7Days();
+  const today = new Date();
 
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
@@ -92,6 +102,7 @@ export default function Notifications() {
   }, [token, selectedDate]);
 
   useEffect(() => {
+    setLoading(true);
     fetchNotifications();
   }, [fetchNotifications]);
 
@@ -112,36 +123,6 @@ export default function Notifications() {
       console.error('Error marking as read:', error);
     }
   };
-
-  const goToPreviousDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
-  };
-
-  const goToNextDay = () => {
-    const newDate = new Date(selectedDate);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    newDate.setDate(newDate.getDate() + 1);
-    if (newDate <= tomorrow) {
-      setSelectedDate(newDate);
-    }
-  };
-
-  const goToToday = () => {
-    setSelectedDate(new Date());
-  };
-
-  const handleDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (date) {
-      setSelectedDate(date);
-    }
-  };
-
-  const isTodaySelected = isToday(selectedDate);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -189,6 +170,8 @@ export default function Notifications() {
       router.push('/bank-accounts');
     }
   };
+
+  const isToday = isSameDay(selectedDate, today);
 
   const renderNotification = ({ item }: { item: Notification }) => {
     const isRead = item.is_read ?? item.read ?? false;
@@ -314,63 +297,40 @@ export default function Notifications() {
         </TouchableOpacity>
       </View>
 
-      {/* Date Filter Bar */}
-      <View style={styles.dateFilterBar}>
-        <TouchableOpacity style={styles.navButton} onPress={goToPreviousDay}>
-          <Ionicons name="chevron-back" size={24} color="#a5b4fc" />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[
-            styles.dateButton, 
-            isTodaySelected && styles.dateButtonToday
-          ]} 
-          onPress={() => setShowDatePicker(true)}
+      {/* Date Filter Tabs */}
+      <View style={styles.dateFilterContainer}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.dateTabsScroll}
         >
-          <Ionicons 
-            name="calendar" 
-            size={18} 
-            color={isTodaySelected ? '#4ade80' : '#a5b4fc'} 
-          />
-          <Text style={[
-            styles.dateText,
-            isTodaySelected && styles.dateTextToday
-          ]}>
-            {isTodaySelected ? 'Hoy - ' : ''}{formatDisplayDate(selectedDate)}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.navButton, isTodaySelected && styles.navButtonDisabled]} 
-          onPress={goToNextDay}
-          disabled={isTodaySelected}
-        >
-          <Ionicons 
-            name="chevron-forward" 
-            size={24} 
-            color={isTodaySelected ? '#475569' : '#a5b4fc'} 
-          />
-        </TouchableOpacity>
+          {last7Days.map((date, index) => {
+            const isSelected = isSameDay(date, selectedDate);
+            const isTodayDate = isSameDay(date, today);
+            const dayLabel = isTodayDate ? 'Hoy' : formatShortDate(date);
+            
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.dateTab,
+                  isSelected && styles.dateTabSelected,
+                  isTodayDate && isSelected && styles.dateTabToday
+                ]}
+                onPress={() => setSelectedDate(date)}
+              >
+                <Text style={[
+                  styles.dateTabText,
+                  isSelected && styles.dateTabTextSelected,
+                  isTodayDate && isSelected && styles.dateTabTextToday
+                ]}>
+                  {dayLabel}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
-
-      {/* Quick Today Button if not today */}
-      {!isTodaySelected && (
-        <TouchableOpacity style={styles.todayButton} onPress={goToToday}>
-          <Ionicons name="today" size={16} color="#0f172a" />
-          <Text style={styles.todayButtonText}>Ir a Hoy</Text>
-        </TouchableOpacity>
-      )}
-
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDateChange}
-          maximumDate={new Date()}
-          themeVariant="dark"
-        />
-      )}
 
       {loading ? (
         <ActivityIndicator size="large" color="#22c55e" style={styles.loader} />
@@ -387,11 +347,15 @@ export default function Notifications() {
             <View style={styles.emptyContainer}>
               <Ionicons name="notifications-off-outline" size={64} color="#475569" />
               <Text style={styles.emptyText}>
-                No hay notificaciones para {isTodaySelected ? 'hoy' : 'esta fecha'}
+                No hay notificaciones para {isToday ? 'hoy' : formatShortDate(selectedDate)}
               </Text>
-              {!isTodaySelected && (
-                <TouchableOpacity style={styles.goTodayBtnLarge} onPress={goToToday}>
-                  <Text style={styles.goTodayBtnText}>Ver notificaciones de Hoy</Text>
+              {!isToday && (
+                <TouchableOpacity 
+                  style={styles.goTodayBtn} 
+                  onPress={() => setSelectedDate(new Date())}
+                >
+                  <Ionicons name="today" size={16} color="#0f172a" />
+                  <Text style={styles.goTodayBtnText}>Ver Hoy</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -419,69 +383,37 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ffffff',
   },
-  dateFilterBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
+  dateFilterContainer: {
+    backgroundColor: '#1e293b',
     paddingVertical: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.1)',
+    borderBottomColor: '#334155',
   },
-  navButton: {
-    padding: 8,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
+  dateTabsScroll: {
+    paddingHorizontal: 12,
   },
-  navButtonDisabled: {
-    backgroundColor: 'rgba(148, 163, 184, 0.05)',
-    borderColor: 'rgba(148, 163, 184, 0.1)',
-    opacity: 0.5,
-  },
-  dateButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 12,
-    paddingVertical: 10,
+  dateTab: {
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.4)',
-    gap: 8,
-  },
-  dateButtonToday: {
-    backgroundColor: 'rgba(34, 197, 94, 0.15)',
-    borderColor: 'rgba(34, 197, 94, 0.4)',
-  },
-  dateText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#a5b4fc',
-  },
-  dateTextToday: {
-    color: '#4ade80',
-  },
-  todayButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 16,
-    marginTop: 8,
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#22c55e',
-    borderRadius: 8,
-    gap: 6,
+    marginHorizontal: 4,
+    borderRadius: 20,
+    backgroundColor: '#334155',
   },
-  todayButtonText: {
+  dateTabSelected: {
+    backgroundColor: '#6366f1',
+  },
+  dateTabToday: {
+    backgroundColor: '#22c55e',
+  },
+  dateTabText: {
+    color: '#94a3b8',
     fontSize: 13,
     fontWeight: '600',
+  },
+  dateTabTextSelected: {
+    color: '#ffffff',
+  },
+  dateTabTextToday: {
     color: '#0f172a',
   },
   loader: {
@@ -568,12 +500,15 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
-  goTodayBtnLarge: {
+  goTodayBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     backgroundColor: '#22c55e',
     borderRadius: 8,
+    gap: 6,
   },
   goTodayBtnText: {
     fontSize: 14,
