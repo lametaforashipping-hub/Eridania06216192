@@ -1,13 +1,31 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LayoutDashboard, Users, Ticket, Trophy, ShoppingCart, BarChart3, LogOut, Menu, X, Globe, Receipt, DollarSign, FileText, Bell } from 'lucide-react'
+import { LayoutDashboard, Users, Ticket, Trophy, ShoppingCart, BarChart3, LogOut, Menu, X, Globe, Receipt, DollarSign, FileText, Bell, Settings, Building2 } from 'lucide-react'
 import NotificationCenter from './NotificationCenter'
 
-const adminLinks = [
+// Links visibles para super_admin (acceso completo)
+const superAdminLinks = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/users', icon: Users, label: 'Usuarios' },
   { to: '/lotteries', icon: Ticket, label: 'Loterías' },
+  { to: '/venta', icon: ShoppingCart, label: 'Venta' },
+  { to: '/tickets', icon: Ticket, label: 'Tickets' },
+  { to: '/results', icon: Trophy, label: 'Resultados' },
+  { to: '/sales-report', icon: Globe, label: 'Reporte País' },
+  { to: '/sellers-report', icon: Users, label: 'Vendedores' },
+  { to: '/accounting', icon: DollarSign, label: 'Contabilidad' },
+  { to: '/commission-report', icon: Receipt, label: 'Comisiones' },
+  { to: '/statistics', icon: BarChart3, label: 'Estadísticas' },
+  { to: '/alert-settings', icon: Bell, label: 'Alertas' },
+  { to: '/system-settings', icon: Settings, label: 'Configuración' },
+  { to: '/company-profile', icon: Building2, label: 'Mi Empresa' },
+]
+
+// Links para admin (sin acceso a loterías config, sistema y empresa)
+const adminLinks = [
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/users', icon: Users, label: 'Usuarios' },
   { to: '/venta', icon: ShoppingCart, label: 'Venta' },
   { to: '/tickets', icon: Ticket, label: 'Tickets' },
   { to: '/results', icon: Trophy, label: 'Resultados' },
@@ -31,8 +49,14 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const isAdmin = ['super_admin', 'admin'].includes(user?.role)
-  const links = isAdmin ? adminLinks : sellerLinks
+  
+  // Determinar qué enlaces mostrar según el rol
+  const getLinksForRole = () => {
+    if (user?.role === 'super_admin') return superAdminLinks
+    if (user?.role === 'admin') return adminLinks
+    return sellerLinks
+  }
+  const links = getLinksForRole()
 
   const handleLogout = () => { logout(); navigate('/login') }
 

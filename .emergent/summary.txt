@@ -1,70 +1,62 @@
 <analysis>**original_problem_statement**: 
-The user wanted to fix critical accounting bugs where prize data wasn't showing, implement an embeddable Prueba Gratis (Free Trial) widget for their external site, and create a comprehensive Cuadre (Settlement) system to track seller net profits (Sales - Commission - Prizes). Additionally, the user requested that the thermal receipt be identical across all areas of the application (Success modal, WhatsApp sharing, and Printer) using a clean design with their logo and dark, legible text to maintain business credibility.
+The user wanted to unify the receipt system so that the backend-generated thermal PNG is the single source of truth across all platforms (Success Modal, WhatsApp sharing, Printing). Additionally, the user requested UI improvements for the Cuadre (Settlement) screen (filtering by seller and adding a calendar) and the Lotteries configuration screen (12-hour format, time picker, multi-select for game types). Finally, a critical requirement emerged to fix timezone offset issues (UTC vs RD Time) on receipts and perfectly sync all lottery schedules with official Dominican Republic real-world times, including handling specific Sunday schedule variations.
 
 PRODUCT REQUIREMENTS: 
-- Sellers' net profit must always deduct their commission percentage regardless of prizes won.
-- The platform needs a dedicated Cuadre interface for admins to settle balances with sellers, record partial/full payments, and track history.
-- The receipt generated must be a single source of truth (the backend PNG) to avoid discrepancies when shared via WhatsApp or printed.
+- Receipts must uniformly display the backend PNG across all frontend instances.
+- Receipt timestamps and system validation must use Dominican Republic time (UTC-4), not UTC.
+- Lottery configurations must automatically handle real-world operational days and Sunday-specific schedule changes (e.g., Lotería Nacional and Leidsa change hours on Sundays).
+- Production database must be updated seamlessly via a backend startup migration script to reflect accurate schedules.
 
 **User's preferred language**: Spanish (INSTRUCT next agent to respond in Spanish only)
 
 **what currently exists?** 
-A FastAPI backend + dual frontend (Expo Mobile App & Vite Web Admin). The system now features a fully functional Cuadre (Settlement) module on both frontends, corrected accounting endpoints that accurately factor in seller commissions and prizes, an embeddable trial widget, detailed push notifications for winners, and an updated -based receipt generator that successfully incorporates the user's custom logo.
+A FastAPI backend + dual frontend (Expo Mobile App & Vite Web Admin). The system now has a completely unified receipt UI that fetches a single PNG from the backend. The Cuadre and Lotteries admin pages have been upgraded with native date/time pickers. A robust, idempotent data migration script runs on backend startup () to automatically correct and normalize 21+ real-world lottery schedules, handling day-of-week restrictions and Sunday time shifts. Timezone handling has been refactored to properly offset UTC to AST (UTC-4) for receipts.
 
 **Last working item**: 
-    - **Last item agent was working**: Unifying the receipt generation across the frontend. The user noted that the app currently generates 3 *different* visual receipts (one in the Venta Exitosa modal, a different PDF for WhatsApp sharing, and the actual backend PNG). The agent was preparing to refactor the frontend (, , etc.) to solely fetch and use the backend PNG () for all displays and sharing actions. User also requested tweaking the text to be slightly darker/more visible without becoming illegible.
-    - **Status**: IN PROGRESS
-    - **Agent Testing Done**: N
-    - **Which testing method agent to use?**: Frontend testing agent + manual testing by screenshot/app flow (to ensure the WhatsApp share payload and modal display the correct image).
+    - **Last item agent was working**: Updating the  script in  to enforce official Dominican lottery schedules for production deployment. This involved deleting duplicate/fake lotteries, correcting PM/AM mistakes, and adding dynamic logic for lotteries that change their draw times exclusively on Sundays (e.g., Leidsa, Nacional).
+    - **Status**: USER VERIFICATION PENDING
+    - **Agent Testing Done**: Y
+    - **Which testing method agent to use?**: manual testing by python -c / bash (to verify local DB output after migration runs on startup).
     - **User Testing Done**: N
 
 **All Pending/In progress Issue list**: 
 
-  Issue 1: 🔴 (P0) Unify Receipt UI & Sharing Logic (Single Source of Truth)
-     - **Attempted fixes**: The agent updated the backend  to create a clean PNG with the user's logo. It was discovered that the frontend doesn't actually use this PNG for the success modal or WhatsApp sharing; it uses local UI components/PDFs. The agent just located the files to change before context ended.
+  Issue 1: 🔴 (P0) Verify Production Deployment & Lottery Migrations
+     - **Attempted fixes**: The agent built a startup migration script in  to fix production DB discrepancies (since the preview DB was fixed manually, but production was out of sync). 
      - **Next debug checklist**: 
-        1. Open , , and .
-        2. Modify the Venta Exitosa modal to display the image fetched from .
-        3. Modify the WhatsApp share function to share this exact fetched PNG image instead of generating a separate PDF/Text.
-        4. In , slightly increase the font weight or visibility based on the user's final feedback (make it a bit darker but clean).
-     - **Why fix this issue and what will be achieved with the fix?**: Resolves a critical business credibility issue. Having 3 different receipt formats makes the business look unofficial. Unifying them ensures authenticity.
-     - **Status**: IN PROGRESS
-     - **Is recurring issue?** Y (Receipt styling has been an ongoing iteration)
-     - **Should Test frontend/backend/both after fix?** Both (Backend image generation + Frontend UI flows)
+        1. Wait for user to confirm if the EAS production deployment succeeded.
+        2. Check if the production app correctly displays the updated lottery schedules (e.g., Quiniela Leidsa should dynamically adjust to 3:55 PM on Sundays and 8:55 PM otherwise).
+     - **Why fix this issue and what will be achieved with the fix?**: Ensures the actual production database uses exact, real-world lottery schedules without requiring the user to manually edit 20+ records.
+     - **Status**: USER VERIFICATION PENDING
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** Both
      - **Blocked on other issue**: None
 
 **In progress Task List**: 
-  - None active aside from the P0 issue above.
+  - None currently active (Migration script was just completed).
 
 **Upcoming and Future Tasks**
   - (P1) Apply strict Admin UI restrictions in frontend (Hide lottery creation/editing, system settings, and company profile from  role; only  should see them).
-  - (P2) Production Database Connection Timeout / Deployment (Blocked: Requires user to whitelist  in MongoDB Atlas Network Access).
-  - (P3) Connect Custom Domain ().
-  - (P4) Finalize Google Play Store Submission.
+  - (P2) Connect Custom Domain ().
+  - (P3) Finalize Google Play Store Submission.
+  - (P4) Remaining web pages: Terminales, Mi Perfil.
 
 **Completed work in this session**
-- Fixed Accounting bugs regarding prize tracking and potential wins () (DONE)
-- Detailed Push Notifications for Winning Tickets including won number and position (DONE)
-- Embeddable Free Trial Widget HTML at  (DONE)
-- Settlement/Cuadre System backend module () mapping (Sales - Commission - Prizes = Net Profit) (DONE)
-- Cuadre UI Screen created in both Vite Web Admin () and Expo Mobile () (DONE)
-- Fixed missing Logo in Backend Thermal Receipt () (DONE)
+- Unified Receipt Image UI in Frontend (Modals, WhatsApp, Print) -> Backend PNG , ,  (DONE)
+- Added Date Picker/Calendar to Cuadre Page and separated view by seller  (DONE)
+- Upgraded Lotteries UI to 12h format, time picker, and multi-select games  (DONE)
+- Fixed Timezone Bug (UTC to AST/RD Time) on backend receipts  (DONE)
+- Added  logic to  and  in  for lotteries that don't operate every day or change hours on Sundays (DONE)
+- Created idempotent  in  to sync exact official DR lottery schedules to production (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-   - Issue 1: Production Database Connection Timeout
-   - Debug checklist: Instruct user to go to MongoDB Atlas -> Network Access -> Add IP Address -> . 
-   - Why to solve this issue and what will be achieved with this? Required for actual production data usage. The deployment logs showed it succeeded on emergent platform, but DB connection will fail without Atlas whitelisting.
-   - Should Test frontend/backend/both after fix: Backend
-   - Is recurring issue? N
+   - None. (User reported deployment logs with errors, but agent correctly analyzed them as non-blocking warnings regarding Expo/Vite workspaces and missing git paths).
 
 **Known issue recurrence from previous fork**
   - Issue recurrence in previous fork: System limit for number of file watchers reached (ENOSPC error) causing Metro/Frontend to crash.
   - Recurrence count: 6
-  - Status: IN PROGRESS
-  - Note: If Expo or Vite fails to start, run fs.inotify.max_user_watches=524288 or restart the supervisor services (frontend: stopped
-expo: ERROR (not running)
-frontend: started
-expo: started).
+  - Status: RESOLVED/WORKAROUND
+  - Note: If Expo or Vite fails to start, run fs.inotify.max_user_watches=524288.
 
 **Code Architecture**
 
@@ -72,52 +64,51 @@ expo: started).
 **Key Technical Concepts**
 - FastAPI backend with MongoDB.
 - React Native (Expo) frontend for mobile + React (Vite) for web admin.
--  (PIL) library used for dynamic PNG receipt generation.
-- The Cuadre formula hardcoded as: . 
+- UTC vs AST (UTC-4) timezone manipulation for ticket timestamps.
+- Idempotent backend startup migrations.
 
 **key DB schema**
-  - : 
-  - : 
+  - : Added  list to manage which days a lottery operates. Uses  arrays.
 
 **changes in tech stack**
-  - None
+  - Frontend: Added  for easier date manipulation in the Cuadre UI.
 
 **All files of reference** 
-- : Generates the core receipt PNG.
--  & : Frontend sale components where the receipt modal and WhatsApp sharing logic reside and need to be unified.
-- : Handles all accounting logic for the new Cuadre system.
--  & : Settlement UI screens.
+- : Houses the highly critical  function. **DO NOT REMOVE**. It corrects production data on startup.
+- : Updated  to account for Sunday schedule shifts (e.g., Leidsa, Nacional).
+- : Generates the PNG. Fixed to display AST (Dominican Republic) time instead of naive UTC.
+-  & : Web views converted to use native HTML date/time inputs (as shadcn isn't installed here).
 
 **Areas that need refactoring**: 
-- Frontend ticket success modals and sharing functions currently utilize locally generated views/PDFs instead of the backend PNG, causing visual fragmentation.
+-  is currently holding a large data migration dictionary array at the top of the file. Eventually, this should be moved to a dedicated  folder.
 
 **key api endpoints**
-- : Generates the single-source-of-truth receipt PNG.
-- : Retrieves settlement math.
-- : Registers a settlement payment.
-- : Returns the embeddable HTML for external sites.
+- : Single-source-of-truth receipt PNG.
 
 **Critical Info for New Agent** 
 - **COMMUNICATE IN SPANISH.**
-- The immediate priority is the receipt mismatch. Ensure the mobile app's success modal AND the WhatsApp share button fetch and display the exact same image from  instead of drawing custom frontend views.
-- Tweak the  to make the font a bit bolder/darker (but do not use the 9-pass offset ultra bold method that was previously tried, as it made the text illegible).
+- The system timezone logic relies heavily on converting naive UTC from MongoDB to AST (UTC-4) for the Dominican Republic.  uses .
+- **Lottery Schedules are hardcoded in a migration script.** Do not trust the preview database's default state. Read  in  to understand the complex Sunday schedule rules for Nacional and Leidsa.
+- If the user asks about missing/extra lotteries, the migration script handles renaming, deleting duplicates, and creating the exact official 21 lotteries needed for production.
 
 **documents and test reports created in this job**
-  -  (Passed Accounting/Winner tracking tests)
-  -  (Passed Backend Settlement tests)
-  -  (Passed Frontend Settlement UI tests)
+  -  (Passed Unified Receipt Image tests)
   -  (Updated)
 
 **Last 10 User Messages and any pending HUMAN messages** 
- 1. **User**: Provided images demonstrating that the Venta Exitosa modal receipt, WhatsApp shared receipt, and Printed backend receipt look completely different. Requested that there be only ONE authentic receipt style used everywhere for credibility. Also requested the text be made slightly more visible/darker again. (Status: PENDING)
- 2. **User**: Complained that the ultra bold receipt was too black and illegible. Requested a normal, clean layout and provided their custom star/lottery ball logo. (Status: COMPLETED)
- 3. **User**: Requested to make the receipt fonts much blacker and more visible for thermal printers. (Status: COMPLETED - but reverted due to illegibility)
- 4. **User**: Provided deployment logs asking for debugging. (Status: COMPLETED - Agent confirmed deploy was successful, logs were just warnings).
- 5. **User**: Requested to build the Cuadre screen inside the mobile app as well. (Status: COMPLETED)
- 6. **User**: Confirmed the specific math for the Cuadre system: Venta Total - Comisión - Premios = Ganancia Neta. Emphasized commission is always deducted regardless of win/loss. (Status: COMPLETED)
+ 1. **User**: Confirmed plan to unify receipts. (Completed)
+ 2. **User**: Wanted to verify all 28 lotteries against *real official* schedules. (Completed)
+ 3. **User**: Approved Florida time corrections. (Completed)
+ 4. **User**: Requested Cuadre improvements (date filter/calendar, separate by seller) and Lotteries UI improvements (12h format, clock, multi-select). (Completed)
+ 5. **User**: Shared deployment logs with warnings, thought the deploy failed. (Agent verified it actually succeeded, logs were just warnings).
+ 6. **User**: Reported that Receipts show incorrect time (UTC instead of RD) and Gana Más was showing closed. (Completed - Timezone fixed, Gana Más set to Mon-Sun).
+ 7. **User**: Clarified Gana Más is Mon-Sun 2:30 PM. (Completed)
+ 8. **User**: Noticed production app was still showing old schedules despite the deploy. (Agent built a startup data migration script to fix prod DB).
+ 9. **User**: Expressed confusion over having 28 lotteries in preview but only 21 in production. (Agent analyzed and found duplicates/missing ones).
+ 10. **User**: Requested deep investigation into *Leidsa* and *Nacional* because their schedules change specifically on Sundays. Asked to correct this for production. (Completed - Agent updated the migration script with complex Sunday logic). (Status: PENDING USER DEPLOYMENT VERIFICATION).
 
 **Project Health Check:**
-- Broken: File Watcher limits occasionally crash Metro bundler.
+- Broken: None
 - Mocked: None
 
 **3rd Party Integrations** 
@@ -125,10 +116,10 @@ expo: started).
 - MongoDB Atlas — Requires User credentials
 
 **Testing status**
-  - Testing agent used after significant changes: YES (Iterations 56, 57, 58 covering Backend, APIs, and Frontend UI).
+  - Testing agent used after significant changes: YES (Iteration 59 for receipts).
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: 
-  - Known regressions: None
+  - Test files created: None.
+  - Known regressions: None.
 
 **Credentials to test flow:**
 - Super Admin:  / 
@@ -136,4 +127,4 @@ expo: started).
 - Trial User:  / 
 
 **What agent forgot to execute**
-The agent realized the frontend was using different logic for WhatsApp sharing and success modals vs the backend PNG receipt, but the context window ended before the agent could refactor the frontend files (, , ) to pull the unified backend PNG. Additionally, the final visual tweak for text visibility in  was not completed.</analysis>
+Nothing. The agent successfully updated the migration script with the complex Sunday logic requested in the final user message. The ball is now in the user's court to trigger the EAS deployment and verify the changes in the production app.</analysis>

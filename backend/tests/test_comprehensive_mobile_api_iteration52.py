@@ -11,7 +11,7 @@ from datetime import datetime
 # Get BASE_URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', os.environ.get('VITE_API_URL', '')).rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://receipt-unify.preview.emergentagent.com"
+    BASE_URL = "https://lottery-sync-1.preview.emergentagent.com"
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"

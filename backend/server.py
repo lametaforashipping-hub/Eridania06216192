@@ -47,7 +47,7 @@ async def run_data_migrations():
         logger.info("🔄 Running data migrations...")
         
         # Base lottery template
-        def make_lottery(name, schedule_24h, display_time, country="RD", currency="RD$"):
+        def make_lottery(name, schedule_24h, display_time, country="RD", currency="RD$", sunday_schedule=None, sunday_display=None):
             # Calculate closing time (10 min before)
             h, m = map(int, schedule_24h.split(':'))
             close_m = m - 10
@@ -64,7 +64,7 @@ async def run_data_migrations():
             close_ampm = "AM" if close_h < 12 else "PM"
             display_closing = f"{close_hour_12}:{close_m:02d} {close_ampm}"
             
-            return {
+            lottery = {
                 "id": str(uuid.uuid4()),
                 "name": name,
                 "schedule": [schedule_24h],
@@ -85,89 +85,117 @@ async def run_data_migrations():
                 "price": 20,
                 "active": True
             }
+            
+            # Add Sunday special schedule if different
+            if sunday_schedule and sunday_display:
+                lottery["sunday_schedule"] = sunday_schedule
+                lottery["sunday_display"] = sunday_display
+            
+            return lottery
         
         # ============================================================
-        # LOTERÍAS QUE DEBEN EXISTIR CON CONFIGURACIÓN EXACTA
+        # LOTERÍAS OFICIALES CORRECTAS PARA PRODUCCIÓN
+        # Investigado: 28 marzo 2026
         # ============================================================
         all_lotteries = {
-            # LEIDSA
-            "Quiniela Leidsa 8:55 AM": make_lottery("Quiniela Leidsa 8:55 AM", "08:55", "8:55 AM"),
-            "Quiniela Leidsa 3:55 PM": make_lottery("Quiniela Leidsa 3:55 PM", "15:55", "3:55 PM"),
+            # LEIDSA - 8:55 PM (Lun-Sáb), 3:55 PM (Dom)
+            "Quiniela Leidsa 8:55 PM": make_lottery("Quiniela Leidsa 8:55 PM", "20:55", "8:55 PM", sunday_schedule="15:55", sunday_display="3:55 PM"),
             
-            # PEGA 3 MÁS (3 horarios)
-            "Pega 3 Más 12:55 PM": make_lottery("Pega 3 Más 12:55 PM", "12:55", "12:55 PM"),
-            "Pega 3 Más 3:00 PM": make_lottery("Pega 3 Más 3:00 PM", "15:00", "3:00 PM"),
-            "Pega 3 Más 9:00 PM": make_lottery("Pega 3 Más 9:00 PM", "21:00", "9:00 PM"),
+            # PEGA 3 MÁS - Solo 8:55 PM (todos los días)
+            "Pega 3 Más 8:55 PM": make_lottery("Pega 3 Más 8:55 PM", "20:55", "8:55 PM"),
             
-            # LOTERÍA NACIONAL
+            # LOTERÍA NACIONAL - 9:00 PM (Lun-Sáb), 6:00 PM (Dom)
             "Gana Más 2:30 PM": make_lottery("Gana Más 2:30 PM", "14:30", "2:30 PM"),
-            "Lotería Nacional 6:00 PM": make_lottery("Lotería Nacional 6:00 PM", "18:00", "6:00 PM"),
-            "Lotería Nacional 8:50 PM": make_lottery("Lotería Nacional 8:50 PM", "20:50", "8:50 PM"),
+            "Lotería Nacional 9:00 PM": make_lottery("Lotería Nacional 9:00 PM", "21:00", "9:00 PM", sunday_schedule="18:00", sunday_display="6:00 PM"),
             
-            # REAL
+            # LOTERÍA REAL - 12:55 PM (todos los días)
             "Quiniela Real 12:55 PM": make_lottery("Quiniela Real 12:55 PM", "12:55", "12:55 PM"),
             
-            # LOTEKA
+            # LOTEKA - 7:55 PM (todos los días)
             "Quiniela Loteka 7:55 PM": make_lottery("Quiniela Loteka 7:55 PM", "19:55", "7:55 PM"),
             
-            # LA PRIMERA
+            # LA PRIMERA - 12:00 PM y 8:00 PM
             "La Primera 12:00 PM": make_lottery("La Primera 12:00 PM", "12:00", "12:00 PM"),
-            "La Primera 7:00 PM": make_lottery("La Primera 7:00 PM", "19:00", "7:00 PM"),
+            "La Primera 8:00 PM": make_lottery("La Primera 8:00 PM", "20:00", "8:00 PM"),
             
-            # LA SUERTE
+            # LA SUERTE - 12:30 PM y 6:00 PM
             "La Suerte 12:30 PM": make_lottery("La Suerte 12:30 PM", "12:30", "12:30 PM"),
             "La Suerte 6:00 PM": make_lottery("La Suerte 6:00 PM", "18:00", "6:00 PM"),
             
-            # LOTEDOM (4 horarios)
-            "Quiniela LoteDom 12:00 PM": make_lottery("Quiniela LoteDom 12:00 PM", "12:00", "12:00 PM"),
-            "Quiniela LoteDom 3:00 PM": make_lottery("Quiniela LoteDom 3:00 PM", "15:00", "3:00 PM"),
-            "Quiniela LoteDom 6:00 PM": make_lottery("Quiniela LoteDom 6:00 PM", "18:00", "6:00 PM"),
-            "Quiniela LoteDom 9:00 PM": make_lottery("Quiniela LoteDom 9:00 PM", "21:00", "9:00 PM"),
+            # LOTEDOM - Solo 2:55 PM
+            "Quiniela LoteDom 2:55 PM": make_lottery("Quiniela LoteDom 2:55 PM", "14:55", "2:55 PM"),
             
-            # KING LOTTERY
+            # KING LOTTERY - 12:30 PM y 7:30 PM
             "King Lottery 12:30 PM": make_lottery("King Lottery 12:30 PM", "12:30", "12:30 PM"),
             "King Lottery 7:30 PM": make_lottery("King Lottery 7:30 PM", "19:30", "7:30 PM"),
             
-            # ANGUILA
+            # ANGUILA - 10:00 AM, 1:00 PM, 6:00 PM, 9:00 PM
             "Anguila 10:00 AM": make_lottery("Anguila 10:00 AM", "10:00", "10:00 AM"),
             "Anguila 1:00 PM": make_lottery("Anguila 1:00 PM", "13:00", "1:00 PM"),
-            "Anguila 4:00 PM": make_lottery("Anguila 4:00 PM", "16:00", "4:00 PM"),
+            "Anguila 6:00 PM": make_lottery("Anguila 6:00 PM", "18:00", "6:00 PM"),
             "Anguila 9:00 PM": make_lottery("Anguila 9:00 PM", "21:00", "9:00 PM"),
             
-            # USA - FLORIDA
+            # USA - FLORIDA - 1:30 PM y 9:45 PM
             "Florida 1:30 PM": make_lottery("Florida 1:30 PM", "13:30", "1:30 PM", "US", "USD"),
             "Florida 9:45 PM": make_lottery("Florida 9:45 PM", "21:45", "9:45 PM", "US", "USD"),
             
-            # USA - NEW YORK
+            # USA - NEW YORK - 2:30 PM y 10:30 PM
             "New York 2:30 PM": make_lottery("New York 2:30 PM", "14:30", "2:30 PM", "US", "USD"),
             "New York 10:30 PM": make_lottery("New York 10:30 PM", "22:30", "10:30 PM", "US", "USD"),
         }
         
-        # Mapeo de nombres antiguos a nuevos (para renombrar)
+        # Loterías a ELIMINAR (no existen o duplicadas)
+        lotteries_to_delete = [
+            "Quiniela Leidsa 8:55 AM",  # NO EXISTE
+            "Quiniela Leidsa 3:55 PM",  # Fusionado con 8:55 PM (domingo)
+            "Pega 3 Más 12:55 PM",      # NO EXISTE - solo hay 8:55 PM
+            "Pega 3 Más 3:00 PM",       # NO EXISTE
+            "Pega 3 Más 9:00 PM",       # NO EXISTE
+            "Quiniela LoteDom 12:00 PM", # NO EXISTE - solo hay 2:55 PM
+            "Quiniela LoteDom 3:00 PM",  # NO EXISTE
+            "Quiniela LoteDom 6:00 PM",  # NO EXISTE
+            "Quiniela LoteDom 9:00 PM",  # NO EXISTE
+            "Anguila 4:00 PM",           # NO EXISTE - correcto es 6:00 PM
+            "Lotería Nacional 6:00 PM",  # Fusionado con 9:00 PM (domingo)
+            "Lotería Nacional 8:50 PM",  # Horario incorrecto
+        ]
+        
+        # Mapeo de nombres antiguos a nuevos
         name_renames = {
             "Gana Más": "Gana Más 2:30 PM",
             "Quiniela Real": "Quiniela Real 12:55 PM",
             "Quiniela Loteka": "Quiniela Loteka 7:55 PM",
             "La Primera Día": "La Primera 12:00 PM",
-            "Primera Noche": "La Primera 7:00 PM",
+            "Primera Noche": "La Primera 8:00 PM",
+            "La Primera 7:00 PM": "La Primera 8:00 PM",
             "Anguila Mañana": "Anguila 10:00 AM",
             "Anguila Medio Día": "Anguila 1:00 PM",
-            "Anguila Tarde": "Anguila 4:00 PM",
+            "Anguila Tarde": "Anguila 6:00 PM",
             "Anguila Noche": "Anguila 9:00 PM",
             "Florida Día": "Florida 1:30 PM",
             "Florida Noche": "Florida 9:45 PM",
             "New York Tarde": "New York 2:30 PM",
             "New York Noche": "New York 10:30 PM",
+            "Quiniela Leidsa 8:55 PM": "Quiniela Leidsa 8:55 PM",  # Keep same
         }
         
+        deleted_count = 0
         fixed_count = 0
         created_count = 0
         renamed_count = 0
         
-        # Step 1: Rename old lotteries to include time in name
+        # Step 1: Delete lotteries that don't exist
+        for name in lotteries_to_delete:
+            existing = await db.lotteries.find_one({"name": name})
+            if existing:
+                await db.lotteries.delete_one({"name": name})
+                logger.info(f"  🗑️ Deleted: {name} (doesn't exist in real)")
+                deleted_count += 1
+        
+        # Step 2: Rename old lotteries to correct names
         for old_name, new_name in name_renames.items():
             existing = await db.lotteries.find_one({"name": old_name})
-            if existing:
+            if existing and old_name != new_name:
                 # Check if new name already exists
                 new_exists = await db.lotteries.find_one({"name": new_name})
                 if not new_exists:
@@ -180,11 +208,14 @@ async def run_data_migrations():
                             "display_time": new_config["display_time"],
                             "display_closing": new_config["display_closing"],
                         })
+                        if "sunday_schedule" in new_config:
+                            update_data["sunday_schedule"] = new_config["sunday_schedule"]
+                            update_data["sunday_display"] = new_config["sunday_display"]
                     await db.lotteries.update_one({"name": old_name}, {"$set": update_data})
                     logger.info(f"  📝 Renamed: {old_name} → {new_name}")
                     renamed_count += 1
         
-        # Step 2: Create missing lotteries
+        # Step 3: Create missing lotteries
         for name, config in all_lotteries.items():
             existing = await db.lotteries.find_one({"name": name})
             if not existing:
@@ -192,30 +223,41 @@ async def run_data_migrations():
                 logger.info(f"  ➕ Created: {name} ({config['display_time']})")
                 created_count += 1
         
-        # Step 3: Fix schedules for existing lotteries
+        # Step 4: Fix schedules for existing lotteries
         for name, config in all_lotteries.items():
             existing = await db.lotteries.find_one({"name": name})
             if existing:
                 current_schedule = existing.get("schedule", [])
                 correct_schedule = config["schedule"]
                 
-                if current_schedule != correct_schedule:
+                needs_update = current_schedule != correct_schedule
+                
+                if needs_update:
+                    update_data = {
+                        "schedule": config["schedule"],
+                        "closing_time": config["closing_time"],
+                        "display_time": config["display_time"],
+                        "display_closing": config["display_closing"],
+                    }
+                    if "sunday_schedule" in config:
+                        update_data["sunday_schedule"] = config["sunday_schedule"]
+                        update_data["sunday_display"] = config["sunday_display"]
+                    
                     await db.lotteries.update_one(
                         {"name": name},
-                        {"$set": {
-                            "schedule": config["schedule"],
-                            "closing_time": config["closing_time"],
-                            "display_time": config["display_time"],
-                            "display_closing": config["display_closing"],
-                        }}
+                        {"$set": update_data}
                     )
                     logger.info(f"  ✅ Fixed: {name} schedule {current_schedule} → {correct_schedule}")
                     fixed_count += 1
         
-        logger.info(f"🔄 Migration complete: {renamed_count} renamed, {created_count} created, {fixed_count} fixed")
+        total_lotteries = await db.lotteries.count_documents({"active": True})
+        logger.info(f"🔄 Migration complete: {deleted_count} deleted, {renamed_count} renamed, {created_count} created, {fixed_count} fixed")
+        logger.info(f"📊 Total active lotteries: {total_lotteries}")
             
     except Exception as e:
         logger.warning(f"⚠️ Migration error (non-fatal): {e}")
+        import traceback
+        logger.warning(traceback.format_exc())
 
 # Import and register all routers
 from routes import (

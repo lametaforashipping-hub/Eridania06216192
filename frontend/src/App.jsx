@@ -20,10 +20,16 @@ import CuadrePage from './pages/CuadrePage'
 
 import Layout from './components/Layout'
 
-function ProtectedRoute({ children, noLayout }) {
+function ProtectedRoute({ children, noLayout, requiredRole }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="flex items-center justify-center h-screen bg-[#0f172a]"><div className="spinner" /></div>
   if (!user) return <Navigate to="/login" />
+  
+  // Si se requiere un rol específico, verificar acceso
+  if (requiredRole === 'super_admin' && user.role !== 'super_admin') {
+    return <Navigate to="/" />
+  }
+  
   if (noLayout) return children
   return <Layout>{children}</Layout>
 }
@@ -45,7 +51,7 @@ export default function App() {
       <Route path="/client-login" element={<ComingSoon title="Portal de Clientes" />} />
       <Route path="/" element={<ProtectedRoute noLayout><Dashboard /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-      <Route path="/lotteries" element={<ProtectedRoute><Lotteries /></ProtectedRoute>} />
+      <Route path="/lotteries" element={<ProtectedRoute requiredRole="super_admin"><Lotteries /></ProtectedRoute>} />
       <Route path="/tickets" element={<ProtectedRoute><Tickets /></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><Results /></ProtectedRoute>} />
       <Route path="/venta" element={<ProtectedRoute><Venta /></ProtectedRoute>} />
@@ -74,8 +80,8 @@ export default function App() {
       <Route path="/play-types-admin" element={<ProtectedRoute><ComingSoon title="Tipos de Jugada" /></ProtectedRoute>} />
       <Route path="/prize-config" element={<ProtectedRoute><PrizeConfig /></ProtectedRoute>} />
       <Route path="/alert-settings" element={<ProtectedRoute><AlertSettings /></ProtectedRoute>} />
-      <Route path="/company-profile" element={<ProtectedRoute><ComingSoon title="Mi Empresa" /></ProtectedRoute>} />
-      <Route path="/system-settings" element={<ProtectedRoute><ComingSoon title="Configuración" /></ProtectedRoute>} />
+      <Route path="/company-profile" element={<ProtectedRoute requiredRole="super_admin"><ComingSoon title="Mi Empresa" /></ProtectedRoute>} />
+      <Route path="/system-settings" element={<ProtectedRoute requiredRole="super_admin"><ComingSoon title="Configuración" /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

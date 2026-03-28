@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('VITE_API_URL', 'https://receipt-unify.preview.emergentagent.com')
+BASE_URL = os.environ.get('VITE_API_URL', 'https://lottery-sync-1.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"

@@ -1,10 +1,18 @@
 # Test Credentials - Loteria Magica
 
-## Super Admin (Master - sin trial)
+## Super Admin (Master - acceso completo)
 - Email: admin@loteria.com
 - Password: admin123
 - Country: US
 - Currency: USD
+- Puede ver: Loterías, Configuración, Mi Empresa (exclusivos)
+
+## Admin (sin acceso a loterías/configuración/empresa)
+- Email: admin_test@loteria.com
+- Password: admin123
+- Country: RD
+- Currency: RD$
+- NO puede ver: Loterías, Configuración, Mi Empresa
 
 ## Vendedor (Seller)
 - Email: vendedor@test.com

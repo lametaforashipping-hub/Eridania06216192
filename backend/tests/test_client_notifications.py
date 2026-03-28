@@ -11,7 +11,7 @@ import os
 import uuid
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://receipt-unify.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://lottery-sync-1.preview.emergentagent.com').rstrip('/')
 
 # Test client credentials
 TEST_CLIENT_PHONE = "8091112222"

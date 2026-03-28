@@ -1,0 +1,89 @@
+{
+  "summary": "Iteration 60 - Admin Role Restrictions Testing. All 6 test cases PASSED. Admin role (admin_test@loteria.com) correctly restricted from viewing/accessing Loterías, Configuración, Mi Empresa. Super Admin role (admin@loteria.com) has full access to all sections.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_60.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Layout.jsx correctly implements role-based sidebar links (superAdminLinks vs adminLinks)",
+    "App.jsx ProtectedRoute correctly uses requiredRole='super_admin' for /lotteries, /system-settings, /company-profile",
+    "Dashboard.jsx menuItems correctly filters by user role with roles array",
+    "Admin role cannot see restricted menu items in sidebar or dashboard grid",
+    "Admin role is properly redirected to home when trying to access restricted routes directly"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A - Frontend only testing",
+    "frontend": "100% - All 6 test cases passed"
+  },
+  "test_credentials": {
+    "super_admin": {
+      "email": "admin@loteria.com",
+      "password": "admin123"
+    },
+    "admin": {
+      "email": "admin_test@loteria.com",
+      "password": "admin123"
+    }
+  },
+  "seed_data_creation": "None - used existing test accounts",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Admin role restrictions fully implemented and tested. Admin cannot see/access Loterías, Configuración, Mi Empresa. Super Admin has full access.",
+  "features_tested": {
+    "admin_sidebar_restrictions": "PASS - Admin sidebar does NOT show Loterías, Configuración, Mi Empresa",
+    "admin_route_lotteries": "PASS - Admin redirected from /lotteries to home",
+    "admin_route_system_settings": "PASS - Admin redirected from /system-settings to home",
+    "admin_route_company_profile": "PASS - Admin redirected from /company-profile to home",
+    "super_admin_sidebar_full_access": "PASS - Super Admin sidebar shows Loterías, Configuración, Mi Empresa",
+    "super_admin_route_lotteries": "PASS - Super Admin can access /lotteries without redirection"
+  },
+  "mocked_integrations": {},
+  "test_details": {
+    "test_1_admin_sidebar": {
+      "status": "PASS",
+      "description": "Admin sidebar correctly hides Loterías, Configuración, Mi Empresa",
+      "user": "admin_test@loteria.com",
+      "role": "admin"
+    },
+    "test_2_admin_lotteries_redirect": {
+      "status": "PASS",
+      "description": "Admin redirected from /lotteries to home (/)",
+      "expected_url": "/",
+      "actual_url": "/"
+    },
+    "test_3_admin_settings_redirect": {
+      "status": "PASS",
+      "description": "Admin redirected from /system-settings to home (/)",
+      "expected_url": "/",
+      "actual_url": "/"
+    },
+    "test_4_admin_company_redirect": {
+      "status": "PASS",
+      "description": "Admin redirected from /company-profile to home (/)",
+      "expected_url": "/",
+      "actual_url": "/"
+    },
+    "test_5_super_admin_sidebar": {
+      "status": "PASS",
+      "description": "Super Admin sidebar shows all items including Loterías, Configuración, Mi Empresa",
+      "user": "admin@loteria.com",
+      "role": "super_admin"
+    },
+    "test_6_super_admin_lotteries_access": {
+      "status": "PASS",
+      "description": "Super Admin can access /lotteries without redirection",
+      "expected_url": "/lotteries",
+      "actual_url": "/lotteries"
+    }
+  }
+}

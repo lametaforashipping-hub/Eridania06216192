@@ -6,7 +6,7 @@ import pytest
 import httpx
 import os
 
-API_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://receipt-unify.preview.emergentagent.com')
+API_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://lottery-sync-1.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"
