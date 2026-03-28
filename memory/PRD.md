@@ -21,6 +21,18 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 
 ## Cambios Recientes (28/03/2026)
 
+### 10. RESTRICCIONES DE ADMIN UI (28/03/2026)
+- **Rol `admin`** ya NO puede ver/acceder a:
+  - Loterías (creación/edición de horarios)
+  - Configuración del Sistema
+  - Mi Empresa
+- **Rol `super_admin`** mantiene acceso completo a todo
+- **Archivos modificados**:
+  - `Layout.jsx` - Sidebar con menús diferenciados (superAdminLinks vs adminLinks)
+  - `App.jsx` - ProtectedRoute con `requiredRole="super_admin"` para rutas restringidas
+  - `Dashboard.jsx` - menuItems ya tenían roles correctos
+- **Test Report**: iteration_60 (100% - 6/6 tests passed)
+
 ### 9. MEJORAS DE UX - Cuadre y Loterías (28/03/2026)
 - **Cuadre con Calendario**: Filtro de fechas con DatePicker visual para seleccionar rango
 - **Lista de vendedores separada**: Cada vendedor tiene su propio balance y desglose
@@ -127,6 +139,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - iteration_57: Settlement/Cuadre backend (16/16 - 100%)
 - iteration_58: Cuadre web frontend + backend (100% - all features pass)
 - iteration_59: Unified Receipt (Backend 100%, Frontend 100%)
+- iteration_60: Admin UI Restrictions (100% - 6/6 tests passed)
 
 ## Credenciales
 - Super Admin: admin@loteria.com / admin123 (US, USD)
@@ -152,7 +165,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - ✅ **RECIBO UNIFICADO**: Un solo recibo (backend PNG) para modal, WhatsApp y impresora
 
 ### P1
-- Restricciones de UI para rol `admin` vs `super_admin` (ocultar creación de loterías, configuración del sistema)
+- ✅ Restricciones de UI para rol `admin` vs `super_admin` (Loterías, Configuración, Mi Empresa - ocultos para admin)
 - Deploy a producción con `eas update`
 - Verificar multiplicadores USA en producción
 - Conectar BD producción (requiere whitelist IP en MongoDB Atlas)
