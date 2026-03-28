@@ -21,6 +21,20 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 
 ## Cambios Recientes (28/03/2026)
 
+### 8. RECIBO UNIFICADO - Single Source of Truth (28/03/2026)
+- **PROBLEMA RESUELTO**: Antes había 3 recibos visuales diferentes (modal de venta, WhatsApp PDF, impresora PNG)
+- **SOLUCIÓN**: Todos los flujos ahora usan el PNG del backend (`/api/tickets/receipt-image/{ticket_number}`)
+- **Archivos modificados**:
+  - `TicketModal.tsx` (src/components/sales y src_expo) - Muestra imagen del backend
+  - `multi-play.tsx` - Modal de venta usa imagen del backend
+  - `tickets.tsx` - Modal de ver recibo usa imagen del backend
+- **Funciones actualizadas**:
+  - **Imprimir**: Usa HTML con `<img src="backend_png_url">`
+  - **WhatsApp**: Descarga PNG del backend y comparte via expo-sharing
+  - **Ver recibo**: Muestra imagen del backend directamente
+  - **Texto fallback**: Incluye URL del recibo para ver online
+- **Endpoint**: `GET /api/tickets/receipt-image/{ticket_number}` retorna PNG 400x594px (~38KB)
+
 ### 1. Reorganización de Loterías
 - 22 loterías con múltiples sorteos → **28 loterías individuales**
 - Cada lotería tiene su propio sorteo y cierre
@@ -98,6 +112,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - iteration_56: Accounting wins & seller loss (16/16 - 100%)
 - iteration_57: Settlement/Cuadre backend (16/16 - 100%)
 - iteration_58: Cuadre web frontend + backend (100% - all features pass)
+- iteration_59: Unified Receipt (Backend 100%, Frontend 100%)
 
 ## Credenciales
 - Super Admin: admin@loteria.com / admin123 (US, USD)
@@ -115,15 +130,15 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - ✅ Fix contabilidad: campos incorrectos para premios (prize → potential_win)
 - ✅ Tickets ganadores almacenan número ganador y desglose del premio
 - ✅ Endpoint verify incluye winning_details
-
 - ✅ Sistema de Cuadre: cerrar cuadre, registrar pago, balance acumulado, historial
 - ✅ Fórmula contabilidad: Ganancia = Ventas - Comisión - Premios (en TODOS los endpoints)
 - ✅ Widget "Prueba Gratis" embebible para globalmetafora.com
 - ✅ Multiplicadores USA verificados (60/12/4, 1500, 10000)
-
 - ✅ Pantalla de Cuadre en web (CuadrePage.jsx) y móvil (cuadre.tsx) con lista de vendedores, desglose, filtro fecha, cerrar cuadre, historial
+- ✅ **RECIBO UNIFICADO**: Un solo recibo (backend PNG) para modal, WhatsApp y impresora
 
 ### P1
+- Restricciones de UI para rol `admin` vs `super_admin` (ocultar creación de loterías, configuración del sistema)
 - Deploy a producción con `eas update`
 - Verificar multiplicadores USA en producción
 - Conectar BD producción (requiere whitelist IP en MongoDB Atlas)

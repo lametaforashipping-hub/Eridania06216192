@@ -1026,7 +1026,7 @@ export default function Tickets() {
         </View>
       </Modal>
 
-      {/* Receipt View Modal */}
+      {/* Receipt View Modal - Unified Backend PNG */}
       <Modal
         visible={showReceiptModal}
         animationType="slide"
@@ -1044,86 +1044,23 @@ export default function Tickets() {
             
             {selectedTicket && (
               <View style={styles.receiptBody}>
-                <View style={styles.receiptHeader}>
-                  {logoBase64 ? (
-                    <Image source={{ uri: logoBase64 }} style={styles.receiptCompanyLogo} />
-                  ) : null}
-                  <Text style={styles.receiptLogo}>
-                    {companyProfile?.company_name || 'LOTERIA MAGICA'}
+                {/* Unified Receipt Image from Backend (Single Source of Truth) */}
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 8, marginBottom: 12, alignItems: 'center' }}>
+                  <Image
+                    source={{ uri: `${API_URL}/api/tickets/receipt-image/${selectedTicket.ticket_number}` }}
+                    style={{ width: '100%', height: 450, borderRadius: 4 }}
+                    resizeMode="contain"
+                  />
+                </View>
+                
+                {/* Quick Summary */}
+                <View style={{ backgroundColor: '#1a1a2e', borderRadius: 8, padding: 10, marginBottom: 12 }}>
+                  <Text style={{ color: '#22c55e', fontSize: 14, fontWeight: '600', textAlign: 'center' }}>
+                    {selectedTicket.ticket_number}
                   </Text>
-                  {companyProfile?.slogan && (
-                    <Text style={styles.receiptSlogan}>{companyProfile.slogan}</Text>
-                  )}
-                </View>
-                
-                <Text style={styles.receiptTicketNumberText}>{selectedTicket.ticket_number}</Text>
-                
-                <Text style={styles.receiptDate}>
-                  {formatDate(selectedTicket.created_at)}, {formatTime(selectedTicket.created_at)}
-                </Text>
-                
-                <View style={styles.receiptDivider} />
-                
-                {selectedTicket.ticket_type === 'multi_play' && selectedTicket.plays ? (
-                  <View>
-                    {(() => {
-                      const ABBR: Record<string, string> = { quiniela: 'Q', pale: 'P', tripleta: 'T', super_pale: 'SP' };
-                      const grouped: Record<string, any[]> = {};
-                      selectedTicket.plays.forEach((play: any) => {
-                        const lName = play.lottery_name || 'Loteria';
-                        if (!grouped[lName]) grouped[lName] = [];
-                        grouped[lName].push(play);
-                      });
-                      return Object.entries(grouped).map(([lotteryName, plays]) => (
-                        <View key={lotteryName} style={{ marginBottom: 8 }}>
-                          <Text style={styles.receiptLotteryTitle}>{lotteryName.toUpperCase()}</Text>
-                          {plays.map((play: any, idx: number) => {
-                            const typeLabel = ABBR[play.lottery_type] || play.lottery_type?.charAt(0)?.toUpperCase() || '?';
-                            return (
-                              <Text key={idx} style={styles.receiptPlayLine}>
-                                {typeLabel} {(play.numbers || []).map((n: number) => n.toString().padStart(2, '0')).join('-')} = {selectedTicket.currency}{play.amount || 0}
-                              </Text>
-                            );
-                          })}
-                        </View>
-                      ));
-                    })()}
-                  </View>
-                ) : (
-                  <View>
-                    <Text style={styles.receiptLotteryTitle}>{(selectedTicket.lottery_name || '').toUpperCase()}</Text>
-                    <Text style={styles.receiptPlayLine}>
-                      P {(selectedTicket.numbers || []).map((n: any) => n?.toString().padStart(2, '0') || '--').join('-')} = {selectedTicket.currency}{selectedTicket.amount || 0}
-                    </Text>
-                  </View>
-                )}
-                
-                <View style={styles.receiptDivider} />
-                
-                <View style={styles.receiptTotalRow}>
-                  <Text style={styles.receiptTotalLabel}>TOTAL:</Text>
-                  <Text style={styles.receiptTotalValue}>
-                    {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toFixed(2)}
+                  <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginTop: 4 }}>
+                    Total: {selectedTicket.currency} {(selectedTicket.amount || selectedTicket.total_amount || 0).toFixed(2)}
                   </Text>
-                </View>
-                
-                <View style={styles.receiptQRContainer}>
-                  {qrDataUrl ? (
-                    <Image 
-                      source={{ uri: qrDataUrl }} 
-                      style={{ width: 100, height: 100 }} 
-                    />
-                  ) : (
-                    <ActivityIndicator size="small" color="#000" />
-                  )}
-                </View>
-                
-                <View style={styles.receiptFooter}>
-                  <Text style={styles.receiptFooterBold}>CONSERVE ESTE BOLETO  ¡BUENA SUERTE!</Text>
-                  {companyProfile?.phone && (
-                    <Text style={styles.receiptFooterPhone}>Tel: {companyProfile.phone}</Text>
-                  )}
-                  <Text style={styles.receiptSellerSmall}>{selectedTicket.seller_name}</Text>
                 </View>
               </View>
             )}
@@ -1134,8 +1071,8 @@ export default function Tickets() {
                 <Text style={styles.receiptActionText}>Imprimir</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.receiptActionBtn, styles.shareBtn]} onPress={handleShare}>
-                <Ionicons name="share-social" size={20} color="#ffffff" />
-                <Text style={styles.receiptActionText}>Compartir</Text>
+                <Ionicons name="logo-whatsapp" size={20} color="#ffffff" />
+                <Text style={styles.receiptActionText}>WhatsApp</Text>
               </TouchableOpacity>
             </View>
           </View>
