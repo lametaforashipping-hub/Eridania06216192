@@ -61,6 +61,12 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - **Transacciones**: Descripción ahora incluye número ganador y monto ganado
 - **Endpoint verify**: Retorna `winning_details` con desglose completo
 
+### 6. Notificaciones Detalladas de Ganadores (28/03/2026)
+- Push notifications ahora incluyen número ganador y posición (ej: "#42 pegó en 1ra")
+- Notificaciones in-app almacenan `won_number`, `won_position`, `winning_numbers`, `winning_plays`
+- Multi-play: Mensaje detallado con cada jugada ganadora y su premio
+- `notify_winner()` acepta parámetros opcionales de detalles del ganador
+
 ## Estado de Verificación
 
 ### Backend - 38+ endpoints verificados

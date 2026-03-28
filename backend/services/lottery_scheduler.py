@@ -259,7 +259,14 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             winner_notifications.append({
                 "user_id": ticket["seller_id"],
                 "ticket_number": ticket["ticket_number"],
-                "prize": prize
+                "prize": prize,
+                "won_number": prize_number,
+                "won_position": position,
+                "winning_numbers": {
+                    "first": first_prize,
+                    "second": second_prize,
+                    "third": third_prize
+                }
             })
     
     # ═══════════════════════════════════════════════════════════════
@@ -371,7 +378,13 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 winner_notifications.append({
                     "user_id": ticket["seller_id"],
                     "ticket_number": ticket["ticket_number"],
-                    "prize": sum(wp["prize"] for wp in winning_plays_info)
+                    "prize": sum(wp["prize"] for wp in winning_plays_info),
+                    "winning_plays": winning_plays_info,
+                    "winning_numbers": {
+                        "first": first_prize,
+                        "second": second_prize,
+                        "third": third_prize
+                    }
                 })
             else:
                 # Check if ALL plays in this ticket have been resolved
@@ -547,6 +560,24 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     
     # Send winner notifications
     for winner in winner_notifications:
+        # Build detailed message based on ticket type
+        position_names = {"primera": "1ra", "segunda": "2da", "tercera": "3ra"}
+        
+        if winner.get("winning_plays"):
+            # Multi-play ticket: list each winning play
+            plays_detail = []
+            for wp in winner["winning_plays"]:
+                pos_label = position_names.get(wp.get("position", ""), wp.get("position", ""))
+                plays_detail.append(f"{wp['lottery_name']}: #{wp['numbers']} pegó en {pos_label} = {currency} {wp['prize']:,.2f}")
+            detail_msg = " | ".join(plays_detail)
+            notif_message = f"GANADOR! Boleto {winner['ticket_number']} - {detail_msg} - Total: {currency} {winner['prize']:,.2f}"
+        elif winner.get("won_number") is not None:
+            # Simple ticket: show which number won
+            pos_label = position_names.get(winner.get("won_position", ""), winner.get("won_position", ""))
+            notif_message = f"GANADOR! Boleto {winner['ticket_number']} - #{winner['won_number']} pegó en {pos_label} - Ganó {currency} {winner['prize']:,.2f} en {lottery_name}"
+        else:
+            notif_message = f"GANADOR! Boleto {winner['ticket_number']} ganó {currency} {winner['prize']:,.2f}"
+        
         seller_notification = {
             "id": str(uuid.uuid4()),
             "type": "winner_alert",
@@ -556,7 +587,11 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             "ticket_number": winner["ticket_number"],
             "prize_amount": winner["prize"],
             "currency": currency,
-            "message": f"GANADOR! Boleto {winner['ticket_number']} gano {currency} {winner['prize']:,.2f}",
+            "won_number": winner.get("won_number"),
+            "won_position": winner.get("won_position"),
+            "winning_numbers": winner.get("winning_numbers"),
+            "winning_plays": winner.get("winning_plays"),
+            "message": notif_message,
             "is_automated": True,
             "created_at": datetime.now(timezone.utc),
             "read": False
@@ -568,7 +603,10 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             winner["ticket_number"],
             winner["prize"],
             currency,
-            lottery_name
+            lottery_name,
+            won_number=winner.get("won_number"),
+            won_position=winner.get("won_position"),
+            winning_numbers=winner.get("winning_numbers")
         )
     
     # Send CLIENT winner notifications

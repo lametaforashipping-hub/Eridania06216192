@@ -74,8 +74,8 @@ async def send_push_notification(expo_push_tokens: List[str], title: str, body: 
         logger.error(f"Error sending push notification: {e}")
 
 
-async def notify_winner(seller_id: str, ticket_number: str, prize: float, currency: str, lottery_name: str):
-    """Send push notification to a winning ticket seller"""
+async def notify_winner(seller_id: str, ticket_number: str, prize: float, currency: str, lottery_name: str, won_number: int = None, won_position: str = None, winning_numbers: dict = None):
+    """Send push notification to a winning ticket seller with detailed winning info"""
     db = get_db()
     seller = await db.users.find_one({"id": seller_id})
     tokens = []
@@ -88,16 +88,28 @@ async def notify_winner(seller_id: str, ticket_number: str, prize: float, curren
         if admin.get("notification_token"):
             tokens.append(admin["notification_token"])
     
+    # Build detailed message
+    position_names = {"primera": "1ra", "segunda": "2da", "tercera": "3ra"}
+    pos_label = position_names.get(won_position, won_position or "")
+    
+    if won_number is not None and pos_label:
+        body = f"Boleto {ticket_number} - #{won_number} pegó en {pos_label} - Ganó {currency} {prize:,.2f} en {lottery_name}"
+    else:
+        body = f"Boleto {ticket_number} ganó {currency} {prize:,.2f} en {lottery_name}"
+    
     if tokens:
         await send_push_notification(
             tokens,
             "🎉 ¡GANADOR!",
-            f"Boleto {ticket_number} ganó {currency} {prize:,.2f} en {lottery_name}",
+            body,
             {
                 "type": "winner_alert",
                 "ticket_number": ticket_number,
                 "prize": prize,
-                "lottery_name": lottery_name
+                "lottery_name": lottery_name,
+                "won_number": won_number,
+                "won_position": won_position,
+                "winning_numbers": winning_numbers
             }
         )
 
