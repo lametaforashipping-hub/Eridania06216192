@@ -33,6 +33,14 @@ async def trial_page():
         return HTMLResponse(content=f.read())
 
 
+@router.get("/widget", response_class=HTMLResponse)
+async def trial_widget():
+    """Serve the embeddable free trial widget for external sites"""
+    html_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "widget-prueba-gratis.html")
+    with open(html_path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+
 @router.post("/register")
 async def register_trial(data: TrialRegister):
     """Register a new free trial tenant"""

@@ -1,0 +1,277 @@
+<!-- 
+  ============================================
+  LOTERIA MAGICA - Formulario Prueba Gratis
+  Pegar este codigo en globalmetafora.com
+  dentro de la seccion del Sistema de Loteria
+  ============================================
+  IMPORTANTE: Cambiar API_URL por tu dominio de produccion
+-->
+<div id="loteria-trial-widget">
+<style>
+  #loteria-trial-widget {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0;
+  }
+  #loteria-trial-widget * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  .ltm-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 36px;
+    backdrop-filter: blur(12px);
+  }
+  .ltm-card h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .ltm-card .ltm-subtitle {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .ltm-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .ltm-badge span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(218, 165, 32, 0.15);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #daa520;
+    font-weight: 600;
+  }
+  .ltm-group {
+    margin-bottom: 16px;
+  }
+  .ltm-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #d1d5db;
+    margin-bottom: 6px;
+  }
+  .ltm-group input,
+  .ltm-group select {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .ltm-group input:focus,
+  .ltm-group select:focus {
+    outline: none;
+    border-color: #daa520;
+  }
+  .ltm-group input::placeholder { color: #6b7280; }
+  .ltm-group select option { background: #1a1e2e; color: #fff; }
+  
+  .ltm-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #daa520, #b8860b);
+    border: none;
+    border-radius: 12px;
+    color: #0a0e1a;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-top: 8px;
+  }
+  .ltm-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(218,165,32,0.3);
+  }
+  .ltm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .ltm-footer {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+  .ltm-footer a { color: #daa520; text-decoration: none; }
+  
+  .ltm-alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .ltm-alert-error {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+  }
+  .ltm-success {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+  }
+  .ltm-success .ltm-check {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(16,185,129,0.15);
+    display: flex;
+    align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px; color: #10b981;
+  }
+  .ltm-success h3 { color: #fff; font-size: 1.3rem; margin-bottom: 10px; }
+  .ltm-success p { color: #9ca3af; font-size: 14px; line-height: 1.6; }
+  .ltm-success .ltm-days {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(218,165,32,0.15);
+    border: 1px solid rgba(218,165,32,0.3);
+    border-radius: 100px; padding: 8px 20px;
+    font-size: 15px; color: #daa520; font-weight: 700;
+    margin: 16px 0;
+  }
+  .ltm-spinner {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2px solid rgba(10,14,26,0.3);
+    border-top-color: #0a0e1a;
+    border-radius: 50%;
+    animation: ltm-spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes ltm-spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="ltm-card">
+  <div id="ltmFormView">
+    <div class="ltm-badge">
+      <span>&#127873; 15 Dias Gratis</span>
+    </div>
+    <h2>Prueba Loteria Magica</h2>
+    <p class="ltm-subtitle">Sin tarjeta de credito requerida</p>
+    
+    <div id="ltmAlert" class="ltm-alert ltm-alert-error"></div>
+    
+    <form id="ltmTrialForm">
+      <div class="ltm-group">
+        <label>Nombre de tu banca</label>
+        <input type="text" id="ltmCompany" placeholder="Ej: Banca La Fortuna" required>
+      </div>
+      <div class="ltm-group">
+        <label>Email</label>
+        <input type="email" id="ltmEmail" placeholder="tu@email.com" required>
+      </div>
+      <div class="ltm-group">
+        <label>Telefono</label>
+        <input type="tel" id="ltmPhone" placeholder="809-000-0000" required>
+      </div>
+      <div class="ltm-group">
+        <label>Contrasena</label>
+        <input type="password" id="ltmPassword" placeholder="Minimo 6 caracteres" minlength="6" required>
+      </div>
+      <div class="ltm-group">
+        <label>Pais</label>
+        <select id="ltmCountry">
+          <option value="RD">Republica Dominicana (RD$)</option>
+          <option value="US">Estados Unidos (USD)</option>
+        </select>
+      </div>
+      <button type="submit" class="ltm-btn" id="ltmSubmit">
+        Activar prueba gratis de 15 dias
+      </button>
+    </form>
+    <p class="ltm-footer">Preguntas? <a href="tel:7189161401">718-916-1401</a></p>
+  </div>
+  
+  <div id="ltmSuccess" class="ltm-success">
+    <div class="ltm-check">&#10003;</div>
+    <h3>Prueba activada!</h3>
+    <div class="ltm-days">&#9203; 15 dias restantes</div>
+    <p>Tu cuenta ha sido creada con datos de ejemplo.</p>
+    <p style="margin-top:14px;color:#d1d5db;"><strong>Email:</strong> <span id="ltmSuccessEmail"></span></p>
+    <p style="color:#d1d5db;"><strong>Contrasena:</strong> La que elegiste</p>
+    <p style="margin-top:16px;color:#9ca3af;font-size:13px;">Descarga la app e inicia sesion para comenzar.</p>
+    <p style="margin-top:10px;color:#6b7280;font-size:12px;">Preguntas? <a href="tel:7189161401" style="color:#daa520;">718-916-1401</a></p>
+  </div>
+</div>
+
+<script>
+(function() {
+  // =============================================
+  // CAMBIAR ESTA URL POR TU DOMINIO DE PRODUCCION
+  // =============================================
+  var API_URL = 'https://demo-loteria.globalmetafora.com';
+  
+  var form = document.getElementById('ltmTrialForm');
+  if (!form) return;
+  
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var btn = document.getElementById('ltmSubmit');
+    var alert = document.getElementById('ltmAlert');
+    alert.style.display = 'none';
+    
+    var data = {
+      company_name: document.getElementById('ltmCompany').value.trim(),
+      email: document.getElementById('ltmEmail').value.trim(),
+      phone: document.getElementById('ltmPhone').value.trim(),
+      password: document.getElementById('ltmPassword').value,
+      country: document.getElementById('ltmCountry').value
+    };
+    
+    if (!data.company_name || !data.email || !data.phone || !data.password) {
+      alert.textContent = 'Por favor completa todos los campos';
+      alert.style.display = 'block';
+      return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ltm-spinner"></span> Creando tu cuenta...';
+    
+    fetch(API_URL + '/api/trial/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(function(res) {
+      return res.json().then(function(json) {
+        if (!res.ok) throw new Error(json.detail || 'Error al registrar');
+        return json;
+      });
+    })
+    .then(function(result) {
+      document.getElementById('ltmSuccessEmail').textContent = data.email;
+      document.getElementById('ltmFormView').style.display = 'none';
+      document.getElementById('ltmSuccess').style.display = 'block';
+    })
+    .catch(function(err) {
+      alert.textContent = err.message;
+      alert.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Activar prueba gratis de 15 dias';
+    });
+  });
+})();
+</script>
+</div>
