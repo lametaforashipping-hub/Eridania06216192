@@ -54,22 +54,35 @@ async def get_accounting_summary(
         if lottery_ids:
             query_base["lottery_id"] = {"$in": lottery_ids}
     
+    # Get commission rate for the user
+    commission_rate = current_user.get("commission_rate", 0)
+    
     # Today stats
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_stats = await get_period_stats(db, query_base, today_start, now)
+    today_commission = today_stats["sales"] * (commission_rate / 100) if commission_rate else 0
+    today_stats["commission"] = today_commission
+    today_stats["net_profit"] = today_stats["sales"] - today_commission - today_stats["wins"]
     
     # Week stats (last 7 days)
     week_start = today_start - timedelta(days=7)
     week_stats = await get_period_stats(db, query_base, week_start, now)
+    week_commission = week_stats["sales"] * (commission_rate / 100) if commission_rate else 0
+    week_stats["commission"] = week_commission
+    week_stats["net_profit"] = week_stats["sales"] - week_commission - week_stats["wins"]
     
     # Month stats (last 30 days)
     month_start = today_start - timedelta(days=30)
     month_stats = await get_period_stats(db, query_base, month_start, now)
+    month_commission = month_stats["sales"] * (commission_rate / 100) if commission_rate else 0
+    month_stats["commission"] = month_commission
+    month_stats["net_profit"] = month_stats["sales"] - month_commission - month_stats["wins"]
     
     return {
         "today": today_stats,
         "week": week_stats,
         "month": month_stats,
+        "commission_rate": commission_rate,
         "currency": current_user.get("currency", "RD$"),
         "country_filter": filter_country
     }
@@ -422,7 +435,7 @@ async def get_sellers_report(
             "total_sales": total_sales,
             "total_wins": total_wins,
             "total_commission": total_commission,
-            "net_profit": total_sales - total_wins,
+            "net_profit": total_sales - total_commission - total_wins,
             "tickets_sold": tickets_sold,
             "tickets_won": tickets_won,
             "commission_rate": commission_rate,
@@ -775,11 +788,12 @@ async def get_detailed_seller_report(
         ticket_details.append(ticket_detail)
     
     # Calculate commission and profit
+    # Formula: Ganancia Neta = Ventas - Comision - Premios
+    # Commission ALWAYS gets paid, win or lose
     commission_rate = seller_info["commission_rate"]
     total_commission = total_sales * (commission_rate / 100)
     total_actual_wins = total_wins + total_paid
-    net_profit = total_sales - total_actual_wins
-    net_after_commission = net_profit - total_commission
+    net_profit = total_sales - total_commission - total_actual_wins
     
     summary = {
         "total_sales": total_sales,
@@ -789,7 +803,6 @@ async def get_detailed_seller_report(
         "total_commission": total_commission,
         "commission_rate": commission_rate,
         "net_profit": net_profit,
-        "net_after_commission": net_after_commission,
         "currency": seller_info["currency"]
     }
     
