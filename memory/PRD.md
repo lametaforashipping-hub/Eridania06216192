@@ -63,6 +63,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - ✅ Arreglar recibo con logo y nombres de lotería
 - ✅ WhatsApp envía imagen directamente
 - ✅ Fix logo bola dorada con "7" en recibo PNG (base64 corrupta corregida - 28/03/2026)
+- ✅ Refactoring: lógica de recibo extraída a `services/receipt_generator.py` (28/03/2026)
 
 ### P1
 - Deploy a producción con `eas update`
