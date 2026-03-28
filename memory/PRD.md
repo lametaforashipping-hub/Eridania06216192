@@ -96,7 +96,8 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - iteration_54: Lottery reorganization + receipt image (22/22 - 100%)
 - iteration_55: Free Trial system (16/16 - 100%)
 - iteration_56: Accounting wins & seller loss (16/16 - 100%)
-- iteration_57: Settlement/Cuadre system (16/16 - 100%)
+- iteration_57: Settlement/Cuadre backend (16/16 - 100%)
+- iteration_58: Cuadre web frontend + backend (100% - all features pass)
 
 ## Credenciales
 - Super Admin: admin@loteria.com / admin123 (US, USD)
@@ -119,6 +120,8 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - ✅ Fórmula contabilidad: Ganancia = Ventas - Comisión - Premios (en TODOS los endpoints)
 - ✅ Widget "Prueba Gratis" embebible para globalmetafora.com
 - ✅ Multiplicadores USA verificados (60/12/4, 1500, 10000)
+
+- ✅ Pantalla de Cuadre en web (CuadrePage.jsx) y móvil (cuadre.tsx) con lista de vendedores, desglose, filtro fecha, cerrar cuadre, historial
 
 ### P1
 - Deploy a producción con `eas update`
