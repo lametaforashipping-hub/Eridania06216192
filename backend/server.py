@@ -39,66 +39,180 @@ async def run_data_migrations():
     Run data migrations on startup to fix known issues.
     These are idempotent - safe to run multiple times.
     """
+    import uuid
     from utils.database import get_db
     db = get_db()
     
     try:
         logger.info("🔄 Running data migrations...")
         
-        # Migration 1: Fix lottery schedules that are in wrong format (02:30 instead of 14:30)
-        # Known issue: Some lotteries have PM times saved as AM (e.g., 02:30 instead of 14:30)
-        lottery_time_fixes = {
-            "Gana Más": {"schedule": ["14:30"], "closing_time": "14:20", "display_time": "2:30 PM", "display_closing": "2:20 PM"},
-            "Quiniela Leidsa 3:55 PM": {"schedule": ["15:55"], "closing_time": "15:45", "display_time": "3:55 PM", "display_closing": "3:45 PM"},
-            "Pega 3 Más 12:55 PM": {"schedule": ["12:55"], "closing_time": "12:45", "display_time": "12:55 PM", "display_closing": "12:45 PM"},
-            "Pega 3 Más 3:00 PM": {"schedule": ["15:00"], "closing_time": "14:50", "display_time": "3:00 PM", "display_closing": "2:50 PM"},
-            "Pega 3 Más 9:00 PM": {"schedule": ["21:00"], "closing_time": "20:50", "display_time": "9:00 PM", "display_closing": "8:50 PM"},
-            "Lotería Nacional 6:00 PM": {"schedule": ["18:00"], "closing_time": "17:50", "display_time": "6:00 PM", "display_closing": "5:50 PM"},
-            "Lotería Nacional 8:50 PM": {"schedule": ["20:50"], "closing_time": "20:40", "display_time": "8:50 PM", "display_closing": "8:40 PM"},
-            "Quiniela Real": {"schedule": ["12:55"], "closing_time": "12:45", "display_time": "12:55 PM", "display_closing": "12:45 PM"},
-            "Quiniela Loteka": {"schedule": ["19:55"], "closing_time": "19:45", "display_time": "7:55 PM", "display_closing": "7:45 PM"},
-            "La Primera Día": {"schedule": ["12:00"], "closing_time": "11:50", "display_time": "12:00 PM", "display_closing": "11:50 AM"},
-            "Primera Noche": {"schedule": ["19:00"], "closing_time": "18:50", "display_time": "7:00 PM", "display_closing": "6:50 PM"},
-            "La Suerte 12:30 PM": {"schedule": ["12:30"], "closing_time": "12:20", "display_time": "12:30 PM", "display_closing": "12:20 PM"},
-            "La Suerte 6:00 PM": {"schedule": ["18:00"], "closing_time": "17:50", "display_time": "6:00 PM", "display_closing": "5:50 PM"},
-            "Quiniela LoteDom 12:00 PM": {"schedule": ["12:00"], "closing_time": "11:50", "display_time": "12:00 PM", "display_closing": "11:50 AM"},
-            "Quiniela LoteDom 3:00 PM": {"schedule": ["15:00"], "closing_time": "14:50", "display_time": "3:00 PM", "display_closing": "2:50 PM"},
-            "Quiniela LoteDom 6:00 PM": {"schedule": ["18:00"], "closing_time": "17:50", "display_time": "6:00 PM", "display_closing": "5:50 PM"},
-            "Quiniela LoteDom 9:00 PM": {"schedule": ["21:00"], "closing_time": "20:50", "display_time": "9:00 PM", "display_closing": "8:50 PM"},
-            "King Lottery 12:30 PM": {"schedule": ["12:30"], "closing_time": "12:20", "display_time": "12:30 PM", "display_closing": "12:20 PM"},
-            "King Lottery 7:30 PM": {"schedule": ["19:30"], "closing_time": "19:20", "display_time": "7:30 PM", "display_closing": "7:20 PM"},
-            "Anguila Mañana": {"schedule": ["10:00"], "closing_time": "09:50", "display_time": "10:00 AM", "display_closing": "9:50 AM"},
-            "Anguila Medio Día": {"schedule": ["13:00"], "closing_time": "12:50", "display_time": "1:00 PM", "display_closing": "12:50 PM"},
-            "Anguila Tarde": {"schedule": ["16:00"], "closing_time": "15:50", "display_time": "4:00 PM", "display_closing": "3:50 PM"},
-            "Anguila Noche": {"schedule": ["21:00"], "closing_time": "20:50", "display_time": "9:00 PM", "display_closing": "8:50 PM"},
-            "Florida Día": {"schedule": ["13:30"], "closing_time": "13:20", "display_time": "1:30 PM", "display_closing": "1:20 PM"},
-            "Florida Noche": {"schedule": ["21:45"], "closing_time": "21:35", "display_time": "9:45 PM", "display_closing": "9:35 PM"},
-            "New York Tarde": {"schedule": ["14:30"], "closing_time": "14:20", "display_time": "2:30 PM", "display_closing": "2:20 PM"},
-            "New York Noche": {"schedule": ["22:30"], "closing_time": "22:20", "display_time": "10:30 PM", "display_closing": "10:20 PM"},
-            "Quiniela Leidsa 8:55 AM": {"schedule": ["08:55"], "closing_time": "08:45", "display_time": "8:55 AM", "display_closing": "8:45 AM"},
+        # Base lottery template
+        def make_lottery(name, schedule_24h, display_time, country="RD", currency="RD$"):
+            # Calculate closing time (10 min before)
+            h, m = map(int, schedule_24h.split(':'))
+            close_m = m - 10
+            close_h = h
+            if close_m < 0:
+                close_m += 60
+                close_h -= 1
+            closing_24h = f"{close_h:02d}:{close_m:02d}"
+            
+            # Calculate display closing
+            close_hour_12 = close_h if close_h <= 12 else close_h - 12
+            if close_hour_12 == 0:
+                close_hour_12 = 12
+            close_ampm = "AM" if close_h < 12 else "PM"
+            display_closing = f"{close_hour_12}:{close_m:02d} {close_ampm}"
+            
+            return {
+                "id": str(uuid.uuid4()),
+                "name": name,
+                "schedule": [schedule_24h],
+                "closing_time": closing_24h,
+                "opening_time": "07:00",
+                "display_time": display_time,
+                "display_closing": display_closing,
+                "display_opening": "7:00 AM",
+                "country": country,
+                "currency": currency,
+                "play_types": {
+                    "quiniela": {"multiplier": 70, "numbers_required": 1, "enabled": True},
+                    "pale": {"multiplier": 1500, "numbers_required": 2, "enabled": True},
+                    "tripleta": {"multiplier": 10000, "numbers_required": 3, "enabled": True}
+                },
+                "min_number": 0,
+                "max_number": 99,
+                "price": 20,
+                "active": True
+            }
+        
+        # ============================================================
+        # LOTERÍAS QUE DEBEN EXISTIR CON CONFIGURACIÓN EXACTA
+        # ============================================================
+        all_lotteries = {
+            # LEIDSA
+            "Quiniela Leidsa 8:55 AM": make_lottery("Quiniela Leidsa 8:55 AM", "08:55", "8:55 AM"),
+            "Quiniela Leidsa 3:55 PM": make_lottery("Quiniela Leidsa 3:55 PM", "15:55", "3:55 PM"),
+            
+            # PEGA 3 MÁS (3 horarios)
+            "Pega 3 Más 12:55 PM": make_lottery("Pega 3 Más 12:55 PM", "12:55", "12:55 PM"),
+            "Pega 3 Más 3:00 PM": make_lottery("Pega 3 Más 3:00 PM", "15:00", "3:00 PM"),
+            "Pega 3 Más 9:00 PM": make_lottery("Pega 3 Más 9:00 PM", "21:00", "9:00 PM"),
+            
+            # LOTERÍA NACIONAL
+            "Gana Más 2:30 PM": make_lottery("Gana Más 2:30 PM", "14:30", "2:30 PM"),
+            "Lotería Nacional 6:00 PM": make_lottery("Lotería Nacional 6:00 PM", "18:00", "6:00 PM"),
+            "Lotería Nacional 8:50 PM": make_lottery("Lotería Nacional 8:50 PM", "20:50", "8:50 PM"),
+            
+            # REAL
+            "Quiniela Real 12:55 PM": make_lottery("Quiniela Real 12:55 PM", "12:55", "12:55 PM"),
+            
+            # LOTEKA
+            "Quiniela Loteka 7:55 PM": make_lottery("Quiniela Loteka 7:55 PM", "19:55", "7:55 PM"),
+            
+            # LA PRIMERA
+            "La Primera 12:00 PM": make_lottery("La Primera 12:00 PM", "12:00", "12:00 PM"),
+            "La Primera 7:00 PM": make_lottery("La Primera 7:00 PM", "19:00", "7:00 PM"),
+            
+            # LA SUERTE
+            "La Suerte 12:30 PM": make_lottery("La Suerte 12:30 PM", "12:30", "12:30 PM"),
+            "La Suerte 6:00 PM": make_lottery("La Suerte 6:00 PM", "18:00", "6:00 PM"),
+            
+            # LOTEDOM (4 horarios)
+            "Quiniela LoteDom 12:00 PM": make_lottery("Quiniela LoteDom 12:00 PM", "12:00", "12:00 PM"),
+            "Quiniela LoteDom 3:00 PM": make_lottery("Quiniela LoteDom 3:00 PM", "15:00", "3:00 PM"),
+            "Quiniela LoteDom 6:00 PM": make_lottery("Quiniela LoteDom 6:00 PM", "18:00", "6:00 PM"),
+            "Quiniela LoteDom 9:00 PM": make_lottery("Quiniela LoteDom 9:00 PM", "21:00", "9:00 PM"),
+            
+            # KING LOTTERY
+            "King Lottery 12:30 PM": make_lottery("King Lottery 12:30 PM", "12:30", "12:30 PM"),
+            "King Lottery 7:30 PM": make_lottery("King Lottery 7:30 PM", "19:30", "7:30 PM"),
+            
+            # ANGUILA
+            "Anguila 10:00 AM": make_lottery("Anguila 10:00 AM", "10:00", "10:00 AM"),
+            "Anguila 1:00 PM": make_lottery("Anguila 1:00 PM", "13:00", "1:00 PM"),
+            "Anguila 4:00 PM": make_lottery("Anguila 4:00 PM", "16:00", "4:00 PM"),
+            "Anguila 9:00 PM": make_lottery("Anguila 9:00 PM", "21:00", "9:00 PM"),
+            
+            # USA - FLORIDA
+            "Florida 1:30 PM": make_lottery("Florida 1:30 PM", "13:30", "1:30 PM", "US", "USD"),
+            "Florida 9:45 PM": make_lottery("Florida 9:45 PM", "21:45", "9:45 PM", "US", "USD"),
+            
+            # USA - NEW YORK
+            "New York 2:30 PM": make_lottery("New York 2:30 PM", "14:30", "2:30 PM", "US", "USD"),
+            "New York 10:30 PM": make_lottery("New York 10:30 PM", "22:30", "10:30 PM", "US", "USD"),
+        }
+        
+        # Mapeo de nombres antiguos a nuevos (para renombrar)
+        name_renames = {
+            "Gana Más": "Gana Más 2:30 PM",
+            "Quiniela Real": "Quiniela Real 12:55 PM",
+            "Quiniela Loteka": "Quiniela Loteka 7:55 PM",
+            "La Primera Día": "La Primera 12:00 PM",
+            "Primera Noche": "La Primera 7:00 PM",
+            "Anguila Mañana": "Anguila 10:00 AM",
+            "Anguila Medio Día": "Anguila 1:00 PM",
+            "Anguila Tarde": "Anguila 4:00 PM",
+            "Anguila Noche": "Anguila 9:00 PM",
+            "Florida Día": "Florida 1:30 PM",
+            "Florida Noche": "Florida 9:45 PM",
+            "New York Tarde": "New York 2:30 PM",
+            "New York Noche": "New York 10:30 PM",
         }
         
         fixed_count = 0
-        for name, correct_values in lottery_time_fixes.items():
-            # Check if lottery needs fixing (schedule is wrong)
-            lottery = await db.lotteries.find_one({"name": name})
-            if lottery:
-                current_schedule = lottery.get("schedule", [])
-                correct_schedule = correct_values["schedule"]
+        created_count = 0
+        renamed_count = 0
+        
+        # Step 1: Rename old lotteries to include time in name
+        for old_name, new_name in name_renames.items():
+            existing = await db.lotteries.find_one({"name": old_name})
+            if existing:
+                # Check if new name already exists
+                new_exists = await db.lotteries.find_one({"name": new_name})
+                if not new_exists:
+                    new_config = all_lotteries.get(new_name, {})
+                    update_data = {"name": new_name}
+                    if new_config:
+                        update_data.update({
+                            "schedule": new_config["schedule"],
+                            "closing_time": new_config["closing_time"],
+                            "display_time": new_config["display_time"],
+                            "display_closing": new_config["display_closing"],
+                        })
+                    await db.lotteries.update_one({"name": old_name}, {"$set": update_data})
+                    logger.info(f"  📝 Renamed: {old_name} → {new_name}")
+                    renamed_count += 1
+        
+        # Step 2: Create missing lotteries
+        for name, config in all_lotteries.items():
+            existing = await db.lotteries.find_one({"name": name})
+            if not existing:
+                await db.lotteries.insert_one(config)
+                logger.info(f"  ➕ Created: {name} ({config['display_time']})")
+                created_count += 1
+        
+        # Step 3: Fix schedules for existing lotteries
+        for name, config in all_lotteries.items():
+            existing = await db.lotteries.find_one({"name": name})
+            if existing:
+                current_schedule = existing.get("schedule", [])
+                correct_schedule = config["schedule"]
                 
-                # Only update if schedule is different
                 if current_schedule != correct_schedule:
                     await db.lotteries.update_one(
                         {"name": name},
-                        {"$set": correct_values}
+                        {"$set": {
+                            "schedule": config["schedule"],
+                            "closing_time": config["closing_time"],
+                            "display_time": config["display_time"],
+                            "display_closing": config["display_closing"],
+                        }}
                     )
-                    logger.info(f"  ✅ Fixed {name}: {current_schedule} → {correct_schedule}")
+                    logger.info(f"  ✅ Fixed: {name} schedule {current_schedule} → {correct_schedule}")
                     fixed_count += 1
         
-        if fixed_count > 0:
-            logger.info(f"🔄 Migration complete: Fixed {fixed_count} lottery schedules")
-        else:
-            logger.info("🔄 Migration complete: All lottery schedules already correct")
+        logger.info(f"🔄 Migration complete: {renamed_count} renamed, {created_count} created, {fixed_count} fixed")
             
     except Exception as e:
         logger.warning(f"⚠️ Migration error (non-fatal): {e}")
