@@ -1,134 +1,139 @@
 <analysis>**original_problem_statement**: 
-The user wanted to fix bugs with multi-play ticket winners, USA multipliers, and lottery schedules. During the session, the user requested a new 15-day free trial system (multi-tenant) with a signup page, custom receipt designs for thermal printers (bold, grouped by lottery, subtotals), and finally requested a thorough review of the accounting system to ensure winning tickets explicitly show the winning number and amount won, and that seller losses are correctly reflected in the accounting module.
+The user wanted to fix critical accounting bugs where prize data wasn't showing, implement an embeddable Prueba Gratis (Free Trial) widget for their external site, and create a comprehensive Cuadre (Settlement) system to track seller net profits (Sales - Commission - Prizes). Additionally, the user requested that the thermal receipt be identical across all areas of the application (Success modal, WhatsApp sharing, and Printer) using a clean design with their logo and dark, legible text to maintain business credibility.
 
-**User's preferred language**: Spanish (INSTRUCT next agent to respond in Spanish)
+PRODUCT REQUIREMENTS: 
+- Sellers' net profit must always deduct their commission percentage regardless of prizes won.
+- The platform needs a dedicated Cuadre interface for admins to settle balances with sellers, record partial/full payments, and track history.
+- The receipt generated must be a single source of truth (the backend PNG) to avoid discrepancies when shared via WhatsApp or printed.
+
+**User's preferred language**: Spanish (INSTRUCT next agent to respond in Spanish only)
 
 **what currently exists?** 
-A FastAPI + MongoDB backend and React Native (Expo) frontend. The system now includes a fully functional 15-day free trial registration system with tenant isolation, and a newly refactored -based dynamic receipt generator optimized for thermal printers (100% black, bold, grouped by lottery). Automated lottery result checking and accounting modules exist but need verification.
+A FastAPI backend + dual frontend (Expo Mobile App & Vite Web Admin). The system now features a fully functional Cuadre (Settlement) module on both frontends, corrected accounting endpoints that accurately factor in seller commissions and prizes, an embeddable trial widget, detailed push notifications for winners, and an updated -based receipt generator that successfully incorporates the user's custom logo.
 
 **Last working item**: 
-    - **Last item agent was working**: Investigating the winning ticket processing () and the accounting calculations (). The user requested that winning tickets must clearly state the winning number and how much that specific number won, and that the accounting module must accurately reflect when a seller is operating at a loss.
+    - **Last item agent was working**: Unifying the receipt generation across the frontend. The user noted that the app currently generates 3 *different* visual receipts (one in the Venta Exitosa modal, a different PDF for WhatsApp sharing, and the actual backend PNG). The agent was preparing to refactor the frontend (, , etc.) to solely fetch and use the backend PNG () for all displays and sharing actions. User also requested tweaking the text to be slightly darker/more visible without becoming illegible.
     - **Status**: IN PROGRESS
     - **Agent Testing Done**: N
-    - **Which testing method agent to use?**: backend testing agent / manual testing by python -c (trigger a mock win and evaluate the accounting endpoint response).
+    - **Which testing method agent to use?**: Frontend testing agent + manual testing by screenshot/app flow (to ensure the WhatsApp share payload and modal display the correct image).
     - **User Testing Done**: N
 
 **All Pending/In progress Issue list**: 
-  Issue 1: 🔴 (P0) Verify/Enhance Winning Ticket Display and Accounting for Seller Losses
-  
-  Issues Detail:
-  - Issue 1: 
-     - **Attempted fixes**: The agent just started viewing  and  before the context window ended. No code changes made yet.
+
+  Issue 1: 🔴 (P0) Unify Receipt UI & Sharing Logic (Single Source of Truth)
+     - **Attempted fixes**: The agent updated the backend  to create a clean PNG with the user's logo. It was discovered that the frontend doesn't actually use this PNG for the success modal or WhatsApp sharing; it uses local UI components/PDFs. The agent just located the files to change before context ended.
      - **Next debug checklist**: 
-        1. Review  in  to ensure the exact winning numbers and specific prize amounts per play are stored on the ticket document.
-        2. Review  and frontend UI to ensure this detailed winning info is exposed to the user.
-        3. Review  in  to ensure negative balances (seller losses) are calculated and passed to the frontend correctly.
-     - **Why fix this issue and what will be achieved with the fix?**: Ensures transparency for sellers/players on why they won, and guarantees the company accurately tracks financial losses per seller.
+        1. Open , , and .
+        2. Modify the Venta Exitosa modal to display the image fetched from .
+        3. Modify the WhatsApp share function to share this exact fetched PNG image instead of generating a separate PDF/Text.
+        4. In , slightly increase the font weight or visibility based on the user's final feedback (make it a bit darker but clean).
+     - **Why fix this issue and what will be achieved with the fix?**: Resolves a critical business credibility issue. Having 3 different receipt formats makes the business look unofficial. Unifying them ensures authenticity.
      - **Status**: IN PROGRESS
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** Both (Backend calculations + Frontend Display)
+     - **Is recurring issue?** Y (Receipt styling has been an ongoing iteration)
+     - **Should Test frontend/backend/both after fix?** Both (Backend image generation + Frontend UI flows)
      - **Blocked on other issue**: None
 
 **In progress Task List**: 
   - None active aside from the P0 issue above.
 
 **Upcoming and Future Tasks**
-  - (P1) Apply DB Schedule updates to Production. (Blocked: Requires user to whitelist  in MongoDB Atlas Network Access to allow the backend to connect).
-  - (P2) Push Notifications for Seller Milestones / Winning Tickets.
+  - (P1) Apply strict Admin UI restrictions in frontend (Hide lottery creation/editing, system settings, and company profile from  role; only  should see them).
+  - (P2) Production Database Connection Timeout / Deployment (Blocked: Requires user to whitelist  in MongoDB Atlas Network Access).
   - (P3) Connect Custom Domain ().
   - (P4) Finalize Google Play Store Submission.
-  - (P5) Integrate Prueba Gratis button in globalmetafora.com (User requested, requires external implementation but good to note).
 
 **Completed work in this session**
-- Fixed corrupt Base64 logo in PNG receipts (DONE)
-- Extracted receipt generation logic to  (DONE)
-- Implemented 15-day Free Trial system with tenant isolation, HTML signup page (), seed data generation, and expired trial blocking (DONE)
-- Redesigned thermal receipt layout: all black/bold text, grouped by lottery with sub-totals, and 2-column plays to save paper (DONE)
+- Fixed Accounting bugs regarding prize tracking and potential wins () (DONE)
+- Detailed Push Notifications for Winning Tickets including won number and position (DONE)
+- Embeddable Free Trial Widget HTML at  (DONE)
+- Settlement/Cuadre System backend module () mapping (Sales - Commission - Prizes = Net Profit) (DONE)
+- Cuadre UI Screen created in both Vite Web Admin () and Expo Mobile () (DONE)
+- Fixed missing Logo in Backend Thermal Receipt () (DONE)
 
 **Earlier issues found/mentioned but not fixed**
    - Issue 1: Production Database Connection Timeout
-   - Debug checklist: Instruct user to go to MongoDB Atlas -> Network Access -> Add IP Address -> .
-   - Why to solve this issue and what will be achieved with this? The agent could not connect to  because Atlas blocked the emergent container IP.
+   - Debug checklist: Instruct user to go to MongoDB Atlas -> Network Access -> Add IP Address -> . 
+   - Why to solve this issue and what will be achieved with this? Required for actual production data usage. The deployment logs showed it succeeded on emergent platform, but DB connection will fail without Atlas whitelisting.
    - Should Test frontend/backend/both after fix: Backend
    - Is recurring issue? N
 
 **Known issue recurrence from previous fork**
-  - Issue recurrence in previous fork: Unstable Expo Go Tunnel Connection.
-  - Recurrence count: 5
-  - Status: IN PROGRESS 
-  - Note: Workaround applied. Expo runs in  mode. **Important:** You must manually run expo: ERROR (not running)
-expo: ERROR (abnormal termination) to apply any frontend code changes.
+  - Issue recurrence in previous fork: System limit for number of file watchers reached (ENOSPC error) causing Metro/Frontend to crash.
+  - Recurrence count: 6
+  - Status: IN PROGRESS
+  - Note: If Expo or Vite fails to start, run fs.inotify.max_user_watches=524288 or restart the supervisor services (frontend: stopped
+expo: ERROR (not running)
+frontend: started
+expo: started).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
 - FastAPI backend with MongoDB.
-- React Native (Expo) frontend running in CI mode (Hot reload disabled).
+- React Native (Expo) frontend for mobile + React (Vite) for web admin.
 -  (PIL) library used for dynamic PNG receipt generation.
-- APScheduler for background lottery checking.
-- Multi-tenancy achieved via  on user objects for the Free Trial system.
+- The Cuadre formula hardcoded as: . 
 
 **key DB schema**
   - : 
   - : 
 
 **changes in tech stack**
-  - None this session.
+  - None
 
 **All files of reference** 
-- : Where winning numbers and amounts are calculated.
-- : Where seller profit/loss is calculated.
-- : Newly created thermal receipt builder.
--  & : New trial system endpoints.
+- : Generates the core receipt PNG.
+-  & : Frontend sale components where the receipt modal and WhatsApp sharing logic reside and need to be unified.
+- : Handles all accounting logic for the new Cuadre system.
+-  & : Settlement UI screens.
 
 **Areas that need refactoring**: 
-- None. (Receipt generator was just successfully refactored).
+- Frontend ticket success modals and sharing functions currently utilize locally generated views/PDFs instead of the backend PNG, causing visual fragmentation.
 
 **key api endpoints**
-- : Registers a new tenant and seeds data.
-- : Serves the HTML registration page.
-- : Fetches financial stats.
-- : Generates the thermal PNG.
+- : Generates the single-source-of-truth receipt PNG.
+- : Retrieves settlement math.
+- : Registers a settlement payment.
+- : Returns the embeddable HTML for external sites.
 
 **Critical Info for New Agent** 
 - **COMMUNICATE IN SPANISH.**
-- The immediate next step is to address the user's latest message: Ensure the backend correctly logs *which* number won and *how much* it won on a ticket, and ensure the accounting logic gracefully handles and displays when a seller is operating at a financial loss.
-- Always run expo: ERROR (not running)
-expo: started after making any changes to the React Native frontend files.
+- The immediate priority is the receipt mismatch. Ensure the mobile app's success modal AND the WhatsApp share button fetch and display the exact same image from  instead of drawing custom frontend views.
+- Tweak the  to make the font a bit bolder/darker (but do not use the 9-pass offset ultra bold method that was previously tried, as it made the text illegible).
 
 **documents and test reports created in this job**
-  -  (16/16 tests passed for Free Trial system)
-  - 
+  -  (Passed Accounting/Winner tracking tests)
+  -  (Passed Backend Settlement tests)
+  -  (Passed Frontend Settlement UI tests)
+  -  (Updated)
 
 **Last 10 User Messages and any pending HUMAN messages** 
- 1. **User**: Requested to check winning ticket logic (must show winning number and amount won) and accounting logic (must reflect when seller is in a loss). (Status: PENDING)
- 2. **User**: Requested receipt text to be completely black/bold (thermal printer style), grouped by lottery with sub-totals. (Status: COMPLETED)
- 3. **User**: Provided production MongoDB credentials. (Status: BLOCKED - Network Timeout)
- 4. **User**: Requested adding a 15-day free trial system like their demo site. (Status: COMPLETED)
- 5. **User**: Confirmed they wanted to do both previous options.
- 6. **User**: Requested to extract the receipt logic to . (Status: COMPLETED)
- 7. **User**: Asked to make receipt fonts bolder/larger and simplify the plays format. (Status: COMPLETED)
- 8. **User**: Confirmed the agent's initial plan.
+ 1. **User**: Provided images demonstrating that the Venta Exitosa modal receipt, WhatsApp shared receipt, and Printed backend receipt look completely different. Requested that there be only ONE authentic receipt style used everywhere for credibility. Also requested the text be made slightly more visible/darker again. (Status: PENDING)
+ 2. **User**: Complained that the ultra bold receipt was too black and illegible. Requested a normal, clean layout and provided their custom star/lottery ball logo. (Status: COMPLETED)
+ 3. **User**: Requested to make the receipt fonts much blacker and more visible for thermal printers. (Status: COMPLETED - but reverted due to illegibility)
+ 4. **User**: Provided deployment logs asking for debugging. (Status: COMPLETED - Agent confirmed deploy was successful, logs were just warnings).
+ 5. **User**: Requested to build the Cuadre screen inside the mobile app as well. (Status: COMPLETED)
+ 6. **User**: Confirmed the specific math for the Cuadre system: Venta Total - Comisión - Premios = Ganancia Neta. Emphasized commission is always deducted regardless of win/loss. (Status: COMPLETED)
 
 **Project Health Check:**
-- Broken: Connection to Production Database (Atlas Network Access).
+- Broken: File Watcher limits occasionally crash Metro bundler.
 - Mocked: None
 
 **3rd Party Integrations** 
-- Expo Application Services (EAS) — Requires User API Key (Used for builds/updates).
-- MongoDB Atlas — Cloud Database.
+- Expo Application Services (EAS) — Requires User API Key 
+- MongoDB Atlas — Requires User credentials
 
 **Testing status**
-  - Testing agent used after significant changes: YES (iteration 55 used for Free Trial APIs).
+  - Testing agent used after significant changes: YES (Iterations 56, 57, 58 covering Backend, APIs, and Frontend UI).
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None this session.
-  - Known regressions: None.
+  - Test files created: 
+  - Known regressions: None
 
 **Credentials to test flow:**
-- Trial Admin (Seeded):  / 
-- Trial Seller (Seeded):  / 
 - Super Admin:  / 
+- Vendedor:  / 
+- Trial User:  / 
 
 **What agent forgot to execute**
-The agent received the user's request to inspect the winning ticket notification details and the accounting profit/loss logic. The agent opened the relevant files ( and ) but the context window ended before any analysis or code changes could be made. This is the top priority for the next agent.</analysis>
+The agent realized the frontend was using different logic for WhatsApp sharing and success modals vs the backend PNG receipt, but the context window ended before the agent could refactor the frontend files (, , ) to pull the unified backend PNG. Additionally, the final visual tweak for text visibility in  was not completed.</analysis>

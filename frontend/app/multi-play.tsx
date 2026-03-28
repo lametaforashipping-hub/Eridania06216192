@@ -24,8 +24,6 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
-import ViewShot from 'react-native-view-shot';
-import { logoBase64 } from '../src/assets/logoBase64';
 import { formatDateTime, formatDate, formatTime } from '../src/utils/dateUtils';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -95,7 +93,6 @@ export default function MultiPlay() {
   const [lastTicket, setLastTicket] = useState<TicketResponse | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [companyProfile, setCompanyProfile] = useState<any>(null);
-  const ticketViewRef = useRef<any>(null);
   
   // Form state for adding new play
   const [selectedType, setSelectedType] = useState(LOTTERY_TYPES[0]);
@@ -265,134 +262,6 @@ const showAlert = (title: string, message: string) => {
 
   const formatNumbers = (numbers: number[]) => {
     return numbers.map(n => n.toString().padStart(2, '0')).join('-');
-  };
-
-  const generateTicketHTML = (ticket: TicketResponse) => {
-    const date = new Date(ticket.created_at);
-    
-    // Generate QR code URL - Black & White
-    const qrData = encodeURIComponent(ticket.ticket_number);
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${qrData}&bgcolor=ffffff&color=000000`;
-
-    // Company Logo - embedded base64 for reliable PDF rendering
-    const logoUrl = logoBase64;
-
-    // Generate detailed plays HTML
-    const playsHTML = ticket.plays.map((p, idx) => `
-      <div class="play-card">
-        <div class="play-header">
-          <span class="play-index">${idx + 1}</span>
-          <span class="play-type">${p.lottery_type.toUpperCase()}</span>
-        </div>
-        <div class="play-lottery-name">${p.lottery_name || 'Loteria'}</div>
-        <div class="play-numbers">${p.numbers.map(n => n.toString().padStart(2, '0')).join(' - ')}</div>
-        <div class="play-details">
-          <span class="play-amount">${ticket.currency} ${p.amount.toFixed(2)}</span>
-        </div>
-      </div>
-    `).join('');
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Arial', sans-serif; max-width: 300px; margin: 0 auto; background: #fff; color: #000; }
-          .ticket { border: 3px solid #000; background: #fff; }
-          .header { background: #fff; padding: 12px 10px 8px; text-align: center; border-bottom: 2px solid #000; }
-          .logo-container { width: 60px; height: 60px; margin: 0 auto 6px; border: 2px solid #000; overflow: hidden; }
-          .logo-img { width: 100%; height: 100%; object-fit: cover; }
-          .brand-name { font-size: 18px; font-weight: 900; color: #000; letter-spacing: 1px; text-transform: uppercase; }
-          .ticket-number-section { background: #000; color: #fff; padding: 10px; text-align: center; }
-          .ticket-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
-          .ticket-number { font-size: 16px; font-weight: 900; letter-spacing: 1px; margin-top: 2px; font-family: 'Courier New', monospace; }
-          .info-section { background: #fff; padding: 8px 10px; border-bottom: 1px dashed #000; display: flex; justify-content: space-between; align-items: center; }
-          .date-info { font-size: 11px; color: #000; font-weight: 700; }
-          .customer-info { font-size: 10px; color: #000; font-weight: 700; text-align: right; }
-          .body { padding: 10px; background: #fff; }
-          .plays-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #000; }
-          .plays-title { font-weight: 900; font-size: 12px; color: #000; text-transform: uppercase; letter-spacing: 1px; }
-          .plays-count { background: #000; color: #fff; padding: 2px 8px; font-size: 11px; font-weight: 900; }
-          .play-card { border: 2px solid #000; margin-bottom: 8px; background: #fff; }
-          .play-header { background: #000; color: #fff; padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; }
-          .play-index { font-size: 10px; font-weight: 900; }
-          .play-type { font-size: 11px; font-weight: 900; letter-spacing: 1px; }
-          .play-lottery-name { padding: 6px 8px 2px; font-size: 11px; font-weight: 700; color: #000; text-align: center; border-bottom: 1px dashed #000; }
-          .play-numbers { font-weight: 900; font-size: 24px; color: #000; letter-spacing: 4px; font-family: 'Courier New', monospace; text-align: center; padding: 10px 8px; }
-          .play-details { padding: 6px 8px; border-top: 1px dashed #000; text-align: right; }
-          .play-amount { color: #000; font-weight: 900; font-size: 14px; }
-          .totals { background: #fff; border: 2px solid #000; margin: 8px 0; }
-          .totals-header { background: #000; color: #fff; padding: 6px 10px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-          .totals-body { padding: 10px; }
-          .total-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed #000; }
-          .total-row:last-child { border-bottom: none; padding-top: 8px; }
-          .total-label { color: #000; font-size: 11px; font-weight: 700; }
-          .total-value { font-size: 12px; font-weight: 900; color: #000; }
-          .grand-total-label { font-size: 12px; font-weight: 900; color: #000; }
-          .grand-total-value { font-size: 18px; font-weight: 900; color: #000; }
-          .footer { background: #fff; padding: 12px 10px; text-align: center; border-top: 2px dashed #000; }
-          .qr-container { background: #fff; padding: 8px; margin: 0 auto 8px; display: inline-block; border: 2px solid #000; }
-          .qr-code { width: 100px; height: 100px; display: block; }
-          .qr-label { font-size: 9px; color: #000; font-weight: 700; margin-top: 4px; letter-spacing: 1px; }
-          .scan-text { font-size: 10px; color: #000; font-weight: 700; margin-top: 6px; }
-          .footer-notes { margin-top: 8px; padding-top: 8px; border-top: 1px solid #000; }
-          .footer-text { font-size: 9px; color: #000; font-weight: 700; margin: 2px 0; }
-          .bottom-bar { background: #000; color: #fff; padding: 8px; text-align: center; font-size: 12px; font-weight: 900; letter-spacing: 2px; }
-        </style>
-      </head>
-      <body>
-        <div class="ticket">
-          <div class="header">
-            <div class="logo-container"><img class="logo-img" src="${logoUrl}" alt="Loteria" /></div>
-            <div class="brand-name">LOTERIA MAGICA</div>
-            <div style="font-size: 10px; color: #e63946; font-style: italic; margin-top: 2px;">Tu Suerte Comienza Aqui</div>
-          </div>
-          <div class="ticket-number-section">
-            <div class="ticket-label">BOLETO No.</div>
-            <div class="ticket-number">${ticket.ticket_number}</div>
-          </div>
-          <div class="info-section">
-            <div class="date-info">${date.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Santo_Domingo' })} - ${date.toLocaleTimeString('es-DO', {hour: '2-digit', minute: '2-digit', timeZone: 'America/Santo_Domingo'})}</div>
-            ${ticket.customer_name ? `<div class="customer-info">CLIENTE: ${ticket.customer_name.toUpperCase()}</div>` : ''}
-          </div>
-          <div class="body">
-            <div class="plays-header">
-              <span class="plays-title">DETALLE DE JUGADAS</span>
-              <span class="plays-count">${ticket.plays.length}</span>
-            </div>
-            ${playsHTML}
-            <div class="totals">
-              <div class="totals-header">RESUMEN</div>
-              <div class="totals-body">
-                <div class="total-row">
-                  <span class="total-label">CANTIDAD DE JUGADAS:</span>
-                  <span class="total-value">${ticket.plays.length}</span>
-                </div>
-                <div class="total-row">
-                  <span class="grand-total-label">TOTAL A PAGAR:</span>
-                  <span class="grand-total-value">${ticket.currency} ${ticket.total_amount.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="footer">
-            <div class="qr-container">
-              <img class="qr-code" src="${qrCodeUrl}" alt="QR" />
-              <div class="qr-label">${ticket.ticket_number}</div>
-            </div>
-            <div class="scan-text">ESCANEA PARA VERIFICAR</div>
-            <div class="footer-notes">
-              <div class="footer-text">CONSERVE ESTE BOLETO</div>
-              <div class="footer-text">VALIDO SOLO CON ORIGINAL</div>
-            </div>
-          </div>
-          <div class="bottom-bar">BUENA SUERTE!</div>
-        </div>
-      </body>
-      </html>
-    `;
   };
 
   const handlePrintTicket = async () => {
@@ -832,50 +701,29 @@ const showAlert = (title: string, message: string) => {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Ticket Created Modal */}
+      {/* Ticket Created Modal - Unified Receipt from Backend */}
       <Modal visible={showTicketModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={[styles.ticketModalContent, isDesktop && styles.modalContentDesktop]}>
             <View style={styles.ticketModalHeader}>
-              {logoBase64 ? (
-                <Image source={{ uri: logoBase64 }} style={{ width: 60, height: 60, borderRadius: 12, marginBottom: 4 }} />
-              ) : (
-                <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-              )}
-              <Text style={styles.ticketModalTitle}>{companyProfile?.company_name || 'Loteria Magica'}</Text>
+              <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+              <Text style={styles.ticketModalTitle}>¡Venta Exitosa!</Text>
               <Text style={{ color: '#94a3b8', fontSize: 12, marginTop: 2 }}>Boleto Creado</Text>
             </View>
             
             {lastTicket && (
               <View style={styles.ticketPreview}>
-                <Text style={styles.ticketNumber}>{lastTicket.ticket_number}</Text>
-                
-                <View style={styles.ticketPlays}>
-                  {(() => {
-                    const grouped: Record<string, typeof lastTicket.plays> = {};
-                    lastTicket.plays.forEach(play => {
-                      const lName = (play as any).lottery_name || 'Loteria';
-                      if (!grouped[lName]) grouped[lName] = [];
-                      grouped[lName].push(play);
-                    });
-                    return Object.entries(grouped).map(([lotteryName, lotteryPlays]) => (
-                      <View key={lotteryName} style={{ marginBottom: 8 }}>
-                        <Text style={{ color: '#f59e0b', fontWeight: 'bold', fontSize: 14, marginBottom: 4 }}>
-                          {lotteryName.toUpperCase()}
-                        </Text>
-                        {lotteryPlays.map((play, idx) => (
-                          <View key={idx} style={styles.ticketPlayRow}>
-                            <Text style={styles.ticketPlayType}>{play.lottery_type.toUpperCase()}</Text>
-                            <Text style={styles.ticketPlayNumbers}>
-                              {play.numbers.map(n => n.toString().padStart(2, '0')).join('-')}
-                            </Text>
-                            <Text style={styles.ticketPlayAmount}>{lastTicket.currency} {play.amount}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    ));
-                  })()}
+                {/* Recibo Unificado - Imagen del Backend */}
+                <View style={{ backgroundColor: '#ffffff', borderRadius: 8, padding: 8, marginBottom: 12 }}>
+                  <Image
+                    source={{ uri: `${API_URL}/api/tickets/receipt-image/${lastTicket.ticket_number}` }}
+                    style={{ width: '100%', height: 400, borderRadius: 4 }}
+                    resizeMode="contain"
+                  />
                 </View>
+                
+                {/* Resumen Rápido */}
+                <Text style={styles.ticketNumber}>{lastTicket.ticket_number}</Text>
                 
                 <View style={styles.ticketTotals}>
                   <View style={styles.ticketTotalRow}>
@@ -892,7 +740,7 @@ const showAlert = (title: string, message: string) => {
                   </View>
                   {lastTicket.commission_earned && (
                     <View style={styles.ticketTotalRow}>
-                      <Text style={styles.ticketTotalLabel}>Tu comision:</Text>
+                      <Text style={styles.ticketTotalLabel}>Tu comisión:</Text>
                       <Text style={[styles.ticketTotalValue, styles.ticketCommission]}>
                         {lastTicket.currency} {lastTicket.commission_earned.toLocaleString()}
                       </Text>

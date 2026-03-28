@@ -19,7 +19,7 @@ import os
 import re
 from datetime import datetime
 
-BASE_URL = os.environ.get('VITE_API_URL', 'https://seller-loss-review.preview.emergentagent.com')
+BASE_URL = os.environ.get('VITE_API_URL', 'https://receipt-unify.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "admin@loteria.com"

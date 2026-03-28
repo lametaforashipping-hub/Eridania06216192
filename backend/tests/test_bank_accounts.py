@@ -4,7 +4,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://seller-loss-review.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://receipt-unify.preview.emergentagent.com')
 
 # Test credentials
 SUPER_ADMIN = {"email": "admin@loteria.com", "password": "admin123"}
