@@ -19,7 +19,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - FastAPI puerto 8001, prefijo /api
 - MongoDB (test_database)
 
-## Cambios Recientes (27/03/2026)
+## Cambios Recientes (28/03/2026)
 
 ### 1. Reorganización de Loterías
 - 22 loterías con múltiples sorteos → **28 loterías individuales**
@@ -43,14 +43,34 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - Ticket expiry: No expiran hasta después del último sorteo del día
 - USA multipliers: Quiniela 60/12/4, Pale 1500, Tripleta 10000 o 150 por 2 números
 
+### 4. Sistema de Prueba Gratis 15 Días (28/03/2026)
+- Registro web en `/api/prueba-gratis`
+- Seed data automática (admin + vendedor demo)
+- Aislamiento multi-tenant por `tenant_id`
+- Bloqueo automático al expirar (mensaje: contactar 718-916-1401)
+
+### 5. Fix Contabilidad + Tickets Ganadores (28/03/2026)
+- **BUG CRÍTICO CORREGIDO**: Contabilidad usaba campos `prize`/`total_prize` que NO EXISTÍAN. Corregido a `potential_win`/`total_potential_win` en:
+  - `get_period_stats()` 
+  - `get_accounting_report()` aggregation pipeline
+  - `country-comparison` wins pipeline
+- **Resultado**: Antes wins siempre era $0, ahora muestra valores reales (ej: 669,000)
+- **Pérdida del vendedor**: profit = sales - wins (puede ser negativo). Confirmado: -655,637
+- **Tickets ganadores ahora almacenan**: `won_number` (número que coincidió), `winning_numbers` (1ra, 2da, 3ra), `won_lottery_name`
+- **Multi-play**: Cada jugada ganadora almacena `winning_numbers` individual
+- **Transacciones**: Descripción ahora incluye número ganador y monto ganado
+- **Endpoint verify**: Retorna `winning_details` con desglose completo
+
 ## Estado de Verificación
 
-### Backend - 38/38 endpoints verificados (100%)
+### Backend - 38+ endpoints verificados
 - Auth, Portal Clientes, Tickets, Loterías, Sorteos, Usuarios, Contabilidad - OK
 
 ### Test Reports
 - iteration_53: Multi-play winner detection (28/28 - 100%)
 - iteration_54: Lottery reorganization + receipt image (22/22 - 100%)
+- iteration_55: Free Trial system (16/16 - 100%)
+- iteration_56: Accounting wins & seller loss (16/16 - 100%)
 
 ## Credenciales
 - Super Admin: admin@loteria.com / admin123 (US, USD)
@@ -62,17 +82,23 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - ✅ Reorganizar loterías a individuales
 - ✅ Arreglar recibo con logo y nombres de lotería
 - ✅ WhatsApp envía imagen directamente
-- ✅ Fix logo bola dorada con "7" en recibo PNG (base64 corrupta corregida - 28/03/2026)
-- ✅ Refactoring: lógica de recibo extraída a `services/receipt_generator.py` (28/03/2026)
-- ✅ Sistema de prueba gratis 15 días: registro web, seed data, trial status, bloqueo por expiración (28/03/2026)
+- ✅ Fix logo bola dorada con "7" en recibo PNG (base64 corrupta corregida)
+- ✅ Refactoring: lógica de recibo extraída a `services/receipt_generator.py`
+- ✅ Sistema de prueba gratis 15 días
+- ✅ Fix contabilidad: campos incorrectos para premios (prize → potential_win)
+- ✅ Tickets ganadores almacenan número ganador y desglose del premio
+- ✅ Endpoint verify incluye winning_details
 
 ### P1
 - Deploy a producción con `eas update`
 - Verificar multiplicadores USA en producción
+- Conectar BD producción (requiere whitelist IP en MongoDB Atlas)
 
 ### P2
 - Conectar dominio loteriamagica.com
 - Finalizar Google Play Store
+- Push Notifications para hitos/ganadores
 
 ### P3
 - Páginas web restantes (Terminales, Mi Perfil)
+- Integrar botón "Prueba Gratis" en globalmetafora.com
