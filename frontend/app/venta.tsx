@@ -376,8 +376,10 @@ export default function VentaUnificada() {
         const error = await response.json();
         Alert.alert('Error', error.detail || 'No se pudo crear el boleto');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Error de conexión');
+    } catch (error: any) {
+      console.error('Error creating ticket:', error);
+      const errorMessage = error?.message || 'Error de conexión. Verifica tu internet.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setSubmitting(false);
     }

@@ -225,7 +225,9 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
         impersonated_by = current_user.get("id")
     
     all_lotteries = await db.lotteries.find({"active": True}).to_list(100)
-    lottery_map = {l["lottery_type"]: l for l in all_lotteries}
+    # Build lottery map by id (primary) and lottery_type (fallback if exists)
+    lottery_map_by_id = {l["id"]: l for l in all_lotteries}
+    lottery_map_by_type = {l["lottery_type"]: l for l in all_lotteries if l.get("lottery_type")}
     
     # Check if any lottery is open
     any_lottery_open = False
@@ -249,16 +251,20 @@ async def create_multi_play_ticket(ticket_data: MultiPlayTicketCreate, current_u
     
     for play in ticket_data.plays:
         lottery = None
+        # First try to find by lottery_id
         if play.lottery_id:
-            lottery = next((l for l in all_lotteries if l["id"] == play.lottery_id), None)
+            lottery = lottery_map_by_id.get(play.lottery_id)
+            if not lottery:
+                lottery = next((l for l in all_lotteries if l["id"] == play.lottery_id), None)
+        
+        # Fallback to lottery_type
+        if not lottery and play.lottery_type:
+            lottery = lottery_map_by_type.get(play.lottery_type)
+        if not lottery and play.lottery_type:
+            lottery = next((l for l in all_lotteries if l.get("lottery_type") == play.lottery_type), None)
         
         if not lottery:
-            lottery = lottery_map.get(play.lottery_type)
-        if not lottery:
-            lottery = next((l for l in all_lotteries if l["lottery_type"] == play.lottery_type), None)
-        
-        if not lottery:
-            raise HTTPException(status_code=400, detail=f"Tipo de lotería '{play.lottery_type}' no encontrado")
+            raise HTTPException(status_code=400, detail=f"Lotería '{play.lottery_id or play.lottery_type}' no encontrada")
         
         # Validate numbers
         expected_numbers = lottery.get("numbers_to_pick", 1)
