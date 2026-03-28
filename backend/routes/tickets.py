@@ -720,6 +720,30 @@ async def verify_ticket(ticket_number: str):
     lottery = await db.lotteries.find_one({"id": ticket.get("lottery_id")})
     lottery_name = lottery["name"] if lottery else ticket.get("lottery_name", "N/A")
     
+    # Build winning details if ticket won
+    winning_details = None
+    if ticket["status"] in ["won", "paid"]:
+        winning_details = {
+            "won_position": ticket.get("won_position"),
+            "won_number": ticket.get("won_number"),
+            "winning_numbers": ticket.get("winning_numbers"),
+            "won_lottery_name": ticket.get("won_lottery_name"),
+            "prize_amount": ticket.get("potential_win") or ticket.get("total_potential_win", 0),
+        }
+        # For multi-play, include per-play winning details
+        if ticket.get("ticket_type") == "multi_play" and ticket.get("plays"):
+            winning_plays = []
+            for p in ticket.get("plays", []):
+                if p.get("play_result") == "won":
+                    winning_plays.append({
+                        "lottery_name": p.get("lottery_name", ""),
+                        "numbers": p.get("numbers", []),
+                        "won_position": p.get("won_position"),
+                        "won_prize": p.get("won_prize", 0),
+                        "winning_numbers": p.get("winning_numbers"),
+                    })
+            winning_details["winning_plays"] = winning_plays
+    
     return {
         "ticket_number": ticket["ticket_number"],
         "status": ticket["status"],
@@ -733,7 +757,8 @@ async def verify_ticket(ticket_number: str):
         "currency": ticket.get("currency", "RD$"),
         "created_at": ticket["created_at"].isoformat(),
         "customer_name": ticket.get("customer_name"),
-        "message": get_ticket_message(ticket["status"])
+        "message": get_ticket_message(ticket["status"]),
+        "winning_details": winning_details
     }
 
 

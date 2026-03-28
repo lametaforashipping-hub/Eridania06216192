@@ -13,10 +13,10 @@ router = APIRouter(prefix="/accounting", tags=["Accounting"])
 async def get_period_stats(db, query_base: dict, start: datetime, end: datetime):
     """Helper to get stats for a specific period"""
     query = {**query_base, "created_at": {"$gte": start, "$lte": end}}
-    tickets = await db.tickets.find(query, {"amount": 1, "total_amount": 1, "prize": 1, "total_prize": 1, "status": 1, "_id": 0}).to_list(10000)
+    tickets = await db.tickets.find(query, {"amount": 1, "total_amount": 1, "potential_win": 1, "total_potential_win": 1, "status": 1, "_id": 0}).to_list(10000)
     
     sales = sum(t.get("amount") or t.get("total_amount", 0) for t in tickets if t.get("status") != TicketStatus.CANCELLED.value)
-    wins = sum(t.get("prize") or t.get("total_prize", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
+    wins = sum(t.get("potential_win") or t.get("total_potential_win", 0) for t in tickets if t.get("status") in [TicketStatus.WON.value, TicketStatus.PAID.value])
     
     return {
         "sales": sales,
@@ -134,7 +134,7 @@ async def get_accounting_report(
                     "$sum": {
                         "$cond": [
                             {"$in": ["$status", [TicketStatus.WON.value, TicketStatus.PAID.value]]},
-                            {"$ifNull": [{"$ifNull": ["$prize", "$total_prize"]}, 0]},
+                            {"$ifNull": [{"$ifNull": ["$potential_win", "$total_potential_win"]}, 0]},
                             0
                         ]
                     }
@@ -499,7 +499,7 @@ async def get_country_comparison(
             {"$match": wins_query},
             {"$group": {
                 "_id": None,
-                "total_wins": {"$sum": {"$ifNull": [{"$ifNull": ["$prize", "$total_prize"]}, 0]}}
+                "total_wins": {"$sum": {"$ifNull": [{"$ifNull": ["$potential_win", "$total_potential_win"]}, 0]}}
             }}
         ]
         wins_result = await db.tickets.aggregate(wins_pipeline).to_list(1)

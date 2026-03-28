@@ -231,6 +231,13 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                     "draw_id": draw["id"],
                     "potential_win": prize,
                     "won_position": position,
+                    "won_number": prize_number,
+                    "winning_numbers": {
+                        "first": first_prize,
+                        "second": second_prize,
+                        "third": third_prize
+                    },
+                    "won_lottery_name": lottery_name,
                     "automated_result": True
                 }}
             )
@@ -244,7 +251,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 "transaction_type": TransactionType.WIN.value,
                 "amount": prize,
                 "currency": ticket.get("currency", currency),
-                "description": f"Premio {position} (Auto) - {lottery_name} - {ticket['numbers']}",
+                "description": f"Premio {position} #{prize_number} (Auto) - {lottery_name} - Ganó {ticket.get('currency', currency)} {prize:,.2f}",
                 "reference_id": ticket["id"],
                 "created_at": datetime.now(timezone.utc)
             })
@@ -296,6 +303,11 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 plays[i]["won_position"] = position
                 plays[i]["won_prize"] = prize
                 plays[i]["draw_id"] = draw["id"]
+                plays[i]["winning_numbers"] = {
+                    "first": first_prize,
+                    "second": second_prize,
+                    "third": third_prize
+                }
                 ticket_won_any = True
                 ticket_total_prize += prize
                 plays_updated = True
@@ -305,7 +317,12 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                     "lottery_name": play.get("lottery_name", lottery_name),
                     "numbers": play.get("numbers", []),
                     "prize": prize,
-                    "position": position
+                    "position": position,
+                    "winning_numbers": {
+                        "first": first_prize,
+                        "second": second_prize,
+                        "third": third_prize
+                    }
                 })
                 
                 logger.info(
@@ -330,6 +347,13 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                 total_winners += 1
                 total_paid += sum(wp["prize"] for wp in winning_plays_info)
                 
+                # Store winning numbers at ticket level
+                update_fields["winning_numbers"] = {
+                    "first": first_prize,
+                    "second": second_prize,
+                    "third": third_prize
+                }
+                
                 # Create transactions for each winning play
                 for wp in winning_plays_info:
                     await db.transactions.insert_one({
@@ -339,7 +363,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                         "transaction_type": TransactionType.WIN.value,
                         "amount": wp["prize"],
                         "currency": ticket.get("currency", currency),
-                        "description": f"Premio {wp['position']} (Auto) - {wp['lottery_name']} - {wp['numbers']}",
+                        "description": f"Premio {wp['position']} (Auto) - {wp['lottery_name']} - Nums: {wp['numbers']} - Ganó {ticket.get('currency', currency)} {wp['prize']:,.2f}",
                         "reference_id": ticket["id"],
                         "created_at": datetime.now(timezone.utc)
                     })
@@ -393,6 +417,13 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
                     "draw_id": draw["id"],
                     "potential_win": prize,
                     "won_position": position,
+                    "won_number": prize_number,
+                    "winning_numbers": {
+                        "first": first_prize,
+                        "second": second_prize,
+                        "third": third_prize
+                    },
+                    "won_lottery_name": lottery_name,
                     "automated_result": True
                 }}
             )
@@ -438,7 +469,13 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             if won:
                 plays[i]["play_result"] = "won"
                 plays[i]["won_prize"] = prize
+                plays[i]["won_position"] = position
                 plays[i]["draw_id"] = draw["id"]
+                plays[i]["winning_numbers"] = {
+                    "first": first_prize,
+                    "second": second_prize,
+                    "third": third_prize
+                }
                 ticket_won_any = True
                 ticket_total_prize += prize
                 plays_updated = True
