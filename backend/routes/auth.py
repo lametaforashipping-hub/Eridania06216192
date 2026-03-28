@@ -65,14 +65,33 @@ async def login(credentials: UserLogin):
     
     user = await db.users.find_one({"email": credentials.email})
     if not user or not verify_password(credentials.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        raise HTTPException(status_code=401, detail="Credenciales invalidas")
     if not user.get("active", True):
         raise HTTPException(status_code=401, detail="Usuario desactivado")
+    
+    tenant_id = user.get("tenant_id")
+    trial_info = None
+    if tenant_id:
+        tenant = await db.tenants.find_one({"id": tenant_id})
+        if tenant:
+            from datetime import timezone
+            trial_end = datetime.fromisoformat(tenant["trial_end"])
+            if trial_end.tzinfo is None:
+                trial_end = trial_end.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
+            days_remaining = max(0, (trial_end - now).days)
+            is_expired = days_remaining <= 0
+            if is_expired:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Tu prueba gratis ha expirado. Contacta al 718-916-1401 para activar tu cuenta."
+                )
+            trial_info = {"is_trial": True, "days_remaining": days_remaining, "trial_end": tenant["trial_end"]}
     
     await db.users.update_one({"id": user["id"]}, {"$set": {"last_activity": datetime.utcnow()}})
     
     token = create_token(user["id"], user["role"])
-    return {
+    response = {
         "token": token,
         "user": {
             "id": user["id"],
@@ -86,6 +105,9 @@ async def login(credentials: UserLogin):
             "country": user.get("country", "RD")
         }
     }
+    if trial_info:
+        response["trial"] = trial_info
+    return response
 
 
 @router.get("/me")

@@ -57,6 +57,7 @@ from routes.payments import router as payments_router
 from routes.goals import router as goals_router
 from routes.prize_config import router as prize_config_router
 from routes.alert_settings import router as alert_settings_router
+from routes.trial import router as trial_router
 
 # Register all routers with the API router
 api_router.include_router(auth_router)
@@ -80,6 +81,18 @@ api_router.include_router(payments_router)
 api_router.include_router(goals_router)
 api_router.include_router(prize_config_router)
 api_router.include_router(alert_settings_router)
+api_router.include_router(trial_router)
+
+# Serve trial page at /api/prueba-gratis
+from fastapi.responses import HTMLResponse
+
+@api_router.get("/prueba-gratis", response_class=HTMLResponse)
+async def prueba_gratis_page():
+    """Serve the free trial registration page"""
+    import os
+    html_path = os.path.join(os.path.dirname(__file__), "static", "prueba-gratis.html")
+    with open(html_path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
 
 # Include the main API router
 app.include_router(api_router)

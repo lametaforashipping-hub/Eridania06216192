@@ -38,6 +38,7 @@ export default function Dashboard() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingDepositsCount, setPendingDepositsCount] = useState(0);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [trialInfo, setTrialInfo] = useState<{is_trial: boolean; status: string; days_remaining: number | null; contact_phone: string} | null>(null);
   
   // Hook for sound and vibration alerts
   const { checkAndAlertNewDeposits } = useNotificationAlert();
@@ -49,6 +50,21 @@ export default function Dashboard() {
     dismissBanner,
     isLoading: permissionLoading 
   } = useNotificationPermission(user?.id, token || undefined);
+
+  const fetchTrialStatus = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/api/trial/status`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTrialInfo(data);
+      }
+    } catch (error) {
+      console.error('Error fetching trial status:', error);
+    }
+  }, [token]);
 
   const fetchSummary = useCallback(async () => {
     if (!token) return;
@@ -109,6 +125,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchSummary();
     fetchUnreadCount();
+    fetchTrialStatus();
     refreshUser();
     
     // Poll for new notifications every 30 seconds
@@ -238,6 +255,32 @@ export default function Dashboard() {
             onDismiss={dismissBanner}
             isLoading={permissionLoading}
           />
+        )}
+
+        {/* Trial Banner */}
+        {trialInfo?.is_trial && (
+          <View style={trialInfo.status === 'expired' ? styles.trialBannerExpired : styles.trialBanner}>
+            <View style={styles.trialBannerContent}>
+              <Ionicons 
+                name={trialInfo.status === 'expired' ? 'lock-closed' : 'time-outline'} 
+                size={20} 
+                color={trialInfo.status === 'expired' ? '#fca5a5' : '#fbbf24'} 
+              />
+              <View style={styles.trialBannerTextContainer}>
+                {trialInfo.status === 'expired' ? (
+                  <>
+                    <Text style={styles.trialBannerTextExpired}>Tu prueba gratis ha expirado</Text>
+                    <Text style={styles.trialBannerContact}>Contacta al {trialInfo.contact_phone} para activar</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.trialBannerText}>Prueba gratis</Text>
+                    <Text style={styles.trialBannerDays}>{trialInfo.days_remaining} dias restantes</Text>
+                  </>
+                )}
+              </View>
+            </View>
+          </View>
         )}
 
         {/* Country Filter for Super Admin */}
@@ -617,5 +660,51 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 11,
     fontWeight: 'bold',
+  },
+  trialBanner: {
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  trialBannerExpired: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  trialBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  trialBannerTextContainer: {
+    flex: 1,
+  },
+  trialBannerText: {
+    color: '#fbbf24',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  trialBannerDays: {
+    color: '#fbbf24',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  trialBannerTextExpired: {
+    color: '#fca5a5',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  trialBannerContact: {
+    color: '#fca5a5',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
   },
 });
