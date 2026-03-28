@@ -21,6 +21,18 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 
 ## Cambios Recientes (28/03/2026)
 
+### 11. FIX CRÍTICO: Tickets ganadores antes del sorteo (28/03/2026)
+- **BUG**: Tickets creados HOY se marcaban como ganadores usando resultados de AYER
+- **Causa**: El sistema no verificaba si el sorteo había ocurrido antes de procesar resultados
+- **Solución implementada en `lottery_scheduler.py`**:
+  1. **Cutoff por fecha**: Solo tickets creados ANTES de la hora de cierre del sorteo son elegibles
+  2. **Corrección automática de draw_date**: Si la hora actual es ANTES del sorteo, los resultados son de AYER
+  3. **Filtro en queries**: Todas las consultas de tickets ahora incluyen `created_at <= ticket_cutoff_time`
+- **Queries afectadas**: Simple tickets, Multi-play tickets, Client simple tickets, Client multi-play tickets
+- **Lógica**: 
+  - Si son las 9:48 AM y el sorteo es a las 10:00 AM, los resultados que llegan son de AYER
+  - Solo tickets creados antes de las 9:50 AM de AYER serían elegibles para esos resultados
+
 ### 10. RESTRICCIONES DE ADMIN UI (28/03/2026)
 - **Rol `admin`** ya NO puede ver/acceder a:
   - Loterías (creación/edición de horarios)

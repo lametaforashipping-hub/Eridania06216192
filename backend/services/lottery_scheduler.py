@@ -129,6 +129,9 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     Handles both simple (single-play) tickets and multi-play tickets.
     Multi-play tickets have plays in multiple lotteries and should only be 
     marked as lost when ALL their lotteries have been drawn.
+    
+    CRITICAL: Only tickets created BEFORE the draw time are eligible.
+    Tickets created after the draw time are for the NEXT day's draw.
     """
     from models.enums import TicketStatus, TransactionType
     from services.notifications import notify_winner, notify_draw_complete, notify_client_winner
@@ -141,6 +144,37 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     third_prize = validated_result.third_prize
     play_types_config = lottery_doc.get("play_types", {})
     currency = lottery_doc.get("currency", "RD$")
+    
+    # CRITICAL FIX: Determine the cutoff time for eligible tickets
+    # Only tickets created BEFORE the draw's closing time are eligible
+    # This prevents tickets created TODAY from winning with yesterday's results
+    
+    # Get the draw date and closing time
+    draw_date_str = validated_result.draw_date  # Format: "YYYY-MM-DD"
+    closing_time = lottery_doc.get("closing_time", "23:50")  # Format: "HH:MM"
+    
+    # Parse draw date
+    try:
+        draw_date = datetime.strptime(draw_date_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        draw_date = datetime.now(timezone.utc)
+    
+    # Parse closing time and create full datetime
+    try:
+        close_h, close_m = map(int, closing_time.split(":"))
+    except (ValueError, AttributeError):
+        close_h, close_m = 23, 50
+    
+    # Dominican Republic time is UTC-4
+    # The closing time is in DR local time, convert to UTC for comparison
+    dr_closing_datetime = draw_date.replace(hour=close_h, minute=close_m, second=59, microsecond=999999)
+    utc_closing_datetime = dr_closing_datetime + timedelta(hours=4)  # DR is UTC-4, so add 4 to get UTC
+    
+    # Tickets created AFTER this cutoff are for the NEXT draw, not this one
+    ticket_cutoff_time = utc_closing_datetime
+    
+    logger.info(f"Processing results for {lottery_name} draw_date={draw_date_str}, " 
+                f"closing_time={closing_time} DR -> cutoff_utc={ticket_cutoff_time.isoformat()}")
     
     # Create the draw record
     draw = {
@@ -194,6 +228,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     # ═══════════════════════════════════════════════════════════════
     # STEP 1: Process SIMPLE seller tickets (non multi-play)
     # These have lottery_id and numbers at the top level
+    # CRITICAL: Only tickets created BEFORE the closing time are eligible
     # ═══════════════════════════════════════════════════════════════
     for position, prize_number, tier_key in [
         ("primera", first_prize, "first"),
@@ -204,12 +239,14 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             continue
         
         # Only match simple tickets (not multi-play) with top-level lottery_id and numbers
+        # CRITICAL FIX: Only tickets created BEFORE the draw's closing time
         ticket_query = {
             "lottery_id": lottery_id,
             "status": TicketStatus.PENDING.value,
             "numbers": prize_number,
             "ticket_type": {"$ne": "multi_play"},
-            "client_id": {"$exists": False}
+            "client_id": {"$exists": False},
+            "created_at": {"$lte": ticket_cutoff_time}  # Only tickets created before closing time
         }
         
         matching_tickets = await db.tickets.find(ticket_query).to_list(10000)
@@ -272,16 +309,18 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     # ═══════════════════════════════════════════════════════════════
     # STEP 2: Process MULTI-PLAY seller tickets
     # These have plays[] array where each play has its own lottery_id
+    # CRITICAL: Only tickets created BEFORE the closing time are eligible
     # ═══════════════════════════════════════════════════════════════
     multi_play_query = {
         "ticket_type": "multi_play",
         "status": {"$in": [TicketStatus.PENDING.value, TicketStatus.WON.value]},
         "plays.lottery_id": lottery_id,
-        "client_id": {"$exists": False}
+        "client_id": {"$exists": False},
+        "created_at": {"$lte": ticket_cutoff_time}  # Only tickets created before closing time
     }
     
     multi_play_tickets = await db.tickets.find(multi_play_query).to_list(10000)
-    logger.info(f"Found {len(multi_play_tickets)} multi-play seller tickets with plays for {lottery_name}")
+    logger.info(f"Found {len(multi_play_tickets)} multi-play seller tickets with plays for {lottery_name} (cutoff: {ticket_cutoff_time.isoformat()})")
     
     for ticket in multi_play_tickets:
         ticket_won_any = False
@@ -399,6 +438,7 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
     
     # ═══════════════════════════════════════════════════════════════
     # STEP 3: Process CLIENT tickets (both simple and multi-play)
+    # CRITICAL: Only tickets created BEFORE the closing time are eligible
     # ═══════════════════════════════════════════════════════════════
     
     # 3a: Simple client tickets
@@ -415,7 +455,8 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
             "status": TicketStatus.PENDING.value,
             "numbers": prize_number,
             "ticket_type": {"$ne": "multi_play"},
-            "client_id": {"$exists": True}
+            "client_id": {"$exists": True},
+            "created_at": {"$lte": ticket_cutoff_time}  # Only tickets created before closing time
         }
         
         client_simple_tickets = await db.tickets.find(client_simple_query).to_list(10000)
@@ -454,7 +495,8 @@ async def process_new_results(db, validated_result: LotteryResult, lottery_doc: 
         "ticket_type": "multi_play",
         "status": {"$in": [TicketStatus.PENDING.value, TicketStatus.WON.value]},
         "plays.lottery_id": lottery_id,
-        "client_id": {"$exists": True}
+        "client_id": {"$exists": True},
+        "created_at": {"$lte": ticket_cutoff_time}  # Only tickets created before closing time
     }
     
     client_multi_tickets = await db.tickets.find(client_multi_query).to_list(10000)
@@ -805,6 +847,31 @@ async def check_and_process_results():
                 continue
             
             lottery_id = matching_lottery["id"]
+            
+            # CRITICAL: Check if this lottery's draw time has actually passed TODAY
+            # This prevents processing yesterday's results for today's tickets
+            schedule = matching_lottery.get("schedule", [])
+            if schedule:
+                draw_time_str = schedule[0]  # e.g., "10:00"
+                try:
+                    draw_h, draw_m = map(int, draw_time_str.split(":"))
+                    # DR local time now (UTC-4)
+                    now_utc = datetime.now(timezone.utc)
+                    now_dr = now_utc - timedelta(hours=4)
+                    
+                    # Today's draw time in DR
+                    today_draw_dr = now_dr.replace(hour=draw_h, minute=draw_m, second=0, microsecond=0)
+                    
+                    # If current DR time is BEFORE today's draw time, 
+                    # then these results are from YESTERDAY, not today
+                    if now_dr < today_draw_dr:
+                        # Results are from yesterday - set correct draw_date
+                        yesterday = (now_dr - timedelta(days=1)).strftime("%Y-%m-%d")
+                        if result.draw_date != yesterday:
+                            logger.info(f"⚠️ Correcting draw_date for {lottery_key}: {result.draw_date} -> {yesterday} (draw hasn't happened today yet)")
+                            result.draw_date = yesterday
+                except (ValueError, AttributeError):
+                    pass  # Could not parse schedule, continue with default behavior
             
             # Check if this is a new result (different from last fetch)
             last_result = _last_results.get(lottery_key)
