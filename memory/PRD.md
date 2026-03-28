@@ -21,6 +21,20 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 
 ## Cambios Recientes (28/03/2026)
 
+### 9. MEJORAS DE UX - Cuadre y Loterías (28/03/2026)
+- **Cuadre con Calendario**: Filtro de fechas con DatePicker visual para seleccionar rango
+- **Lista de vendedores separada**: Cada vendedor tiene su propio balance y desglose
+- **Configuración de Loterías mejorada**:
+  - Formato 12 horas (AM/PM) en lugar de 24h
+  - Time Picker visual para seleccionar hora de sorteo y cierre
+  - Auto-cálculo de hora de cierre (10 min antes del sorteo)
+  - Selección múltiple de tipos de juego (Quiniela, Palé, Tripleta, Super Palé)
+  - Modal para crear nueva lotería con todos los campos
+- **Corrección horarios Florida**: 
+  - Florida Día: 14:30 → 13:30 (1:30 PM ET oficial)
+  - Florida Noche: 22:45 → 21:45 (9:45 PM ET oficial)
+- **Verificación completa**: 28/28 loterías con horarios oficiales correctos
+
 ### 8. RECIBO UNIFICADO - Single Source of Truth (28/03/2026)
 - **PROBLEMA RESUELTO**: Antes había 3 recibos visuales diferentes (modal de venta, WhatsApp PDF, impresora PNG)
 - **SOLUCIÓN**: Todos los flujos ahora usan el PNG del backend (`/api/tickets/receipt-image/{ticket_number}`)

@@ -1,10 +1,127 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import PageHeader from '../components/PageHeader'
 import { 
-  Users, ChevronRight, Calendar, CheckCircle, Clock, ArrowLeft, 
-  DollarSign, TrendingDown, TrendingUp, Receipt, Filter
+  Users, ChevronRight, Calendar as CalendarIcon, CheckCircle, Clock, ArrowLeft, 
+  DollarSign, TrendingDown, TrendingUp, Receipt, Filter, X, ChevronLeft
 } from 'lucide-react'
+
+// Simple Calendar Component
+function SimpleCalendar({ selected, onSelect, onClose }) {
+  const [currentDate, setCurrentDate] = useState(selected || new Date())
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+  
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  
+  const days = []
+  for (let i = 0; i < firstDay; i++) days.push(null)
+  for (let i = 1; i <= daysInMonth; i++) days.push(i)
+  
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
+  
+  const selectDay = (day) => {
+    if (day) {
+      onSelect(new Date(year, month, day))
+      onClose()
+    }
+  }
+  
+  const isSelected = (day) => {
+    if (!selected || !day) return false
+    return selected.getFullYear() === year && selected.getMonth() === month && selected.getDate() === day
+  }
+  
+  const isToday = (day) => {
+    if (!day) return false
+    const today = new Date()
+    return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day
+  }
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={prevMonth} className="p-1 hover:bg-slate-700 rounded">
+          <ChevronLeft size={18} className="text-slate-400" />
+        </button>
+        <span className="text-sm font-semibold text-white">{monthNames[month]} {year}</span>
+        <button onClick={nextMonth} className="p-1 hover:bg-slate-700 rounded">
+          <ChevronRight size={18} className="text-slate-400" />
+        </button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-500 mb-1">
+        {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'].map(d => <div key={d}>{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, i) => (
+          <button
+            key={i}
+            onClick={() => selectDay(day)}
+            disabled={!day}
+            className={`w-8 h-8 text-sm rounded-lg transition-colors ${
+              !day ? '' :
+              isSelected(day) ? 'bg-green-500 text-white font-bold' :
+              isToday(day) ? 'bg-blue-500/30 text-blue-400' :
+              'hover:bg-slate-700 text-slate-300'
+            }`}
+          >
+            {day}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Date Picker Button
+function DatePicker({ value, onChange, placeholder }) {
+  const [showCalendar, setShowCalendar] = useState(false)
+  const ref = useRef(null)
+  
+  const formatDate = (date) => {
+    if (!date) return ''
+    return date.toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setShowCalendar(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setShowCalendar(!showCalendar)}
+        className="w-full flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white hover:bg-slate-800 transition-colors"
+      >
+        <CalendarIcon size={16} className="text-slate-400" />
+        <span className={value ? 'text-white' : 'text-slate-500'}>
+          {value ? formatDate(value) : placeholder || 'Seleccionar'}
+        </span>
+      </button>
+      {showCalendar && (
+        <div className="absolute z-50 mt-1 left-0">
+          <SimpleCalendar
+            selected={value}
+            onSelect={onChange}
+            onClose={() => setShowCalendar(false)}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function CuadrePage() {
   const { apiFetch, user } = useAuth()
@@ -15,8 +132,8 @@ export default function CuadrePage() {
   const [cuadre, setCuadre] = useState(null)
   const [settlements, setSettlements] = useState([])
   const [loading, setLoading] = useState(true)
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
   const [showPay, setShowPay] = useState(false)
   const [payAmount, setPayAmount] = useState('')
   const [payNotes, setPayNotes] = useState('')
@@ -30,6 +147,14 @@ export default function CuadrePage() {
 
   const fmtDate = (d) => d ? new Date(d).toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
   const fmtDateTime = (d) => d ? new Date(d).toLocaleDateString('es-DO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'
+  
+  const formatDateForApi = (date) => {
+    if (!date) return null
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
 
   const fetchSellers = useCallback(async () => {
     setLoading(true)
@@ -48,8 +173,8 @@ export default function CuadrePage() {
     try {
       let url = `/api/settlements/cuadre/${sellerId}`
       const params = []
-      if (startDate) params.push(`start_date=${startDate}T00:00:00`)
-      if (endDate) params.push(`end_date=${endDate}T23:59:59`)
+      if (startDate) params.push(`start_date=${formatDateForApi(startDate)}T00:00:00`)
+      if (endDate) params.push(`end_date=${formatDateForApi(endDate)}T23:59:59`)
       if (params.length) url += '?' + params.join('&')
       const res = await apiFetch(url)
       if (res.ok) setCuadre(await res.json())
@@ -78,7 +203,7 @@ export default function CuadrePage() {
   const goBack = () => {
     setMessage(null)
     if (view === 'history') { setView('cuadre'); if (selected) fetchCuadre(selected.seller_id) }
-    else if (view === 'cuadre') { setView('sellers'); setSelected(null); setCuadre(null); setStartDate(''); setEndDate(''); fetchSellers() }
+    else if (view === 'cuadre') { setView('sellers'); setSelected(null); setCuadre(null); setStartDate(null); setEndDate(null); fetchSellers() }
   }
 
   const handleClose = async () => {
@@ -88,8 +213,8 @@ export default function CuadrePage() {
     setSubmitting(true)
     try {
       const body = { seller_id: selected.seller_id, amount_paid: amount, notes: payNotes }
-      if (startDate) body.start_date = `${startDate}T00:00:00`
-      if (endDate) body.end_date = `${endDate}T23:59:59`
+      if (startDate) body.start_date = `${formatDateForApi(startDate)}T00:00:00`
+      if (endDate) body.end_date = `${formatDateForApi(endDate)}T23:59:59`
       const res = await apiFetch('/api/settlements/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       if (res.ok) {
         const data = await res.json()
@@ -102,6 +227,11 @@ export default function CuadrePage() {
       }
     } catch { setMessage({ type: 'error', text: 'Error de conexión' }) }
     finally { setSubmitting(false) }
+  }
+
+  const clearDateFilter = () => {
+    setStartDate(null)
+    setEndDate(null)
   }
 
   return (
@@ -169,22 +299,36 @@ export default function CuadrePage() {
             {/* ===== CUADRE DETAIL ===== */}
             {view === 'cuadre' && cuadre && (
               <>
-                {/* Date Filter */}
-                <div className="flex flex-wrap items-end gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                  <div className="flex-1 min-w-[120px]">
+                {/* Date Filter with Calendar */}
+                <div className="flex flex-wrap items-end gap-3 p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                  <div className="flex-1 min-w-[140px]">
                     <label className="text-xs text-slate-400 block mb-1">Desde</label>
-                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} data-testid="start-date-input"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none" />
+                    <DatePicker
+                      value={startDate}
+                      onChange={setStartDate}
+                      placeholder="Seleccionar fecha"
+                    />
                   </div>
-                  <div className="flex-1 min-w-[120px]">
+                  <div className="flex-1 min-w-[140px]">
                     <label className="text-xs text-slate-400 block mb-1">Hasta</label>
-                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} data-testid="end-date-input"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none" />
+                    <DatePicker
+                      value={endDate}
+                      onChange={setEndDate}
+                      placeholder="Seleccionar fecha"
+                    />
                   </div>
-                  <button onClick={() => fetchCuadre(selected.seller_id)} data-testid="apply-date-filter"
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-500 transition-colors">
-                    <Filter size={14} className="inline mr-1" /> Filtrar
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => fetchCuadre(selected.seller_id)} data-testid="apply-date-filter"
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-500 transition-colors flex items-center gap-1">
+                      <Filter size={14} /> Filtrar
+                    </button>
+                    {(startDate || endDate) && (
+                      <button onClick={clearDateFilter} data-testid="clear-date-filter"
+                        className="px-3 py-2 bg-slate-700 text-slate-300 text-sm rounded-lg hover:bg-slate-600 transition-colors">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Breakdown Card */}
