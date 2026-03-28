@@ -21,6 +21,16 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 
 ## Cambios Recientes (28/03/2026)
 
+### 12. FILTRO DE FECHA EN RESULTADOS (28/03/2026)
+- **Nueva funcionalidad**: Filtro por fecha en la página de Resultados/Notificaciones
+- **Por defecto**: Muestra solo los resultados de HOY
+- **Navegación**: Flechas izquierda/derecha para cambiar de día
+- **Calendario**: Click en la fecha para seleccionar cualquier día pasado
+- **Archivos modificados**:
+  - `Results.jsx` - UI con filtro de fecha, navegación por día
+  - `lottery_results.py` - Nuevo endpoint `/by-date?date=YYYY-MM-DD`
+- **Backend**: Consulta la colección `draws` filtrada por fecha, fallback a `/latest`
+
 ### 11. FIX CRÍTICO: Tickets ganadores antes del sorteo (28/03/2026)
 - **BUG**: Tickets creados HOY se marcaban como ganadores usando resultados de AYER
 - **Causa**: El sistema no verificaba si el sorteo había ocurrido antes de procesar resultados

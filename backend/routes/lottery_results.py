@@ -81,6 +81,65 @@ async def get_latest_results(current_user: dict = Depends(get_current_user)):
     }
 
 
+@router.get("/by-date")
+async def get_results_by_date(
+    date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get lottery results from draws collection filtered by date.
+    If no date provided, returns today's results.
+    Date format: YYYY-MM-DD
+    """
+    from datetime import timedelta
+    
+    db = get_db()
+    
+    # Parse date or use today (Dominican Republic time = UTC-4)
+    now_utc = datetime.now(timezone.utc)
+    now_dr = now_utc - timedelta(hours=4)
+    
+    if date:
+        try:
+            filter_date = datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Formato de fecha inválido. Use YYYY-MM-DD")
+    else:
+        filter_date = now_dr.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Calculate date range (full day in UTC)
+    # DR midnight = UTC 04:00
+    start_utc = filter_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=4)
+    end_utc = start_utc + timedelta(days=1)
+    
+    # Query draws for this date
+    draws = await db.draws.find({
+        "draw_time": {"$gte": start_utc, "$lt": end_utc}
+    }).sort("draw_time", -1).to_list(100)
+    
+    # Format results
+    results = []
+    for draw in draws:
+        results.append({
+            "lottery_name": draw.get("lottery_name", ""),
+            "first_prize": draw.get("first_prize"),
+            "second_prize": draw.get("second_prize"),
+            "third_prize": draw.get("third_prize"),
+            "draw_time": draw.get("draw_time").strftime("%I:%M %p") if draw.get("draw_time") else "",
+            "draw_date": date or now_dr.strftime("%Y-%m-%d"),
+            "validated": draw.get("validated", True),
+            "total_winners": draw.get("total_winners", 0),
+            "total_paid": draw.get("total_paid", 0)
+        })
+    
+    return {
+        "results": results,
+        "date": date or now_dr.strftime("%Y-%m-%d"),
+        "total": len(results),
+        "timestamp": now_utc.isoformat()
+    }
+
+
 @router.get("/preview")
 async def preview_results(current_user: dict = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.ADMIN]))):
     """
