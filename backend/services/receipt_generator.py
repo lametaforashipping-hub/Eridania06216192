@@ -93,6 +93,7 @@ def _paste_logo(img, draw, y, width):
 
 
 def _format_date(created):
+    """Format date in DR timezone (UTC-4): 28/03/2026, 7:35 AM"""
     if not created:
         return None
     if isinstance(created, str):
@@ -100,8 +101,19 @@ def _format_date(created):
             created = datetime.fromisoformat(created.replace('Z', '+00:00'))
         except Exception:
             return None
+    
+    # Define Dominican Republic timezone (UTC-4, no DST)
     dr_tz = timezone(timedelta(hours=-4))
-    created_dr = created.astimezone(dr_tz) if created.tzinfo else created
+    
+    # If datetime is naive (no timezone), assume it's UTC and convert to DR
+    if created.tzinfo is None:
+        # Assume naive datetime is UTC, make it aware then convert
+        created_utc = created.replace(tzinfo=timezone.utc)
+        created_dr = created_utc.astimezone(dr_tz)
+    else:
+        # Already has timezone, just convert to DR
+        created_dr = created.astimezone(dr_tz)
+    
     hour = created_dr.hour
     am_pm = "AM" if hour < 12 else "PM"
     hour_12 = hour if hour <= 12 else hour - 12

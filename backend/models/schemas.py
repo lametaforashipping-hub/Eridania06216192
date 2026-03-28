@@ -170,6 +170,8 @@ class LotteryUpdate(BaseModel):
     display_time: Optional[str] = None
     display_closing: Optional[str] = None
     display_opening: Optional[str] = None
+    # Draw days (e.g., ["monday", "tuesday", "wednesday", "thursday", "saturday"])
+    draw_days: Optional[List[str]] = None
     # Legacy fields
     prize_multiplier: Optional[float] = None
     prize_rules: Optional[List[Dict]] = None

@@ -108,6 +108,7 @@ def check_lottery_open(lottery: dict) -> tuple:
     - All lotteries open at 7:00 AM (opening_time)
     - Each lottery closes 10 minutes before its draw (closing_time)
     - After the draw, lottery stays CLOSED until 7:00 AM next day
+    - If draw_days is specified, only operates on those days
     
     Returns: (is_open, next_draw, message, today_hours, holiday_info)
     """
@@ -123,6 +124,7 @@ def check_lottery_open(lottery: dict) -> tuple:
     
     schedule = lottery.get("schedule", [])
     holidays = lottery.get("holidays", [])
+    draw_days = lottery.get("draw_days", [])  # e.g., ["monday", "tuesday", "wednesday", "thursday", "saturday"]
     
     # Default times - all lotteries open at 7:00 AM
     opening_time = lottery.get("opening_time", "07:00")
@@ -155,6 +157,25 @@ def check_lottery_open(lottery: dict) -> tuple:
         "holiday": holiday_info.get("name") if holiday_info else None
     }
     
+    # Check if today is a draw day (if draw_days is specified)
+    if draw_days and current_day not in draw_days:
+        is_open = False
+        # Find next draw day
+        next_draw_day = None
+        for i in range(1, 8):
+            next_day_idx = (local_now.weekday() + i) % 7
+            if day_names[next_day_idx] in draw_days:
+                next_draw_day = day_names_es[next_day_idx]
+                break
+        
+        if next_draw_day:
+            message = f"Abre el {next_draw_day} a las {display_opening}"
+        else:
+            message = f"Cerrada hoy"
+        
+        today_hours["closed"] = True
+        return is_open, next_draw, message, today_hours, holiday_info
+    
     # Parse times
     open_hour, open_minute = parse_time_string(opening_time)
     close_hour, close_minute = parse_time_string(closing_time)
@@ -177,26 +198,34 @@ def check_lottery_open(lottery: dict) -> tuple:
     else:
         draw_datetime = closing_datetime
     
+    # Find tomorrow's draw day
+    tomorrow_day_es = day_names_es[(local_now.weekday() + 1) % 7]
+    if draw_days:
+        # Find the actual next draw day
+        for i in range(1, 8):
+            next_day_idx = (local_now.weekday() + i) % 7
+            if day_names[next_day_idx] in draw_days:
+                tomorrow_day_es = day_names_es[next_day_idx]
+                break
+    
     # LOGIC:
     # 1. Before 7:00 AM = CLOSED (hasn't opened yet)
     # 2. Between 7:00 AM and closing_time (10 min before draw) = OPEN
-    # 3. After closing_time = CLOSED until 7:00 AM tomorrow
-    
-    tomorrow_day_es = day_names_es[(local_now.weekday() + 1) % 7]
+    # 3. After closing_time = CLOSED until 7:00 AM next draw day
     
     if local_now < opening_datetime:
         # Before opening time
         is_open = False
         message = f"Abre hoy a las {display_opening}"
     elif local_now >= closing_datetime:
-        # After closing time - closed until tomorrow 7:00 AM
+        # After closing time - closed until next draw day 7:00 AM
         is_open = False
         if local_now < draw_datetime:
             # Between closing and draw - waiting for draw
             message = f"Cerrada. Sorteo a las {display_draw}"
         else:
-            # After draw - closed until tomorrow
-            message = f"Cerrada. Abre mañana {tomorrow_day_es} a las 7:00 AM"
+            # After draw - closed until next draw day
+            message = f"Abre el {tomorrow_day_es} a las 7:00 AM"
     else:
         # Open for sales
         is_open = True
