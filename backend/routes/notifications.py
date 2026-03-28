@@ -1,5 +1,7 @@
 """Notification routes"""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from datetime import datetime, timezone, timedelta
+from typing import Optional
 from utils.database import get_db
 from utils.helpers import serialize_doc
 from utils.auth import get_current_user
@@ -8,16 +10,39 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 
 @router.get("")
-async def get_notifications(limit: int = 50, current_user: dict = Depends(get_current_user)):
-    """Get recent notifications for current user"""
+async def get_notifications(
+    limit: int = 50, 
+    date: Optional[str] = Query(None, description="Filter by date (YYYY-MM-DD). If not provided, returns today's notifications."),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get notifications for current user, filtered by date (defaults to today)"""
     db = get_db()
     user_id = current_user["id"]
+    
+    # Dominican Republic is UTC-4
+    now_utc = datetime.now(timezone.utc)
+    now_dr = now_utc - timedelta(hours=4)
+    
+    # Parse date filter or use today
+    if date:
+        try:
+            filter_date = datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            filter_date = now_dr.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        filter_date = now_dr.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Calculate date range (full day in UTC)
+    # DR midnight = UTC 04:00
+    start_utc = filter_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=4)
+    end_utc = start_utc + timedelta(days=1)
     
     query = {
         "$or": [
             {"user_id": {"$exists": False}},
             {"user_id": user_id}
-        ]
+        ],
+        "created_at": {"$gte": start_utc, "$lt": end_utc}
     }
     
     notifications = await db.notifications.find(query).sort("created_at", -1).to_list(limit)
