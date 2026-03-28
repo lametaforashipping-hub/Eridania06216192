@@ -33,6 +33,76 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+async def run_data_migrations():
+    """
+    Run data migrations on startup to fix known issues.
+    These are idempotent - safe to run multiple times.
+    """
+    from utils.database import get_db
+    db = get_db()
+    
+    try:
+        logger.info("🔄 Running data migrations...")
+        
+        # Migration 1: Fix lottery schedules that are in wrong format (02:30 instead of 14:30)
+        # Known issue: Some lotteries have PM times saved as AM (e.g., 02:30 instead of 14:30)
+        lottery_time_fixes = {
+            "Gana Más": {"schedule": ["14:30"], "closing_time": "14:20", "display_time": "2:30 PM", "display_closing": "2:20 PM"},
+            "Quiniela Leidsa 3:55 PM": {"schedule": ["15:55"], "closing_time": "15:45", "display_time": "3:55 PM", "display_closing": "3:45 PM"},
+            "Pega 3 Más 12:55 PM": {"schedule": ["12:55"], "closing_time": "12:45", "display_time": "12:55 PM", "display_closing": "12:45 PM"},
+            "Pega 3 Más 3:00 PM": {"schedule": ["15:00"], "closing_time": "14:50", "display_time": "3:00 PM", "display_closing": "2:50 PM"},
+            "Pega 3 Más 9:00 PM": {"schedule": ["21:00"], "closing_time": "20:50", "display_time": "9:00 PM", "display_closing": "8:50 PM"},
+            "Lotería Nacional 6:00 PM": {"schedule": ["18:00"], "closing_time": "17:50", "display_time": "6:00 PM", "display_closing": "5:50 PM"},
+            "Lotería Nacional 8:50 PM": {"schedule": ["20:50"], "closing_time": "20:40", "display_time": "8:50 PM", "display_closing": "8:40 PM"},
+            "Quiniela Real": {"schedule": ["12:55"], "closing_time": "12:45", "display_time": "12:55 PM", "display_closing": "12:45 PM"},
+            "Quiniela Loteka": {"schedule": ["19:55"], "closing_time": "19:45", "display_time": "7:55 PM", "display_closing": "7:45 PM"},
+            "La Primera Día": {"schedule": ["12:00"], "closing_time": "11:50", "display_time": "12:00 PM", "display_closing": "11:50 AM"},
+            "Primera Noche": {"schedule": ["19:00"], "closing_time": "18:50", "display_time": "7:00 PM", "display_closing": "6:50 PM"},
+            "La Suerte 12:30 PM": {"schedule": ["12:30"], "closing_time": "12:20", "display_time": "12:30 PM", "display_closing": "12:20 PM"},
+            "La Suerte 6:00 PM": {"schedule": ["18:00"], "closing_time": "17:50", "display_time": "6:00 PM", "display_closing": "5:50 PM"},
+            "Quiniela LoteDom 12:00 PM": {"schedule": ["12:00"], "closing_time": "11:50", "display_time": "12:00 PM", "display_closing": "11:50 AM"},
+            "Quiniela LoteDom 3:00 PM": {"schedule": ["15:00"], "closing_time": "14:50", "display_time": "3:00 PM", "display_closing": "2:50 PM"},
+            "Quiniela LoteDom 6:00 PM": {"schedule": ["18:00"], "closing_time": "17:50", "display_time": "6:00 PM", "display_closing": "5:50 PM"},
+            "Quiniela LoteDom 9:00 PM": {"schedule": ["21:00"], "closing_time": "20:50", "display_time": "9:00 PM", "display_closing": "8:50 PM"},
+            "King Lottery 12:30 PM": {"schedule": ["12:30"], "closing_time": "12:20", "display_time": "12:30 PM", "display_closing": "12:20 PM"},
+            "King Lottery 7:30 PM": {"schedule": ["19:30"], "closing_time": "19:20", "display_time": "7:30 PM", "display_closing": "7:20 PM"},
+            "Anguila Mañana": {"schedule": ["10:00"], "closing_time": "09:50", "display_time": "10:00 AM", "display_closing": "9:50 AM"},
+            "Anguila Medio Día": {"schedule": ["13:00"], "closing_time": "12:50", "display_time": "1:00 PM", "display_closing": "12:50 PM"},
+            "Anguila Tarde": {"schedule": ["16:00"], "closing_time": "15:50", "display_time": "4:00 PM", "display_closing": "3:50 PM"},
+            "Anguila Noche": {"schedule": ["21:00"], "closing_time": "20:50", "display_time": "9:00 PM", "display_closing": "8:50 PM"},
+            "Florida Día": {"schedule": ["13:30"], "closing_time": "13:20", "display_time": "1:30 PM", "display_closing": "1:20 PM"},
+            "Florida Noche": {"schedule": ["21:45"], "closing_time": "21:35", "display_time": "9:45 PM", "display_closing": "9:35 PM"},
+            "New York Tarde": {"schedule": ["14:30"], "closing_time": "14:20", "display_time": "2:30 PM", "display_closing": "2:20 PM"},
+            "New York Noche": {"schedule": ["22:30"], "closing_time": "22:20", "display_time": "10:30 PM", "display_closing": "10:20 PM"},
+            "Quiniela Leidsa 8:55 AM": {"schedule": ["08:55"], "closing_time": "08:45", "display_time": "8:55 AM", "display_closing": "8:45 AM"},
+        }
+        
+        fixed_count = 0
+        for name, correct_values in lottery_time_fixes.items():
+            # Check if lottery needs fixing (schedule is wrong)
+            lottery = await db.lotteries.find_one({"name": name})
+            if lottery:
+                current_schedule = lottery.get("schedule", [])
+                correct_schedule = correct_values["schedule"]
+                
+                # Only update if schedule is different
+                if current_schedule != correct_schedule:
+                    await db.lotteries.update_one(
+                        {"name": name},
+                        {"$set": correct_values}
+                    )
+                    logger.info(f"  ✅ Fixed {name}: {current_schedule} → {correct_schedule}")
+                    fixed_count += 1
+        
+        if fixed_count > 0:
+            logger.info(f"🔄 Migration complete: Fixed {fixed_count} lottery schedules")
+        else:
+            logger.info("🔄 Migration complete: All lottery schedules already correct")
+            
+    except Exception as e:
+        logger.warning(f"⚠️ Migration error (non-fatal): {e}")
+
 # Import and register all routers
 from routes import (
     auth_router,
@@ -116,6 +186,9 @@ async def startup_event():
     from services.notifications import notify_admin_pending_payments_summary, send_weekly_report_to_admins
     from utils.database import get_db
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    
+    # Run data migrations first
+    await run_data_migrations()
     
     async def _run_ticket_expiry():
         from services.ticket_expiry import expire_old_pending_tickets
