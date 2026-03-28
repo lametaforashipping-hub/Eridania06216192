@@ -67,6 +67,25 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - Multi-play: Mensaje detallado con cada jugada ganadora y su premio
 - `notify_winner()` acepta parámetros opcionales de detalles del ganador
 
+### 7. Sistema de Cuadre / Settlement (28/03/2026)
+- **NUEVA RUTA**: `/api/settlements/` con 5 endpoints completos
+- **Fórmula correcta**: `Ganancia Neta = Ventas - Comisión - Premios`
+- **Comisión SIEMPRE se deduce**, gane o pierda el ticket
+- **Cerrar Cuadre**: Admin/Super Admin registran pago del vendedor, balance se actualiza
+- **Balance Acumulado**: Se arrastra de cuadre en cuadre. Si el vendedor paga parcial, el restante se suma a las nuevas ventas
+- **Registrar Pago Rápido**: Sin cerrar cuadre completo, se reduce el balance
+- **Filtro por Fecha**: Desde/hasta en todos los endpoints de cuadre
+- **Historial**: Todas las liquidaciones guardadas con desglose
+- **Restricción Admin**: Solo puede ver/cerrar cuadres de sus propios vendedores
+- **Contabilidad corregida**: Todos los endpoints de accounting ahora usan la fórmula correcta (ventas - comisión - premios)
+
+### Endpoints de Cuadre:
+- `GET /api/settlements/cuadre/{seller_id}?start_date=X&end_date=Y`
+- `POST /api/settlements/close` (cerrar cuadre con pago)
+- `POST /api/settlements/payment` (pago rápido)
+- `GET /api/settlements/history/{seller_id}`
+- `GET /api/settlements/all-balances`
+
 ## Estado de Verificación
 
 ### Backend - 38+ endpoints verificados
@@ -77,6 +96,7 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - iteration_54: Lottery reorganization + receipt image (22/22 - 100%)
 - iteration_55: Free Trial system (16/16 - 100%)
 - iteration_56: Accounting wins & seller loss (16/16 - 100%)
+- iteration_57: Settlement/Cuadre system (16/16 - 100%)
 
 ## Credenciales
 - Super Admin: admin@loteria.com / admin123 (US, USD)
@@ -94,6 +114,11 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - ✅ Fix contabilidad: campos incorrectos para premios (prize → potential_win)
 - ✅ Tickets ganadores almacenan número ganador y desglose del premio
 - ✅ Endpoint verify incluye winning_details
+
+- ✅ Sistema de Cuadre: cerrar cuadre, registrar pago, balance acumulado, historial
+- ✅ Fórmula contabilidad: Ganancia = Ventas - Comisión - Premios (en TODOS los endpoints)
+- ✅ Widget "Prueba Gratis" embebible para globalmetafora.com
+- ✅ Multiplicadores USA verificados (60/12/4, 1500, 10000)
 
 ### P1
 - Deploy a producción con `eas update`
