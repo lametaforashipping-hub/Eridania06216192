@@ -71,6 +71,7 @@ export default function Dashboard() {
     { icon: Target, label: 'Metas Ventas', route: '/sales-goals', roles: ['super_admin', 'admin'], color: '#ec4899' },
     { icon: Calculator, label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: Receipt, label: 'Comisiones', route: '/commission-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
+    { icon: DollarSign, label: 'Cuadre', route: '/cuadre', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: Banknote, label: 'Pagar Premios', route: '/pay-prizes', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: CreditCard, label: 'Pagos Clientes', route: '/admin-pending-payments', roles: ['super_admin', 'admin'], color: '#f43f5e' },
     { icon: Users, label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },

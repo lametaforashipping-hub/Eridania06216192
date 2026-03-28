@@ -198,6 +198,7 @@ export default function Dashboard() {
     { icon: 'flag-outline', emoji: '🎯', label: 'Metas Ventas', route: '/sales-goals', roles: ['super_admin', 'admin'], color: '#ec4899' },
     { icon: 'calculator-outline', emoji: '🧮', label: 'Contabilidad', route: '/accounting', roles: ['super_admin', 'admin', 'vendedor'], color: '#0ea5e9' },
     { icon: 'receipt-outline', emoji: '💰', label: 'Comisiones', route: '/commission-report', roles: ['super_admin', 'admin', 'vendedor'], color: '#f59e0b' },
+    { icon: 'wallet-outline', emoji: '📋', label: 'Cuadre', route: '/cuadre', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: 'cash-outline', emoji: '💵', label: 'Pagar Premios', route: '/pay-prizes', roles: ['super_admin', 'admin'], color: '#10b981' },
     { icon: 'card-outline', emoji: '💳', label: 'Pagos Clientes', route: '/admin-pending-payments', roles: ['super_admin', 'admin'], color: '#f43f5e' },
     { icon: 'person-add-outline', emoji: '👤', label: 'Usuarios', route: '/users', roles: ['super_admin', 'admin'], color: '#f97316' },
@@ -332,15 +333,18 @@ export default function Dashboard() {
 
             <View style={[styles.statCard, styles.statCardProfit]}>
               <Ionicons 
-                name={summary.today.profit >= 0 ? 'trending-up' : 'trending-down'} 
+                name={summary.today.net_profit >= 0 ? 'trending-up' : 'trending-down'} 
                 size={24} 
-                color={summary.today.profit >= 0 ? '#22c55e' : '#ef4444'} 
+                color={summary.today.net_profit >= 0 ? '#22c55e' : '#ef4444'} 
               />
               <Text style={styles.statLabel}>Ganancia Hoy</Text>
-              <Text style={[styles.statValue, summary.today.profit >= 0 ? styles.positive : styles.negative]}>
-                {formatCurrency(summary.today.profit, summary.currency)}
+              <Text style={[styles.statValue, (summary.today.net_profit ?? summary.today.profit) >= 0 ? styles.positive : styles.negative]}>
+                {formatCurrency(summary.today.net_profit ?? summary.today.profit, summary.currency)}
               </Text>
-              <Text style={styles.statSubtext}>Premios: {formatCurrency(summary.today.wins, summary.currency)}</Text>
+              <Text style={styles.statSubtext}>
+                Premios: {formatCurrency(summary.today.wins, summary.currency)}
+                {summary.today.commission ? ` | Com: ${formatCurrency(summary.today.commission, summary.currency)}` : ''}
+              </Text>
             </View>
 
             <View style={styles.statCard}>

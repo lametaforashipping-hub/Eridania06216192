@@ -16,6 +16,7 @@ import AccountingPage from './pages/AccountingPage'
 import CommissionReport from './pages/CommissionReport'
 import UserReport from './pages/UserReport'
 import AlertSettings from './pages/AlertSettings'
+import CuadrePage from './pages/CuadrePage'
 
 import Layout from './components/Layout'
 
@@ -66,6 +67,7 @@ export default function App() {
       <Route path="/sales-goals" element={<ProtectedRoute><ComingSoon title="Metas de Ventas" /></ProtectedRoute>} />
       <Route path="/accounting" element={<ProtectedRoute><AccountingPage /></ProtectedRoute>} />
       <Route path="/commission-report" element={<ProtectedRoute><CommissionReport /></ProtectedRoute>} />
+      <Route path="/cuadre" element={<ProtectedRoute><CuadrePage /></ProtectedRoute>} />
       <Route path="/pay-prizes" element={<ProtectedRoute><ComingSoon title="Pagar Premios" /></ProtectedRoute>} />
       <Route path="/admin-pending-payments" element={<ProtectedRoute><ComingSoon title="Pagos Pendientes" /></ProtectedRoute>} />
       <Route path="/bank-accounts" element={<ProtectedRoute><ComingSoon title="Cuentas de Banco" /></ProtectedRoute>} />
