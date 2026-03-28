@@ -20,33 +20,42 @@ BLACK = '#000000'
 
 
 def _load_fonts():
-    """Load all bold fonts - thermal printer style, all BLACK"""
+    """Load all bold fonts - thermal printer style, MAXIMUM visibility"""
     try:
         return {
-            "company": ImageFont.truetype(BOLD_FONT, 26),
-            "address": ImageFont.truetype(BOLD_FONT, 15),
-            "label": ImageFont.truetype(BOLD_FONT, 16),
-            "ticket_num": ImageFont.truetype(BOLD_FONT, 22),
-            "date": ImageFont.truetype(BOLD_FONT, 15),
-            "lottery_name": ImageFont.truetype(BOLD_FONT, 16),
-            "play": ImageFont.truetype(BOLD_FONT, 15),
-            "subtotal": ImageFont.truetype(BOLD_FONT, 15),
-            "total": ImageFont.truetype(BOLD_FONT, 20),
-            "footer": ImageFont.truetype(BOLD_FONT, 15),
+            "company": ImageFont.truetype(BOLD_FONT, 30),
+            "address": ImageFont.truetype(BOLD_FONT, 17),
+            "label": ImageFont.truetype(BOLD_FONT, 18),
+            "ticket_num": ImageFont.truetype(BOLD_FONT, 26),
+            "date": ImageFont.truetype(BOLD_FONT, 17),
+            "lottery_name": ImageFont.truetype(BOLD_FONT, 18),
+            "play": ImageFont.truetype(BOLD_FONT, 17),
+            "subtotal": ImageFont.truetype(BOLD_FONT, 17),
+            "total": ImageFont.truetype(BOLD_FONT, 24),
+            "footer": ImageFont.truetype(BOLD_FONT, 17),
         }
     except Exception:
         default = ImageFont.load_default()
         return {k: default for k in ["company", "address", "label", "ticket_num", "date", "lottery_name", "play", "subtotal", "total", "footer"]}
 
 
+def _draw_ultra_bold(draw, x, y, text, font, fill):
+    """Draw text multiple times with pixel offsets for MAXIMUM boldness on thermal printers"""
+    for dx in range(-1, 2):
+        for dy in range(-1, 2):
+            draw.text((x + dx, y + dy), text, fill=fill, font=font)
+
+
 def _draw_centered(draw, y, text, font, fill, width):
     bbox = draw.textbbox((0, 0), text, font=font)
-    draw.text(((width - (bbox[2] - bbox[0])) // 2, y), text, fill=fill, font=font)
+    x = (width - (bbox[2] - bbox[0])) // 2
+    _draw_ultra_bold(draw, x, y, text, font, fill)
 
 
 def _draw_right_aligned(draw, y, text, font, fill, width, margin):
     bbox = draw.textbbox((0, 0), text, font=font)
-    draw.text((width - margin - (bbox[2] - bbox[0]), y), text, fill=fill, font=font)
+    x = width - margin - (bbox[2] - bbox[0])
+    _draw_ultra_bold(draw, x, y, text, font, fill)
 
 
 def _paste_logo(img, draw, y, width):
@@ -103,7 +112,7 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
     fonts = _load_fonts()
     width = 420
     margin = 20
-    play_row_h = 20
+    play_row_h = 22
     col_width = (width - margin * 2 - 10) // 2
 
     company_name = (company.get("company_name") or "LOTERIA MAGICA") if company else "LOTERIA MAGICA"
@@ -128,7 +137,7 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
     total_play_rows = 0
     for lp in plays_by_lottery.values():
         total_play_rows += (len(lp) + 1) // 2  # 2 columns
-    estimated_height = 120 + 80 + 80 + (num_groups * 35) + (total_play_rows * play_row_h) + (num_groups * 25) + 80 + 180 + 80
+    estimated_height = 130 + 90 + 90 + (num_groups * 40) + (total_play_rows * play_row_h) + (num_groups * 30) + 90 + 200 + 90
 
     img = Image.new('RGB', (width, estimated_height), 'white')
     draw = ImageDraw.Draw(img)
@@ -139,42 +148,42 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
 
     # === COMPANY NAME ===
     _draw_centered(draw, y, company_name.upper(), fonts["company"], BLACK, width)
-    y += 30
+    y += 34
 
     # === ADDRESS + RNC ===
     _draw_centered(draw, y, company_address.upper(), fonts["address"], BLACK, width)
-    y += 18
+    y += 20
     _draw_centered(draw, y, f"RNC: {company_rnc}", fonts["address"], BLACK, width)
-    y += 22
+    y += 24
 
     # === SEPARATOR ===
-    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=2)
-    y += 12
+    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=3)
+    y += 14
 
     # === TICKET NUMBER ===
     _draw_centered(draw, y, "NO. BOLETO", fonts["label"], BLACK, width)
-    y += 20
+    y += 22
     _draw_centered(draw, y, ticket_number, fonts["ticket_num"], BLACK, width)
-    y += 28
+    y += 32
 
     # === DATE ===
     date_str = _format_date(ticket.get("created_at"))
     if date_str:
         _draw_centered(draw, y, date_str, fonts["date"], BLACK, width)
-        y += 20
-    y += 8
+        y += 22
+    y += 10
 
     # === SEPARATOR ===
-    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=2)
-    y += 12
+    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=3)
+    y += 14
 
     # === PLAYS GROUPED BY LOTTERY (2 columns) ===
     grand_total = 0
 
     for lottery_name, lottery_plays in plays_by_lottery.items():
         # Lottery name header
-        draw.text((margin, y), lottery_name.upper(), fill=BLACK, font=fonts["lottery_name"])
-        y += 22
+        _draw_ultra_bold(draw, margin, y, lottery_name.upper(), fonts["lottery_name"], BLACK)
+        y += 24
 
         # Plays in 2 columns
         subtotal = 0
@@ -183,8 +192,8 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
             play_left = lottery_plays[i]
             abbr_l, nums_l, amt_l = _format_play_line(play_left, currency_display)
             left_text = f"{abbr_l} {nums_l}"
-            draw.text((margin, y), left_text, fill=BLACK, font=fonts["play"])
-            draw.text((margin + 120, y), amt_l, fill=BLACK, font=fonts["play"])
+            _draw_ultra_bold(draw, margin, y, left_text, fonts["play"], BLACK)
+            _draw_ultra_bold(draw, margin + 130, y, amt_l, fonts["play"], BLACK)
             subtotal += int(play_left.get("amount", 0))
 
             # Right column
@@ -193,11 +202,11 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
                 abbr_r, nums_r, amt_r = _format_play_line(play_right, currency_display)
                 right_x = margin + col_width + 10
                 right_text = f"{abbr_r} {nums_r}"
-                draw.text((right_x, y), right_text, fill=BLACK, font=fonts["play"])
-                draw.text((right_x + 120, y), amt_r, fill=BLACK, font=fonts["play"])
+                _draw_ultra_bold(draw, right_x, y, right_text, fonts["play"], BLACK)
+                _draw_ultra_bold(draw, right_x + 130, y, amt_r, fonts["play"], BLACK)
                 subtotal += int(play_right.get("amount", 0))
 
-            y += play_row_h
+            y += play_row_h + 2
 
         # Sub-total line
         y += 2
@@ -207,18 +216,18 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
         grand_total += subtotal
 
         # Light separator between groups
-        draw.line([(margin, y), (width - margin, y)], fill='#999999', width=1)
-        y += 12
+        draw.line([(margin, y), (width - margin, y)], fill='#666666', width=2)
+        y += 14
 
     # === GRAND TOTAL ===
-    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=2)
-    y += 10
+    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=3)
+    y += 12
     total_amount = ticket.get("total_amount", grand_total)
     total_text = f"TOTAL  {currency_display} {total_amount:.0f}"
     _draw_centered(draw, y, total_text, fonts["total"], BLACK, width)
-    y += 32
-    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=2)
-    y += 15
+    y += 36
+    draw.line([(margin, y), (width - margin, y)], fill=BLACK, width=3)
+    y += 18
 
     # === QR CODE ===
     qr = qrcode.QRCode(version=1, box_size=4, border=2)
