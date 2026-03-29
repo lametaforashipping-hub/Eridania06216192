@@ -19,6 +19,21 @@ Aplicación de lotería con app móvil Expo (principal - la que usan vendedores)
 - FastAPI puerto 8001, prefijo /api
 - MongoDB (test_database)
 
+## Cambios Recientes (29/03/2026)
+
+### 14. UNIFICACIÓN WEB + APP (Expo Web) (29/03/2026)
+- **Implementación**: La app Expo ahora funciona también como sitio web
+- **Un solo código**: iOS, Android y Web comparten el mismo código
+- **PWA habilitado**: Los usuarios pueden "instalar" la web como app
+- **Todas las funcionalidades**: Venta, Boletos, Resultados, etc. funcionan en web
+- **Configuración**:
+  - `app.json` actualizado con configuración PWA
+  - Frontend ahora sirve la versión exportada de Expo (`dist/`)
+  - Servidor: `npx serve dist -l 3000 -s`
+- **Limitaciones web**:
+  - Impresión Bluetooth NO funciona (solo en app nativa)
+  - Notificaciones push parciales
+
 ## Cambios Recientes (28/03/2026)
 
 ### 13. MEJORA VISUAL DE BOLETOS GANADORES (28/03/2026)

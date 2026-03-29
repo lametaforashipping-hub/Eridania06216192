@@ -28,7 +28,16 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Loteria Magica",
+      "shortName": "Loteria",
+      "description": "Sistema de lotería - Venta de boletos, resultados y más",
+      "backgroundColor": "#0f172a",
+      "themeColor": "#22c55e",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "scope": "/"
     },
     "plugins": [
       "expo-router",
