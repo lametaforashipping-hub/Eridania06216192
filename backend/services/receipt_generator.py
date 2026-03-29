@@ -34,21 +34,21 @@ DARK_GRAY = '#333333'
 
 
 def _load_fonts():
-    """Load fonts - LARGER sizes for thermal printer readability"""
+    """Load fonts - BOLD and LARGER for better readability on thermal printers"""
     try:
         return {
-            "company": ImageFont.truetype(BOLD_FONT, 32),      # Was 24 -> 32
-            "tagline": ImageFont.truetype(REGULAR_FONT, 16),   # Was 13 -> 16
-            "address": ImageFont.truetype(REGULAR_FONT, 18),   # Was 14 -> 18
-            "label": ImageFont.truetype(BOLD_FONT, 18),        # Was 14 -> 18
-            "ticket_num": ImageFont.truetype(BOLD_FONT, 26),   # Was 20 -> 26
-            "date": ImageFont.truetype(REGULAR_FONT, 18),      # Was 14 -> 18
-            "lottery_name": ImageFont.truetype(BOLD_FONT, 22), # Was 16 -> 22
-            "play": ImageFont.truetype(BOLD_FONT, 20),         # Was 15 -> 20
-            "subtotal": ImageFont.truetype(BOLD_FONT, 18),     # Was 14 -> 18
-            "total_label": ImageFont.truetype(BOLD_FONT, 26),  # Was 20 -> 26
-            "total_amount": ImageFont.truetype(BOLD_FONT, 30), # Was 22 -> 30
-            "footer": ImageFont.truetype(BOLD_FONT, 16),       # Was 13 -> 16
+            "company": ImageFont.truetype(BOLD_FONT, 28),      # Bigger, bold
+            "tagline": ImageFont.truetype(BOLD_FONT, 14),      # Bold now
+            "address": ImageFont.truetype(BOLD_FONT, 15),      # Bold now
+            "label": ImageFont.truetype(BOLD_FONT, 16),        # Bigger
+            "ticket_num": ImageFont.truetype(BOLD_FONT, 24),   # Bigger
+            "date": ImageFont.truetype(BOLD_FONT, 16),         # Bold now, bigger
+            "lottery_name": ImageFont.truetype(BOLD_FONT, 18), # Bigger
+            "play": ImageFont.truetype(BOLD_FONT, 17),         # Bigger
+            "subtotal": ImageFont.truetype(BOLD_FONT, 16),     # Bigger
+            "total_label": ImageFont.truetype(BOLD_FONT, 22),  # Bigger
+            "total_amount": ImageFont.truetype(BOLD_FONT, 26), # Bigger
+            "footer": ImageFont.truetype(BOLD_FONT, 15),       # Bold, bigger
         }
     except Exception:
         default = ImageFont.load_default()
@@ -145,12 +145,12 @@ def _draw_separator(draw, y, width, margin, style="solid"):
 
 
 def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict) -> bytes:
-    """Generate a clean, professional receipt PNG image - LARGER for thermal printer readability."""
+    """Generate a clean, professional receipt PNG image - Same size, LARGER & BOLDER fonts."""
     fonts = _load_fonts()
-    width = 576  # Standard 80mm thermal printer width (was 400)
-    margin = 30  # Larger margins (was 24)
-    play_row_h = 28  # Taller rows (was 20)
-    col_width = (width - margin * 2 - 24) // 2
+    width = 400  # Same width as before
+    margin = 24
+    play_row_h = 24  # Slightly taller rows for larger fonts
+    col_width = (width - margin * 2 - 16) // 2
 
     company_name = (company.get("company_name") or "LOTERIA MAGICA") if company else "LOTERIA MAGICA"
     company_address = (company.get("address") or "SANTO DOMINGO") if company else "SANTO DOMINGO"
@@ -169,50 +169,50 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
     currency_display = "US$" if ticket_currency in ["USD", "US$", "US"] else "RD$"
     ticket_number = ticket.get("ticket_number", "")
 
-    # Estimate height - TALLER for larger fonts
+    # Estimate height
     num_groups = len(plays_by_lottery)
     total_play_rows = sum((len(lp) + 1) // 2 for lp in plays_by_lottery.values())
-    estimated_height = 200 + 100 + 100 + (num_groups * 50) + (total_play_rows * play_row_h) + (num_groups * 40) + 120 + 200 + 100
+    estimated_height = 180 + 100 + 100 + (num_groups * 45) + (total_play_rows * play_row_h) + (num_groups * 35) + 100 + 180 + 80
 
     img = Image.new('RGB', (width, estimated_height), 'white')
     draw = ImageDraw.Draw(img)
-    y = 20
+    y = 15
 
     # === LOGO ===
     y = _paste_logo(img, draw, y, width)
 
     # === COMPANY NAME ===
     _draw_centered(draw, y, company_name.upper(), fonts["company"], BLACK, width)
-    y += 38  # Was 28
+    y += 32
 
     # === TAGLINE ===
-    _draw_centered(draw, y, "Tu suerte esta aqui", fonts["tagline"], DARK_GRAY, width)
-    y += 24  # Was 18
+    _draw_centered(draw, y, "Tu suerte esta aqui", fonts["tagline"], BLACK, width)
+    y += 20
 
     # === ADDRESS + RNC ===
-    _draw_centered(draw, y, company_address, fonts["address"], DARK_GRAY, width)
-    y += 22  # Was 17
-    _draw_centered(draw, y, f"RNC: {company_rnc}", fonts["address"], DARK_GRAY, width)
-    y += 28  # Was 20
+    _draw_centered(draw, y, company_address, fonts["address"], BLACK, width)
+    y += 18
+    _draw_centered(draw, y, f"RNC: {company_rnc}", fonts["address"], BLACK, width)
+    y += 22
 
     # === SEPARATOR ===
     y = _draw_separator(draw, y, width, margin, "solid")
-    y += 8
+    y += 6
 
     # === TICKET NUMBER ===
     _draw_centered(draw, y, ticket_number, fonts["ticket_num"], BLACK, width)
-    y += 34  # Was 26
+    y += 28
 
     # === DATE ===
     date_str = _format_date(ticket.get("created_at"))
     if date_str:
-        _draw_centered(draw, y, date_str, fonts["date"], DARK_GRAY, width)
-        y += 24  # Was 18
-    y += 12  # Was 8
+        _draw_centered(draw, y, date_str, fonts["date"], BLACK, width)
+        y += 20
+    y += 8
 
     # === SEPARATOR ===
     y = _draw_separator(draw, y, width, margin, "solid")
-    y += 8
+    y += 6
 
     # === PLAYS GROUPED BY LOTTERY ===
     grand_total = 0
@@ -220,7 +220,7 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
     for lottery_name, lottery_plays in plays_by_lottery.items():
         # Lottery name header
         _draw_text(draw, margin, y, lottery_name.upper(), fonts["lottery_name"], BLACK)
-        y += 30  # Was 22
+        y += 26
 
         # Plays in 2 columns
         subtotal = 0
@@ -237,7 +237,7 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
                 play_right = lottery_plays[i + 1]
                 abbr_r, nums_r, amt_r = _format_play_line(play_right, currency_display)
                 right_text = f"{abbr_r} {nums_r} {amt_r}"
-                right_x = margin + col_width + 24  # Was 16
+                right_x = margin + col_width + 16
                 _draw_text(draw, right_x, y, right_text, fonts["play"], BLACK)
                 subtotal += int(play_right.get("amount", 0))
 
@@ -245,39 +245,39 @@ def generate_receipt_image(ticket: dict, company: dict, lottery_id_to_name: dict
 
         # Sub-total line
         grand_total += subtotal
-        y += 6  # Was 2
+        y += 4
 
         # Light separator between lottery groups
         y = _draw_separator(draw, y, width, margin, "light")
-        y += 6  # Was 2
+        y += 4
 
     # === GRAND TOTAL ===
     y = _draw_separator(draw, y, width, margin, "solid")
-    y += 10  # Was 2
+    y += 6
     total_amount = ticket.get("total_amount", grand_total)
     total_text = f"TOTAL: {currency_display} {total_amount:.2f}"
     _draw_centered(draw, y, total_text, fonts["total_amount"], BLACK, width)
-    y += 40  # Was 30
+    y += 34
     y = _draw_separator(draw, y, width, margin, "solid")
-    y += 12  # Was 4
+    y += 6
 
     # === QR CODE ===
-    qr = qrcode.QRCode(version=1, box_size=5, border=2)  # box_size was 4 -> 5
+    qr = qrcode.QRCode(version=1, box_size=4, border=2)
     qr.add_data(ticket_number)
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
     qr_w, qr_h = qr_img.size
     img.paste(qr_img, ((width - qr_w) // 2, y))
-    y += qr_h + 18  # Was 12
+    y += qr_h + 12
 
     # === FOOTER ===
-    _draw_centered(draw, y, "CONSERVE ESTE BOLETO", fonts["footer"], DARK_GRAY, width)
-    y += 22  # Was 16
+    _draw_centered(draw, y, "CONSERVE ESTE BOLETO", fonts["footer"], BLACK, width)
+    y += 18
     _draw_centered(draw, y, "BUENA SUERTE!", fonts["footer"], BLACK, width)
-    y += 28  # Was 20
+    y += 22
 
     # Crop to actual content and export
-    img = img.crop((0, 0, width, y + 15))
+    img = img.crop((0, 0, width, y + 10))
     buf = io.BytesIO()
     img.save(buf, format='PNG', optimize=True)
     buf.seek(0)
