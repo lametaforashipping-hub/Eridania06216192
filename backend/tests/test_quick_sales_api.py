@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://lottery-sync-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vite-migration-test.preview.emergentagent.com')
 
 # Test credentials
 VENDEDOR_EMAIL = "vendedor@test.com"

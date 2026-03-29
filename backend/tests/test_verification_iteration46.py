@@ -12,7 +12,7 @@ import os
 import base64
 
 # Base URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://lottery-sync-1.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vite-migration-test.preview.emergentagent.com').rstrip('/')
 
 
 class TestAuthentication:

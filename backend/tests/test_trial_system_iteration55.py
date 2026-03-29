@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 # Get API URL from environment
 BASE_URL = os.environ.get('VITE_API_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://lottery-sync-1.preview.emergentagent.com"
+    BASE_URL = "https://vite-migration-test.preview.emergentagent.com"
 
 # Master admin credentials
 MASTER_ADMIN_EMAIL = "admin@loteria.com"
